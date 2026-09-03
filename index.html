@@ -1651,16 +1651,19 @@
             border-radius: 6px;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
             text-align: left;
             color: #334155;
+            box-sizing: border-box;
+            transform: none !important;
         }
 
         .sub-report-item:hover {
             background: #f0f7ff;
             border-color: #38bdf8;
             color: #0284c7;
-            transform: translateX(3px);
+            transform: none !important;
+            box-shadow: 0 2px 5px rgba(2, 132, 199, 0.08);
         }
 
         .sub-item-left {
@@ -1677,6 +1680,8 @@
             border-radius: 50%;
             background: #94a3b8;
             flex-shrink: 0;
+            transition: background-color 0.15s ease;
+            transform: none !important;
         }
 
         .sub-item-title {
@@ -1686,7 +1691,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            transition: color 0.15s;
+            transition: color 0.15s ease;
         }
 
         .sub-report-item:hover .sub-item-title {
@@ -1696,12 +1701,14 @@
         .sub-report-item.item-highlight-entry {
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
             border-color: #7dd3fc;
+            transform: none !important;
         }
 
         .sub-report-item.item-highlight-entry:hover {
             background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
             border-color: #38bdf8;
-            transform: translateX(3px);
+            transform: none !important;
+            box-shadow: 0 2px 5px rgba(2, 132, 199, 0.1);
         }
 
         .sub-report-item.item-highlight-entry .sub-item-title {
@@ -1720,6 +1727,7 @@
             color: #0284c7;
             stroke: #0284c7;
             stroke-width: 2.2;
+            transform: none !important;
         }
 
         .sub-item-arrow {
@@ -1729,12 +1737,13 @@
             stroke-width: 2.2;
             fill: none;
             flex-shrink: 0;
-            transition: stroke 0.2s, transform 0.2s;
+            transition: stroke 0.15s ease;
+            transform: none !important;
         }
 
         .sub-report-item:hover .sub-item-arrow {
             stroke: #0284c7;
-            transform: translateX(2px);
+            transform: none !important;
         }
 
         /* MASTER Module 11 Card in Drawer Menu */
@@ -1802,7 +1811,7 @@
         }
 
         .sub-report-item:active {
-            transform: translateX(2px) scale(0.99);
+            transform: none !important;
             background: #bae6fd;
         }
 
@@ -4254,7 +4263,7 @@
             display: none !important;
         }
 
-        /* 3. Zero Underline on Sub-Report Links in Sidebar */
+        /* 3. Zero Underline and Zero Jitter on Sub-Report Links in Sidebar */
         .sub-report-item,
         .sub-report-item:link,
         .sub-report-item:visited,
@@ -4263,6 +4272,29 @@
         .sub-report-item span,
         .sub-item-title {
             text-decoration: none !important;
+        }
+
+        /* 3.1 ZERO-JITTER PERMANENT LOCK: Menu/Page Options Static Hover Guarantee */
+        .sub-report-item,
+        .sub-report-item:hover,
+        .sub-report-item.item-highlight-entry,
+        .sub-report-item.item-highlight-entry:hover,
+        .sub-report-item.active-page,
+        .sub-report-item:active,
+        .mep-sub-item,
+        .mep-sub-item:hover,
+        .mep-sub-item.active-page,
+        .mep-module-heading,
+        .mep-module-heading:hover,
+        .sub-item-arrow,
+        .sub-item-arrow:hover,
+        .sub-report-item:hover .sub-item-arrow,
+        .sub-item-dot,
+        .sub-item-title {
+            transform: none !important;
+            -webkit-transform: none !important;
+            scale: none !important;
+            zoom: 1 !important;
         }
 
         /* 4. Hide all report count badges (5 Reports, 8 Reports, etc.) from Hub Cards */

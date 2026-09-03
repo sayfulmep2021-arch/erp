@@ -754,7 +754,7 @@ body.dark-theme .smart-page-title {
     background: #f0f9ff;
     color: #0284c7;
     border-color: #bae6fd;
-    transform: translateX(2px);
+    transform: none !important;
 }
 
 .mep-sub-item.active-page {
@@ -840,7 +840,7 @@ body.dark-theme .smart-page-title {
     background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
     border: none !important;
     color: #ffffff !important;
-    transform: translateY(-2px) !important;
+    transform: none !important;
     box-shadow: 0 6px 18px rgba(2, 132, 199, 0.3) !important;
 }
 
@@ -896,7 +896,7 @@ body.dark-theme .smart-page-title {
     background: linear-gradient(135deg, #0f2942 0%, #1e40af 50%, #0369a1 100%) !important;
     border: none !important;
     color: #ffffff !important;
-    transform: translateY(-2px) scale(1.01) !important;
+    transform: none !important;
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 6px 20px rgba(2, 132, 199, 0.5) !important;
     text-decoration: none !important;
 }
@@ -1108,9 +1108,7 @@ body.dark-theme .smart-page-title {
 
 .sub-report-item:hover {
     background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
-    border: none !important;
-    color: #0284c7 !important;
-    transform: translateX(3px) !important;
+    border: 1.2px solid #38bdf8 !important; color: #0284c7 !important; transform: none !important;
     box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12) !important;
     text-decoration: none !important;
 }
@@ -1123,7 +1121,7 @@ body.dark-theme .smart-page-title {
     border-left: 4.5px solid #dc2626 !important;
     color: #991b1b !important;
     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.16) !important;
-    transform: translateX(2px) !important;
+    transform: none !important;
 }
 
 .sub-item-left {
@@ -1219,13 +1217,13 @@ body.dark-theme .smart-page-title {
 
 .sub-report-item:hover .sub-item-arrow {
     stroke: #0284c7 !important;
-    transform: translateX(2px) !important;
+    transform: none !important;
 }
 
 .sub-report-item.active-page .sub-item-arrow,
 .sub-report-item:active .sub-item-arrow {
     stroke: #dc2626 !important;
-    transform: translateX(2px) !important;
+    transform: none !important;
 }
 
 /* ==========================================================================
@@ -1260,7 +1258,7 @@ body.dark-theme .smart-page-title {
 .mep-module-heading:hover {
     background: #f1f5f9 !important;
     border: none !important;
-    transform: translateX(3px) !important;
+    transform: none !important;
     box-shadow: none !important;
 }
 
@@ -2549,4 +2547,29 @@ body.portal-view-only .btn-action.btn-save:hover,
 body.portal-view-only .btn-new-entry:hover {
     transform: none !important;
     box-shadow: none !important;
+}
+
+
+/* ==========================================================================
+   ZERO-JITTER PERMANENT LOCK: Menu/Page Options Static Hover Guarantee
+   ========================================================================== */
+.sub-report-item,
+.sub-report-item:hover,
+.sub-report-item.item-highlight-entry,
+.sub-report-item.item-highlight-entry:hover,
+.sub-report-item.active-page,
+.mep-sub-item,
+.mep-sub-item:hover,
+.mep-sub-item.active-page,
+.mep-module-heading,
+.mep-module-heading:hover,
+.sub-item-arrow,
+.sub-item-arrow:hover,
+.sub-report-item:hover .sub-item-arrow,
+.sub-item-dot,
+.sub-item-title {
+    transform: none !important;
+    -webkit-transform: none !important;
+    scale: none !important;
+    zoom: 1 !important;
 }
