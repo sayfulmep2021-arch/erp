@@ -334,6 +334,18 @@
                     navRight.insertBefore(cloudBadge, navRight.firstChild);
                 }
 
+                // View-Only Mode Status Indicator
+                if (sessionStorage.getItem('portal_view_only') === 'true' && !navRight.querySelector('.smart-view-only-badge')) {
+                    const viewBadge = document.createElement('div');
+                    viewBadge.className = 'smart-view-only-badge';
+                    viewBadge.title = 'View-Only Mode: Data entry and editing are disabled';
+                    viewBadge.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <span>View Only</span>
+                    `;
+                    navRight.insertBefore(viewBadge, navRight.firstChild);
+                }
+
                 if (!navRight.querySelector('.user-brand-card')) {
                     const userBrand = document.createElement('a');
                     userBrand.href = "index.html?view=main";
@@ -1133,9 +1145,101 @@
         document.head.appendChild(fbScript);
     }
 
+    // Enforce View-Only restrictions when in Viewer mode
+    function enforceViewOnlyRestrictions() {
+        if (sessionStorage.getItem('portal_view_only') !== 'true') return;
+
+        document.body.classList.add('portal-view-only');
+
+        // Intercept clicks on any edit / add / save / paste / delete buttons
+        document.addEventListener('click', function(e) {
+            if (sessionStorage.getItem('portal_view_only') !== 'true') return;
+
+            const target = e.target.closest('button, .btn-action, .btn-plan, a');
+            if (!target) return;
+
+            const onclickAttr = (target.getAttribute('onclick') || '').toLowerCase();
+            const classList = (target.className || '').toLowerCase();
+            const btnText = (target.textContent || '').toLowerCase();
+
+            const isBlockedAction = (
+                classList.includes('btn-add') ||
+                classList.includes('btn-save') ||
+                classList.includes('btn-import') ||
+                classList.includes('btn-edit') ||
+                classList.includes('btn-delete') ||
+                onclickAttr.includes('save') ||
+                onclickAttr.includes('openadd') ||
+                onclickAttr.includes('openpaste') ||
+                onclickAttr.includes('delete') ||
+                onclickAttr.includes('edit') ||
+                btnText.includes('add') ||
+                btnText.includes('save') ||
+                btnText.includes('paste') ||
+                btnText.includes('import') ||
+                btnText.includes('delete')
+            );
+
+            // Allow Link modal, export, print, filters, nav tabs
+            const isAllowed = (
+                classList.includes('btn-action-link') ||
+                onclickAttr.includes('openlinkdetails') ||
+                onclickAttr.includes('export') ||
+                onclickAttr.includes('print') ||
+                onclickAttr.includes('filter') ||
+                onclickAttr.includes('switch') ||
+                classList.includes('btn-plan-outline') ||
+                classList.includes('btn-nav-tab') ||
+                classList.includes('rail-icon-btn')
+            );
+
+            if (isBlockedAction && !isAllowed) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                showViewOnlyToast();
+            }
+        }, true);
+
+        // Disable non-filter inputs
+        setTimeout(() => {
+            document.querySelectorAll('input:not(#searchInput):not(#singleDateInput):not(#fromDateInput):not(#toDateInput), textarea').forEach(inp => {
+                const id = (inp.id || '').toLowerCase();
+                if (!id.includes('search') && !id.includes('filter') && !id.includes('date') && !id.includes('month') && !id.includes('year')) {
+                    inp.readOnly = true;
+                    inp.style.cursor = 'not-allowed';
+                    inp.style.opacity = '0.7';
+                }
+            });
+        }, 500);
+    }
+
+    function showViewOnlyToast() {
+        let toast = document.getElementById('viewOnlyToastAlert');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'viewOnlyToastAlert';
+            toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0f2942; color:#ffffff; padding:10px 22px; border-radius:10px; font-size:0.86rem; font-weight:800; z-index:999999; box-shadow:0 8px 24px rgba(15,41,66,0.3); display:flex; align-items:center; gap:8px; pointer-events:none; transition:opacity 0.25s ease; opacity:0;';
+            toast.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#38bdf8" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>🔒 View Only Mode: You can view all data, but data entry and editing are disabled.</span>
+            `;
+            document.body.appendChild(toast);
+        }
+        toast.style.opacity = '1';
+        clearTimeout(window._viewOnlyToastTimeout);
+        window._viewOnlyToastTimeout = setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 3000);
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initFrozenSidebar);
+        document.addEventListener('DOMContentLoaded', () => {
+            initFrozenSidebar();
+            enforceViewOnlyRestrictions();
+        });
     } else {
         initFrozenSidebar();
+        enforceViewOnlyRestrictions();
     }
 })();

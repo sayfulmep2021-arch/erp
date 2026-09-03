@@ -2500,3 +2500,53 @@ header.portal-nav .notif-bell-btn,
 .smart-cloud-status-badge.syncing .cloud-pulse-dot {
     background: #f59e0b !important;
 }
+
+/* ==========================================================================
+   VIEW-ONLY MODE STYLES & LOCK BADGE
+   ========================================================================== */
+.smart-view-only-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 5px 12px !important;
+    background: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 20px !important;
+    font-size: 0.76rem !important;
+    font-weight: 800 !important;
+    color: #475569 !important;
+    letter-spacing: 0.2px !important;
+    user-select: none !important;
+    margin-right: 6px !important;
+    box-shadow: 0 1px 2px rgba(15, 41, 66, 0.04) !important;
+}
+
+.smart-view-only-badge svg {
+    stroke: #0284c7 !important;
+}
+
+/* Dim & Lock Add/Edit/Save buttons when in View Only Mode */
+body.portal-view-only .btn-save-plan,
+body.portal-view-only .btn-add-item,
+body.portal-view-only .btn-action-import,
+body.portal-view-only .btn-action.btn-add,
+body.portal-view-only .btn-action.btn-save,
+body.portal-view-only .btn-new-entry,
+body.portal-view-only button[onclick*="save"],
+body.portal-view-only button[onclick*="openAdd"],
+body.portal-view-only button[onclick*="openPaste"],
+body.portal-view-only button[onclick*="delete"],
+body.portal-view-only button[onclick*="edit"] {
+    opacity: 0.55 !important;
+    cursor: not-allowed !important;
+}
+
+body.portal-view-only .btn-save-plan:hover,
+body.portal-view-only .btn-add-item:hover,
+body.portal-view-only .btn-action-import:hover,
+body.portal-view-only .btn-action.btn-add:hover,
+body.portal-view-only .btn-action.btn-save:hover,
+body.portal-view-only .btn-new-entry:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}

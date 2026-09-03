@@ -349,6 +349,69 @@
             transform: translateX(4px);
         }
 
+        .auth-divider-or {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 14px 0 10px 0;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .auth-divider-or::before,
+        .auth-divider-or::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .btn-view-only {
+            width: 100%;
+            height: 48px;
+            background: #ffffff;
+            border: 1.8px solid #cbd5e1;
+            border-radius: 11px;
+            color: #0f2942;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 1px 3px rgba(15, 41, 66, 0.05);
+        }
+
+        .btn-view-only:hover {
+            background: #f8fafc;
+            border-color: #0284c7;
+            color: #0284c7;
+            transform: translateY(-1.5px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+        }
+
+        .btn-view-only:active {
+            transform: translateY(1px);
+        }
+
+        .btn-view-only svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-view-only:hover svg {
+            transform: scale(1.12);
+        }
+
         .auth-footer-notice {
             text-align: center;
             margin-top: 24px;
@@ -4752,6 +4815,18 @@
                     <span>SIGN IN</span>
                     <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
+
+                <div class="auth-divider-or">
+                    <span>or explore</span>
+                </div>
+
+                <button type="button" class="btn-view-only" id="viewOnlyBtn" onclick="handleViewOnlyAccess()" title="View full system, reports, and dashboards in Read-Only mode">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>VIEW</span>
+                </button>
             </form>
 
         </div>
@@ -4776,6 +4851,12 @@
                     <div class="smart-cloud-status-badge" id="mainCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
                         <span class="cloud-pulse-dot"></span>
                         <span class="cloud-status-text">Cloud Live</span>
+                    </div>
+
+                    <!-- View-Only Mode Status Badge -->
+                    <div class="smart-view-only-badge" style="display:none;" title="View-Only Mode: Data entry and editing are disabled">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <span>View Only</span>
                     </div>
 
                     <!-- Live Day & Time Top Corner Badge -->
@@ -5332,6 +5413,12 @@
                         <span class="cloud-pulse-dot"></span>
                         <span class="cloud-status-text">Cloud Live</span>
                     </div>
+
+                    <!-- View-Only Mode Status Badge -->
+                    <div class="smart-view-only-badge" style="display:none;" title="View-Only Mode: Data entry and editing are disabled">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <span>View Only</span>
+                    </div>
                     
                     <!-- Live Day & Time Top Corner Badge -->
                     <div class="live-clock-badge" id="liveClockBadge" title="Live System Day & Time">
@@ -5820,6 +5907,12 @@
                     <div class="smart-cloud-status-badge" id="hubCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
                         <span class="cloud-pulse-dot"></span>
                         <span class="cloud-status-text">Cloud Live</span>
+                    </div>
+
+                    <!-- View-Only Mode Status Badge -->
+                    <div class="smart-view-only-badge" style="display:none;" title="View-Only Mode: Data entry and editing are disabled">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <span>View Only</span>
                     </div>
 
                     <div class="live-clock-badge" id="hubLiveClockBadge" title="Live System Day & Time">
@@ -6687,6 +6780,7 @@
                 } else {
                     switchToMainInterfaceView();
                 }
+                applyViewOnlyStateUI();
             } else {
                 // Not authenticated or reopened browser: show Lock Screen
                 showLoginView();
@@ -6915,6 +7009,7 @@
 
             if (isUserValid && (enteredPass === AUTH_CONFIG.validPassword || enteredPass === "9642")) {
                 sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
+                sessionStorage.setItem('portal_view_only', "false");
                 sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
 
                 if (errorBox) errorBox.classList.remove('show');
@@ -6929,7 +7024,7 @@
                 } else {
                     switchToMainInterfaceView();
                 }
-                // Welcome notification handled without intrusive black toast popup
+                applyViewOnlyStateUI();
             } else {
                 // Failure
                 if (errorBox) errorBox.classList.add('show');
@@ -6949,11 +7044,44 @@
         }
 
         /**
-         * Handle Logout Action (Manually clears session and shows Lock Screen)
+         * Handle View-Only Access (Visitor / Guest Mode)
+         * Allows browsing all reports, dashboards, and calculations without data entry/edit capabilities
+         */
+        function handleViewOnlyAccess() {
+            sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
+            sessionStorage.setItem('portal_view_only', "true");
+            sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'hub') {
+                switchToDepartmentHub();
+            } else if (urlParams.get('view') === 'dashboard') {
+                switchToDashboardView();
+            } else {
+                switchToMainInterfaceView();
+            }
+            applyViewOnlyStateUI();
+        }
+
+        function applyViewOnlyStateUI() {
+            const isViewOnly = sessionStorage.getItem('portal_view_only') === 'true';
+            document.querySelectorAll('.smart-view-only-badge').forEach(el => {
+                el.style.display = isViewOnly ? 'inline-flex' : 'none';
+            });
+            if (isViewOnly) {
+                document.body.classList.add('portal-view-only');
+            } else {
+                document.body.classList.remove('portal-view-only');
+            }
+        }
+
+        /**
+         * Terminate Active Session
          */
         function handleLogout() {
             sessionStorage.removeItem(STORAGE_KEYS.isAuthenticated);
             sessionStorage.removeItem(STORAGE_KEYS.lastActivity);
+            sessionStorage.removeItem('portal_view_only');
             sessionStorage.removeItem('portal_current_view');
             sessionStorage.removeItem('portal_hub_module');
             localStorage.removeItem(STORAGE_KEYS.isAuthenticated);
