@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Query</title></head>
+<body>
+<script>
+sessionStorage.setItem('portal_auth_status', 'true');
+const data = JSON.parse(localStorage.getItem('mep_closing_fg_data') || '[]');
+const item1 = data.find(i => i.code && i.code.includes('EF0801OW'));
+const item2 = data.find(i => i.code && i.code.includes('CFB2401/FB2401IV'));
+console.log('ITEM1:', JSON.stringify(item1));
+console.log('ITEM2:', JSON.stringify(item2));
+</script>
+</body>
+</html>

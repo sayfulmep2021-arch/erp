@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>Inspect Table</title></head>
+<body>
+<iframe id='myIframe' src='closing_finish_good_fg.html' style='width:1600px; height:950px; border:none;'></iframe>
+<script>
+sessionStorage.setItem('portal_auth_status', 'true');
+const iframe = document.getElementById('myIframe');
+iframe.onload = () => {
+    setTimeout(() => {
+        const rows = iframe.contentDocument.querySelectorAll('#tableBody tr');
+        if (rows.length > 0) {
+            const firstRowCells = Array.from(rows[0].children).map(td => td.innerText.trim());
+            console.log('FIRST_ROW:', JSON.stringify(firstRowCells));
+        }
+    }, 500);
+};
+</script>
+</body>
+</html>
