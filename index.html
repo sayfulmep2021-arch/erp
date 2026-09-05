@@ -3802,7 +3802,7 @@
         .workspace-navbar {
             height: 48px !important;
             min-height: 48px !important;
-            padding: 0 24px !important;
+            padding: 0 16px 0 12px !important;
             flex-shrink: 0 !important;
             background: #ffffff !important;
             border-bottom: 1.5px solid #cbd5e1 !important;
@@ -4877,12 +4877,12 @@
                     <span class="smart-brand-text">Smart Time Management</span>
                 </div>
 
-                <!-- Right: Live Day/Time & Sayful Islam Profile Dropdown (No Logout in Header) -->
+                <!-- Right: Live Day/Time & Sayful Islam Profile Dropdown -->
                 <div class="nav-user-controls">
                     <!-- Realtime Firebase Cloud Status Indicator -->
                     <div class="smart-cloud-status-badge" id="mainCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
                         <span class="cloud-pulse-dot"></span>
-                        <span class="cloud-status-text">Cloud Live</span>
+                        <span class="cloud-status-text">Live</span>
                     </div>
 
                     <!-- View-Only Mode Status Badge -->
@@ -4949,12 +4949,12 @@
                             <!-- Structured Details List -->
                             <div class="profile-info-list">
                                 <div class="profile-info-row">
-                                    <span class="profile-info-label">Name</span>
-                                    <span class="profile-info-value">Sayful Islam</span>
+                                    <span class="profile-info-label">ID Number</span>
+                                    <span class="profile-info-value">10676</span>
                                 </div>
                                 <div class="profile-info-row">
-                                    <span class="profile-info-label">Designation</span>
-                                    <span class="profile-info-value">Senior Supervisor</span>
+                                    <span class="profile-info-label">Phone</span>
+                                    <span class="profile-info-value">01878044737</span>
                                 </div>
                                 <div class="profile-info-row">
                                     <span class="profile-info-label">Join Date</span>
@@ -4971,6 +4971,16 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Header Top-Right Corner Logout Button -->
+                    <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -5035,15 +5045,6 @@
                 </div>
 
                 <div class="rail-spacer" style="flex:1;"></div>
-
-                <!-- 🚪 Logout Button (Pinned to Bottom of Left Rail) -->
-                <button type="button" class="rail-icon-btn rail-logout-btn" onclick="handleLogout()" title="🚪 Sign out / Lock Portal">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                </button>
             </aside>
 
             <!-- Main Interface Canvas Matching Screenshot 2 -->
@@ -5443,7 +5444,7 @@
                     <!-- Realtime Firebase Cloud Status Indicator -->
                     <div class="smart-cloud-status-badge" id="dashCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
                         <span class="cloud-pulse-dot"></span>
-                        <span class="cloud-status-text">Cloud Live</span>
+                        <span class="cloud-status-text">Live</span>
                     </div>
 
                     <!-- View-Only Mode Status Badge -->
@@ -5535,6 +5536,16 @@
 
                         </div>
                     </div>
+
+                    <!-- Header Top-Right Corner Logout Button -->
+                    <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -5599,15 +5610,6 @@
                 </div>
 
                 <div class="rail-spacer" style="flex:1;"></div>
-
-                <!-- 🚪 Logout Button (Pinned to Bottom of Left Rail) -->
-                <button type="button" class="rail-icon-btn rail-logout-btn" onclick="handleLogout()" title="🚪 Sign out / Lock Portal">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                </button>
             </aside>
 
             <!-- Main Workspace Area: High-End Executive Dashboard -->
@@ -5926,7 +5928,7 @@
     <div class="app-workspace" id="departmentHubView">
         
         <!-- 1. Full-Width Frozen Top Navbar (100vw across entire window from far left corner) -->
-        <header class="workspace-navbar" style="background:#ffffff; border-bottom:1.5px solid #cbd5e1; height:48px; min-height:48px; padding:0 24px; width:100%; position:sticky; top:0; z-index:1000; flex-shrink:0;">
+        <header class="workspace-navbar" style="background:#ffffff; border-bottom:1.5px solid #cbd5e1; height:48px; min-height:48px; padding:0 16px 0 12px; width:100%; position:sticky; top:0; z-index:1000; flex-shrink:0;">
             <div class="navbar-inner" style="width:100%; display:flex; align-items:center; justify-content:space-between;">
                 <!-- Left: Permanent Brand Bar - Smart Time Management (Exclusive) -->
                 <div class="smart-brand-card">
@@ -5934,11 +5936,11 @@
                 </div>
 
                 <!-- Far Right Corner: Real-time Live Clock, Profile (NO Bell in Header) -->
-                <div class="nav-user-controls" style="display:flex; align-items:center; gap:14px;">
+                <div class="nav-user-controls" style="display:flex; align-items:center; gap:10px;">
                     <!-- Realtime Firebase Cloud Status Indicator -->
                     <div class="smart-cloud-status-badge" id="hubCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
                         <span class="cloud-pulse-dot"></span>
-                        <span class="cloud-status-text">Cloud Live</span>
+                        <span class="cloud-status-text">Live</span>
                     </div>
 
                     <!-- View-Only Mode Status Badge -->
@@ -5979,6 +5981,16 @@
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#64748b" stroke-width="2.2" class="user-brand-chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                     </div>
+
+                    <!-- Header Top-Right Corner Logout Button -->
+                    <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -6896,6 +6908,8 @@
                 renderProductionPerformanceDashboard();
             }
 
+            applyViewOnlyStateUI();
+
             if (window.location.search) {
                 try {
                     window.history.replaceState(null, '', window.location.pathname);
@@ -6920,6 +6934,7 @@
             if (dashView) dashView.style.setProperty('display', 'flex', 'important');
 
             updateNavState('dashboard');
+            applyViewOnlyStateUI();
 
             if (window.location.search) {
                 try {
@@ -6944,6 +6959,7 @@
             if (hubView) hubView.style.setProperty('display', 'flex', 'important');
 
             updateNavState('hub');
+            applyViewOnlyStateUI();
 
             if (targetModuleId) {
                 selectDepartmentModule(targetModuleId);
@@ -7096,9 +7112,9 @@
         }
 
         function applyViewOnlyStateUI() {
-            const isViewOnly = sessionStorage.getItem('portal_view_only') === 'true';
+            const isViewOnly = (sessionStorage.getItem('portal_view_only') === 'true');
             document.querySelectorAll('.smart-view-only-badge').forEach(el => {
-                el.style.display = isViewOnly ? 'inline-flex' : 'none';
+                el.style.setProperty('display', isViewOnly ? 'inline-flex' : 'none', 'important');
             });
             if (isViewOnly) {
                 document.body.classList.add('portal-view-only');

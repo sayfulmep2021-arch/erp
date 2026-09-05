@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ==========================================================================
  * SMART TIME MANAGEMENT - Centralized Firebase Realtime Synchronization Engine
  * Database: https://task-manager-4b27d-default-rtdb.asia-southeast1.firebasedatabase.app
@@ -217,7 +217,7 @@
             if (state === 'online') {
                 badge.className = 'smart-cloud-status-badge online';
                 badge.title = 'Realtime Cloud: Connected (Live Sync)';
-                if (textEl) textEl.textContent = 'Cloud Live';
+                if (textEl) textEl.textContent = 'Live';
             } else if (state === 'syncing') {
                 badge.className = 'smart-cloud-status-badge syncing';
                 badge.title = 'Syncing data to Cloud...';

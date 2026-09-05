@@ -321,7 +321,7 @@
                 const oldBell = navRight.querySelector('.notif-btn-wrapper, .notif-bell-btn');
                 if (oldBell) oldBell.remove();
 
-                // Realtime Firebase Cloud Status Indicator
+                // Realtime Firebase Cloud Status Indicator: "Live"
                 if (!navRight.querySelector('.smart-cloud-status-badge')) {
                     const cloudBadge = document.createElement('div');
                     cloudBadge.className = 'smart-cloud-status-badge';
@@ -329,21 +329,32 @@
                     cloudBadge.title = 'Realtime Cloud: Connected (Live Sync)';
                     cloudBadge.innerHTML = `
                         <span class="cloud-pulse-dot"></span>
-                        <span class="cloud-status-text">Cloud Live</span>
+                        <span class="cloud-status-text">Live</span>
                     `;
                     navRight.insertBefore(cloudBadge, navRight.firstChild);
+                } else {
+                    const txt = navRight.querySelector('.smart-cloud-status-badge .cloud-status-text');
+                    if (txt && txt.textContent.includes('Cloud Live')) txt.textContent = 'Live';
                 }
 
-                // View-Only Mode Status Indicator
-                if (sessionStorage.getItem('portal_view_only') === 'true' && !navRight.querySelector('.smart-view-only-badge')) {
-                    const viewBadge = document.createElement('div');
-                    viewBadge.className = 'smart-view-only-badge';
-                    viewBadge.title = 'View-Only Mode: Data entry and editing are disabled';
-                    viewBadge.innerHTML = `
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                        <span>View Only</span>
-                    `;
-                    navRight.insertBefore(viewBadge, navRight.firstChild);
+                // View-Only Mode Status Indicator (Dynamic: Only shown if logged in as View-Only)
+                const isViewOnlyMode = (sessionStorage.getItem('portal_view_only') === 'true');
+                let viewBadge = navRight.querySelector('.smart-view-only-badge');
+                if (isViewOnlyMode) {
+                    if (!viewBadge) {
+                        viewBadge = document.createElement('div');
+                        viewBadge.className = 'smart-view-only-badge';
+                        viewBadge.title = 'View-Only Mode: Data entry and editing are disabled';
+                        viewBadge.innerHTML = `
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            <span>View Only</span>
+                        `;
+                        navRight.insertBefore(viewBadge, navRight.querySelector('.user-brand-card') || null);
+                    } else {
+                        viewBadge.style.display = 'inline-flex';
+                    }
+                } else if (viewBadge) {
+                    viewBadge.remove();
                 }
 
                 if (!navRight.querySelector('.user-brand-card')) {
@@ -362,6 +373,30 @@
                         </div>
                     `;
                     navRight.appendChild(userBrand);
+                }
+
+                // Header Top-Right Logout Button (Uniform across all report pages)
+                if (!navRight.querySelector('.header-logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.type = 'button';
+                    logoutBtn.className = 'header-logout-btn';
+                    logoutBtn.title = 'Logout / Lock Portal';
+                    logoutBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Logout</span>
+                    `;
+                    logoutBtn.onclick = function() {
+                        sessionStorage.removeItem('portal_auth_status');
+                        sessionStorage.removeItem('portal_view_only');
+                        sessionStorage.removeItem('portal_current_view');
+                        sessionStorage.removeItem('portal_hub_module');
+                        window.location.href = 'index.html';
+                    };
+                    navRight.appendChild(logoutBtn);
                 }
             }
         }
