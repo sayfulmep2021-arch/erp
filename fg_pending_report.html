@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FG Pending Report | Complete vs Pending</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Universal ERP Sidebar & Theme CSS -->
+    <link rel="stylesheet" href="report_sidebar.css">
+    
+    <!-- Excel Export Support -->
+    <script src="xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --brand-primary: #0284c7;
+            --brand-dark: #0369a1;
+            --brand-deep: #0c4a6e;
+            --brand-accent: #38bdf8;
+            --brand-subtle: #f0f9ff;
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* App Layout with Slim Left Rail */
+        .app-shell {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 48px);
+            max-height: calc(100vh - 48px);
+            overflow: hidden;
+        }
+
+        /* Left Icon Rail (WITHOUT Dashboard Icon) */
+        .left-icon-rail {
+            width: 58px;
+            background: #ffffff;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0;
+            gap: 10px;
+            flex-shrink: 0;
+            z-index: 40;
+        }
+
+        .rail-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.18s ease;
+        }
+
+        .rail-icon-btn:hover {
+            background: #f1f5f9;
+            color: #0284c7;
+            border-color: #e2e8f0;
+        }
+
+        .rail-icon-btn.active {
+            background: #f0f9ff;
+            color: #0284c7;
+            border-color: #bae6fd;
+        }
+
+        .rail-divider {
+            width: 28px;
+            height: 1px;
+            background: #e2e8f0;
+            margin: 4px 0;
+        }
+
+        /* Main Workspace Container */
+        .workspace-main {
+            flex: 1;
+            padding: 20px 24px 48px;
+            overflow-y: auto;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Top Page Header & Controls Bar */
+        .page-title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .main-heading {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            letter-spacing: -0.5px;
+        }
+
+        .sub-heading-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #1d4ed8;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-interval-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #334155;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: var(--shadow-subtle);
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            background: #f8fafc;
+            border-color: #0284c7;
+            color: #0284c7;
+        }
+
+        .btn-action.btn-excel {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #059669;
+        }
+
+        .btn-action.btn-excel:hover {
+            background: #059669;
+            color: #ffffff;
+            border-color: #047857;
+        }
+
+        /* Executive KPI Strip */
+        .executive-kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-subtle);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #0284c7;
+        }
+
+        .kpi-card.kpi-danger::before { background: #e11d48; }
+        .kpi-card.kpi-amber::before { background: #d97706; }
+        .kpi-card.kpi-success::before { background: #059669; }
+
+        .kpi-info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .kpi-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .kpi-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            letter-spacing: -0.5px;
+            font-family: var(--font-mono);
+        }
+
+        .kpi-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #f0f9ff;
+            color: #0284c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kpi-icon-box.icon-danger { background: #fff1f2; color: #e11d48; }
+        .kpi-icon-box.icon-amber { background: #fffbeb; color: #d97706; }
+        .kpi-icon-box.icon-success { background: #ecfdf5; color: #059669; }
+
+        /* Balanced 2-Column Tables Layout */
+        .balanced-two-col-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .erp-report-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Card Header */
+        .erp-card-header {
+            background: #0f2942;
+            color: #ffffff;
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .erp-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .erp-header-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .erp-header-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #38bdf8;
+        }
+
+        .erp-card-title {
+            font-size: 0.96rem;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+            color: #ffffff;
+        }
+
+        .erp-header-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: #1e3a5f;
+            border: 1px solid #38bdf8;
+            color: #bae6fd;
+            letter-spacing: 0.3px;
+        }
+
+        .erp-card-subtitle-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.74rem;
+            color: #94a3b8;
+            padding-top: 4px;
+        }
+
+        .erp-date-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #cbd5e1;
+        }
+
+        /* Tables */
+        .erp-table-responsive {
+            overflow-x: auto;
+        }
+
+        .erp-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            text-align: left;
+        }
+
+        .erp-data-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 10px 14px;
+            border-bottom: 1.5px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .erp-data-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-body);
+            white-space: nowrap;
+        }
+
+        .erp-data-table tbody tr:nth-child(even) {
+            background-color: #fafbfc;
+        }
+
+        .erp-data-table tbody tr:hover {
+            background-color: #f0f9ff;
+        }
+
+        /* Code Pills */
+        .code-pill {
+            display: inline-block;
+            padding: 2px 7px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #0284c7;
+        }
+
+        .cell-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .cell-num {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: #0f172a;
+            text-align: right;
+        }
+
+        .cell-due {
+            text-align: right;
+            font-family: var(--font-mono);
+        }
+
+        /* Badges for Due */
+        .badge-due-neg {
+            color: #e11d48;
+            font-weight: 800;
+            background: #fff1f2;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid #fecdd3;
+        }
+
+        .badge-due-pos {
+            color: #059669;
+            font-weight: 800;
+            background: #ecfdf5;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid #a7f3d0;
+        }
+
+        .badge-due-zero {
+            color: #64748b;
+            font-weight: 700;
+            padding: 2px 6px;
+        }
+
+        .unit-pill {
+            display: inline-block;
+            padding: 1px 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .qty-active {
+            font-family: var(--font-mono);
+            font-weight: 800;
+            color: #0284c7;
+        }
+
+        /* Table Footer Totals */
+        .erp-data-table tfoot tr {
+            background: #f1f5f9;
+            border-top: 2px solid #cbd5e1;
+            font-weight: 800;
+        }
+
+        .erp-data-table tfoot td {
+            padding: 11px 14px;
+            color: #0f172a;
+            font-size: 0.86rem;
+        }
+
+        .total-label {
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            color: #0f172a;
+        }
+
+        .badge-due-total {
+            color: #e11d48;
+            font-weight: 900;
+            font-size: 0.95rem;
+            background: #ffe4e6;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid #fca5a5;
+        }
+
+        /* Responsive Breakpoint */
+        @media (max-width: 1024px) {
+            .executive-kpi-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .balanced-two-col-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .executive-kpi-strip {
+                grid-template-columns: 1fr;
+            }
+            .page-title-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Print Media Styles */
+        @media print {
+            .app-header, .left-icon-rail, .controls-group {
+                display: none !important;
+            }
+            body, .app-shell, .workspace-main {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+            .balanced-two-col-layout {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+            }
+            .erp-report-card {
+                box-shadow: none !important;
+                border: 1px solid #000 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed Top Header -->
+    <header class="portal-nav">
+        <div class="nav-container">
+            <!-- Left: Smart Time Management & Portal Navigation -->
+            <div class="nav-left">
+                <div class="smart-brand-card">
+                    <span class="smart-brand-text">Smart Time Management</span>
+                </div>
+            </div>
+
+            <!-- Right: Status, Clock, User Profile & Icon-Only Logout -->
+            <div class="nav-right">
+                <!-- Realtime Firebase Live Status Badge -->
+                <div class="smart-cloud-status-badge" id="smartCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
+                    <span class="cloud-pulse-dot"></span>
+                    <span class="cloud-status-text">Live</span>
+                </div>
+
+                <!-- Dynamic View Only Badge -->
+                <div class="smart-view-only-badge" id="headerViewOnlyBadge" style="display:none;" title="View-Only Mode">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <span>View Only</span>
+                </div>
+
+                <!-- Live System Clock -->
+                <div class="live-clock-badge" id="liveClockBadge" title="Live System Day & Time">
+                    <div class="live-clock-info">
+                        <span class="live-day-text" id="liveDayText">Saturday, 5 Sep 2026</span>
+                        <span class="live-time-text" id="liveTimeText">11:05:46 AM</span>
+                    </div>
+                </div>
+
+                <!-- User Profile Card -->
+                <a href="index.html?view=main" class="user-brand-card" title="Sayful Islam - Senior Supervisor">
+                    <div class="user-avatar-frame">
+                        <img src="profile.jpg" alt="Sayful Islam" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="user-avatar-fallback" style="display:none; width:100%; height:100%; background:#0284c7; color:#fff; align-items:center; justify-content:center; font-weight:800; font-size:13px;">S</div>
+                    </div>
+                    <div class="user-brand-meta">
+                        <span class="user-brand-name">Sayful Islam</span>
+                        <span class="user-brand-role">Senior Supervisor</span>
+                    </div>
+                </a>
+
+                <!-- Top-Right Header Logout Button (Icon Only) -->
+                <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- App Body Layout -->
+    <div class="app-shell">
+        
+        <!-- Main Workspace Area -->
+        <main class="workspace-main">
+            
+            <!-- Page Title Bar -->
+            <div class="page-title-bar">
+                <div class="title-group">
+                    <a href="index.html" class="btn-action" title="Back to Portal" style="margin-right: 4px;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        <span>Portal</span>
+                    </a>
+                    <h1 class="main-heading">Complete vs Pending</h1>
+                    <span class="sub-heading-pill">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        FG Pending Report
+                    </span>
+                </div>
+
+                <div class="controls-group">
+                    <span class="date-interval-badge">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Date Interval: 2026-08-01 to 2026-08-25
+                    </span>
+                    <button type="button" class="btn-action btn-excel" onclick="exportToExcel()">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span>Excel Export</span>
+                    </button>
+                    <button type="button" class="btn-action" onclick="window.print()">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        <span>Print</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Executive KPI Summary Strip -->
+            <div class="executive-kpi-strip">
+                <div class="kpi-card">
+                    <div class="kpi-info-group">
+                        <span class="kpi-label">Total ERP Output</span>
+                        <span class="kpi-value" id="kpiErpOutput">38,647</span>
+                    </div>
+                    <div class="kpi-icon-box">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-danger">
+                    <div class="kpi-info-group">
+                        <span class="kpi-label">Net ERP Due Deficit</span>
+                        <span class="kpi-value" style="color:#e11d48;" id="kpiNetDue">9,703</span>
+                    </div>
+                    <div class="kpi-icon-box icon-danger">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-amber">
+                    <div class="kpi-info-group">
+                        <span class="kpi-label">Blade Stock Balance</span>
+                        <span class="kpi-value" style="color:#d97706;" id="kpiBladeStock">7,065</span>
+                    </div>
+                    <div class="kpi-icon-box icon-amber">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-success">
+                    <div class="kpi-info-group">
+                        <span class="kpi-label">Floor FG Closing</span>
+                        <span class="kpi-value" style="color:#059669;" id="kpiFloorClosing">396 <span style="font-size:0.9rem; font-weight:700;">Pcs</span></span>
+                    </div>
+                    <div class="kpi-icon-box icon-success">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balanced 2-Column Tables Layout (Middle Welcome card completely removed) -->
+            <div class="balanced-two-col-layout">
+                
+                <!-- Left Panel: Assemble ERP FG Production Report -->
+                <div class="erp-report-card" id="cardAssembleReport">
+                    <div class="erp-card-header">
+                        <div class="erp-header-top">
+                            <div class="erp-header-title-group">
+                                <div class="erp-header-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                </div>
+                                <div class="erp-card-title">Assemble ERP FG Production Report</div>
+                            </div>
+                            <span class="erp-header-badge">Complete &amp; Pending</span>
+                        </div>
+                        <div class="erp-card-subtitle-bar">
+                            <span class="erp-date-tag">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                Date Interval: 2026-08-01 to 2026-08-25
+                            </span>
+                            <span>9 Fan Models</span>
+                        </div>
+                    </div>
+                    <div class="erp-table-responsive">
+                        <table class="erp-data-table" id="tableAssemble">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Ceiling Fan</th>
+                                    <th style="text-align:right;">ERP</th>
+                                    <th style="text-align:right;">ERP Due</th>
+                                    <th style="text-align:right;">Blade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="code-pill">CF5601IV</span></td>
+                                    <td class="cell-name">Premium -Ivory</td>
+                                    <td class="cell-num">30,849</td>
+                                    <td class="cell-due"><span class="badge-due-neg">(4,863)</span></td>
+                                    <td class="cell-num">0</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5601WH</span></td>
+                                    <td class="cell-name">Premium -White</td>
+                                    <td class="cell-num">105</td>
+                                    <td class="cell-due"><span class="badge-due-neg">(100)</span></td>
+                                    <td class="cell-num">114</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5602IV</span></td>
+                                    <td class="cell-name">Speed King</td>
+                                    <td class="cell-num">0</td>
+                                    <td class="cell-due"><span class="badge-due-neg">(271)</span></td>
+                                    <td class="cell-num">1,056</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5603IV</span></td>
+                                    <td class="cell-name">Premium Gold</td>
+                                    <td class="cell-num">0</td>
+                                    <td class="cell-due"><span class="badge-due-neg">(89)</span></td>
+                                    <td class="cell-num">5</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5606IV</span></td>
+                                    <td class="cell-name">Premium Plus</td>
+                                    <td class="cell-num">60</td>
+                                    <td class="cell-due"><span class="badge-due-pos">11</span></td>
+                                    <td class="cell-num">254</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5607IV</span></td>
+                                    <td class="cell-name">Crown-Ivory</td>
+                                    <td class="cell-num">335</td>
+                                    <td class="cell-due"><span class="badge-due-neg">(5)</span></td>
+                                    <td class="cell-num">149</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF4801IV</span></td>
+                                    <td class="cell-name">Popular</td>
+                                    <td class="cell-num">1,100</td>
+                                    <td class="cell-due"><span class="badge-due-neg">(67)</span></td>
+                                    <td class="cell-num">1,383</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF3601IV</span></td>
+                                    <td class="cell-name">Hero</td>
+                                    <td class="cell-num">5,107</td>
+                                    <td class="cell-due"><span class="badge-due-neg">(4,319)</span></td>
+                                    <td class="cell-num">862</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF2401IV</span></td>
+                                    <td class="cell-name">Super</td>
+                                    <td class="cell-num">1,091</td>
+                                    <td class="cell-due"><span class="badge-due-zero">0</span></td>
+                                    <td class="cell-num">3,242</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" class="total-label">TOTAL</td>
+                                    <td class="cell-num">38,647</td>
+                                    <td class="cell-due"><span class="badge-due-total">9,703</span></td>
+                                    <td class="cell-num">7,065</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Fan Floor FG Closing -->
+                <div class="erp-report-card" id="cardClosingReport">
+                    <div class="erp-card-header">
+                        <div class="erp-header-top">
+                            <div class="erp-header-title-group">
+                                <div class="erp-header-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                                </div>
+                                <div class="erp-card-title">Fan Floor FG Closing</div>
+                            </div>
+                            <span class="erp-header-badge">Inventory Closing</span>
+                        </div>
+                        <div class="erp-card-subtitle-bar">
+                            <span class="erp-date-tag">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                Date Interval: 2026-08-01 to 2026-08-25
+                            </span>
+                            <span>Floor Stock</span>
+                        </div>
+                    </div>
+                    <div class="erp-table-responsive">
+                        <table class="erp-data-table" id="tableClosing">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Model</th>
+                                    <th style="text-align:center;">Unit</th>
+                                    <th style="text-align:right;">Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="code-pill">CF5601IV</span></td>
+                                    <td class="cell-name">Premium -Ivory</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5601WH</span></td>
+                                    <td class="cell-name">Premium -White</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span class="qty-active">23</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5602IV</span></td>
+                                    <td class="cell-name">Speed King</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5603IV</span></td>
+                                    <td class="cell-name">Premium Gold</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span class="qty-active">8</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5606IV</span></td>
+                                    <td class="cell-name">Premium Plus</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span class="qty-active">14</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF5607IV</span></td>
+                                    <td class="cell-name">Crown-Ivory</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span class="qty-active">336</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF4801IV</span></td>
+                                    <td class="cell-name">Popular</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF3601IV</span></td>
+                                    <td class="cell-name">Hero</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span class="qty-active">15</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="code-pill">CF2401IV</span></td>
+                                    <td class="cell-name">Super</td>
+                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
+                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="total-label">TOTAL</td>
+                                    <td class="cell-num" style="color:#059669; font-size:0.95rem; font-weight:900;">396 Pcs</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Universal ERP Drawer Script -->
+    <script src="smart_firebase_sync.js"></script>
+    <script src="report_sidebar.js"></script>
+    
+    <script>
+        // 1. Live Clock & Dynamic View Mode Check
+        function updateLiveClock() {
+            const now = new Date();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+            
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+            
+            const dateEl = document.getElementById('liveDayText') || document.getElementById('liveClockDate');
+            const timeEl = document.getElementById('liveTimeText') || document.getElementById('liveClockTime');
+            if (dateEl) dateEl.textContent = dateStr;
+            if (timeEl) timeEl.textContent = timeStr;
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        // Check if in View Only mode
+        (function checkViewOnlyState() {
+            const isViewOnly = sessionStorage.getItem('portal_view_only') === 'true';
+            const badge = document.getElementById('headerViewOnlyBadge');
+            if (badge) {
+                badge.style.display = isViewOnly ? 'inline-flex' : 'none';
+            }
+        })();
+
+        // Logout Handler
+        function handleLogout() {
+            sessionStorage.removeItem('portal_auth_status');
+            sessionStorage.removeItem('portal_view_only');
+            sessionStorage.removeItem('portal_current_view');
+            sessionStorage.removeItem('portal_hub_module');
+            window.location.href = 'index.html';
+        }
+
+        // Export Tables to Excel
+        function exportToExcel() {
+            try {
+                const wb = XLSX.utils.book_new();
+                
+                // Assemble Table
+                const table1 = document.getElementById('tableAssemble');
+                const ws1 = XLSX.utils.table_to_sheet(table1);
+                XLSX.utils.book_append_sheet(wb, ws1, "Assemble ERP FG");
+                
+                // Closing Table
+                const table2 = document.getElementById('tableClosing');
+                const ws2 = XLSX.utils.table_to_sheet(table2);
+                XLSX.utils.book_append_sheet(wb, ws2, "Fan Floor Closing");
+                
+                XLSX.writeFile(wb, "FG_Pending_Report_Complete_vs_Pending.xlsx");
+            } catch (err) {
+                console.error("Excel Export Error:", err);
+                alert("Excel export initialized.");
+            }
+        }
+    </script>
+</body>
+</html>

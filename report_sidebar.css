@@ -59,8 +59,9 @@ header.portal-nav {
     box-shadow: 0 2px 8px rgba(15, 41, 66, 0.04) !important;
     display: flex !important;
     align-items: center !important;
-    position: relative !important;
-    z-index: 500 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
     padding: 0 !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
@@ -1932,7 +1933,7 @@ body.dark-theme {
    SMART TIME MANAGEMENT - Header Branding, Borderless Menu & Notification Drawer
    ========================================================================== */
 
-/* 1. Permanent Brand Badge in Header: Smart Time Management ¦ Dynamic Page Title */
+/* 1. Permanent Brand Badge in Header: Smart Time Management ï¿½ Dynamic Page Title */
 .smart-solution-corner-card {
     display: inline-flex !important;
     align-items: center !important;
@@ -2299,13 +2300,14 @@ header.portal-nav .notif-bell-btn,
     font-family: var(--font-main, 'Times New Roman'), 'Times New Roman', serif !important;
 }
 
-/* Header Top-Right Logout Button */
+/* Header Top-Right Logout Button (Icon Only) */
 .header-logout-btn {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    padding: 0 12px !important;
+    justify-content: center !important;
+    width: 36px !important;
     height: 34px !important;
+    padding: 0 !important;
     background: #fff1f2 !important;
     border: 1.5px solid #fecdd3 !important;
     border-radius: 8px !important;
@@ -2335,8 +2337,12 @@ header.portal-nav .notif-bell-btn,
 
 .header-logout-btn svg {
     stroke: currentColor !important;
-    width: 15px !important;
-    height: 15px !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.header-logout-btn span {
+    display: none !important;
 }
 
 /* Page Title in Header is strictly removed */
@@ -2613,4 +2619,36 @@ body.portal-view-only .btn-new-entry:hover {
     -webkit-transform: none !important;
     scale: none !important;
     zoom: 1 !important;
+}
+
+/* 13. Complete vs Pending (FG Pending Report) - Modern Indigo Accent */
+.dept-theme-mod-pending .dept-card-icon-box {
+    background: #eef2ff !important;
+    color: #4338ca !important;
+    border: 1px solid #c7d2fe !important;
+}
+.dept-theme-mod-pending:hover {
+    border-color: #6366f1 !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1) !important;
+}
+.dept-theme-mod-pending.active-dept {
+    background: #eef2ff !important;
+    border-color: #4338ca !important;
+    box-shadow: 0 4px 16px rgba(67, 56, 202, 0.16) !important;
+}
+.dept-theme-mod-pending.active-dept .dept-card-name {
+    color: #4338ca !important;
+}
+
+.hub-banner-mod-pending {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%) !important;
+    border-color: #c7d2fe !important;
+}
+.hub-banner-mod-pending .hub-active-banner-title {
+    color: #3730a3 !important;
+}
+.hub-banner-mod-pending .hub-active-banner-icon {
+    background: #ffffff !important;
+    color: #4338ca !important;
+    border: 1.2px solid #c7d2fe !important;
 }

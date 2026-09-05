@@ -107,13 +107,12 @@
         },
         {
             id: "mep-acc-08",
-            title: "Assembly Complete & Pending",
+            title: "Complete vs Pending",
             iconBg: "#e0e7ff",
             iconColor: "#4f46e5",
             iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
             items: [
-                { name: "Assembly Complete Report", url: "#" },
-                { name: "Assembly Pending Report", url: "#" }
+                { name: "FG Pending Report", url: "fg_pending_report.html" }
             ]
         },
         {
@@ -263,7 +262,20 @@
             const btnsToRemove = nav.querySelectorAll('.btn-nav-group, .btn-nav-action, .btn-back-portal, .btn-toggle-frozen-sidebar, .btn-portal-back');
             btnsToRemove.forEach(el => el.remove());
 
-            const navLeft = nav.querySelector('.nav-left') || nav;
+            let navLeft = nav.querySelector('.nav-left');
+            let navRight = nav.querySelector('.nav-right');
+
+            if (!navLeft) {
+                let container = nav.querySelector('.nav-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'nav-container';
+                    nav.appendChild(container);
+                }
+                navLeft = document.createElement('div');
+                navLeft.className = 'nav-left';
+                container.insertBefore(navLeft, container.firstChild);
+            }
             
             // 1. Clean navLeft of all legacy brands, duplicate titles, and old Link Details button
             navLeft.innerHTML = '';
@@ -315,7 +327,13 @@
             });
 
             // Check right corner: Ensure round [Profile Photo] Sayful Islam component exists (NO Bell in Report Header)
-            const navRight = nav.querySelector('.nav-right');
+            if (!navRight) {
+                let container = nav.querySelector('.nav-container') || nav;
+                navRight = document.createElement('div');
+                navRight.className = 'nav-right';
+                container.appendChild(navRight);
+            }
+
             if (navRight) {
                 // Remove any old notification bell if present
                 const oldBell = navRight.querySelector('.notif-btn-wrapper, .notif-bell-btn');
@@ -357,6 +375,21 @@
                     viewBadge.remove();
                 }
 
+                // Ensure Live Clock Badge exists
+                if (!navRight.querySelector('.live-clock-badge')) {
+                    const clockBadge = document.createElement('div');
+                    clockBadge.className = 'live-clock-badge';
+                    clockBadge.id = 'liveClockBadge';
+                    clockBadge.title = 'Live System Day & Time';
+                    clockBadge.innerHTML = `
+                        <div class="live-clock-info">
+                            <span class="live-day-text" id="liveDayText">Loading date...</span>
+                            <span class="live-time-text" id="liveTimeText">--:--:-- --</span>
+                        </div>
+                    `;
+                    navRight.insertBefore(clockBadge, navRight.querySelector('.user-brand-card') || null);
+                }
+
                 if (!navRight.querySelector('.user-brand-card')) {
                     const userBrand = document.createElement('a');
                     userBrand.href = "index.html?view=main";
@@ -382,12 +415,11 @@
                     logoutBtn.className = 'header-logout-btn';
                     logoutBtn.title = 'Logout / Lock Portal';
                     logoutBtn.innerHTML = `
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
                             <line x1="21" y1="12" x2="9" y2="12"></line>
                         </svg>
-                        <span>Logout</span>
                     `;
                     logoutBtn.onclick = function() {
                         sessionStorage.removeItem('portal_auth_status');
@@ -513,10 +545,6 @@
                 <!-- Button 1: Home (Main Menu) -->
                 <a href="index.html?view=hub" class="btn-nav-tab btn-nav-home" style="flex:1; justify-content:center; height:34px; padding:0;" aria-label="Home">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5v9.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9.5z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                </a>
-                <!-- Button 2: Dashboard -->
-                <a href="index.html?view=dashboard" class="btn-nav-tab btn-nav-dash" style="flex:1; justify-content:center; height:34px; padding:0;" aria-label="Dashboard">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1.5"></rect><rect x="10" y="7" width="4" height="14" rx="1.5"></rect><rect x="17" y="3" width="4" height="18" rx="1.5"></rect></svg>
                 </a>
             </div>
 
@@ -1268,13 +1296,34 @@
         }, 3000);
     }
 
+    // Universal Live Clock Engine for Report Pages
+    function updateUniversalLiveClock() {
+        const now = new Date();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+
+        document.querySelectorAll('#liveDayText, .live-day-text').forEach(el => { el.textContent = dateStr; });
+        document.querySelectorAll('#liveTimeText, .live-time-text').forEach(el => { el.textContent = timeStr; });
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initFrozenSidebar();
             enforceViewOnlyRestrictions();
+            setInterval(updateUniversalLiveClock, 1000);
+            updateUniversalLiveClock();
         });
     } else {
         initFrozenSidebar();
         enforceViewOnlyRestrictions();
+        setInterval(updateUniversalLiveClock, 1000);
+        updateUniversalLiveClock();
     }
 })();

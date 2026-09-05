@@ -4974,12 +4974,11 @@
 
                     <!-- Header Top-Right Corner Logout Button -->
                     <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
                             <line x1="21" y1="12" x2="9" y2="12"></line>
                         </svg>
-                        <span>Logout</span>
                     </button>
                 </div>
             </div>
@@ -4998,14 +4997,6 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                </button>
-
-                <button type="button" class="rail-icon-btn btn-rail-dash" id="mainRailBtnDash" onclick="switchToDashboardView()" aria-label="Dashboard">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="12" width="4" height="9" rx="1"></rect>
-                        <rect x="10" y="7" width="4" height="14" rx="1"></rect>
-                        <rect x="17" y="3" width="4" height="18" rx="1"></rect>
                     </svg>
                 </button>
 
@@ -5429,7 +5420,7 @@
     <!-- ==========================================================================
          VIEW 3: Full-Screen Enterprise ERP Dashboard Workspace
          ========================================================================== -->
-    <div class="app-workspace" id="dashboardView">
+    <div class="app-workspace" id="dashboardView" style="display:none !important;">
         
         <!-- Full-Width Top Navigation Bar -->
         <header class="workspace-navbar">
@@ -5539,12 +5530,11 @@
 
                     <!-- Header Top-Right Corner Logout Button -->
                     <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
                             <line x1="21" y1="12" x2="9" y2="12"></line>
                         </svg>
-                        <span>Logout</span>
                     </button>
                 </div>
             </div>
@@ -5984,12 +5974,11 @@
 
                     <!-- Header Top-Right Corner Logout Button -->
                     <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
                             <line x1="21" y1="12" x2="9" y2="12"></line>
                         </svg>
-                        <span>Logout</span>
                     </button>
                 </div>
             </div>
@@ -6006,9 +5995,6 @@
                     </button>
                     <button type="button" class="btn-nav-tab btn-nav-home active" id="sidebarBtnHome" style="flex:1; justify-content:center; height:36px; padding:0;" onclick="switchToDepartmentHub()" aria-label="Home">
                         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5v9.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9.5z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                    </button>
-                    <button type="button" class="btn-nav-tab btn-nav-dash" id="sidebarBtnDash" style="flex:1; justify-content:center; height:36px; padding:0;" onclick="switchToDashboardView()" aria-label="Dashboard">
-                        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1.5"></rect><rect x="10" y="7" width="4" height="14" rx="1.5"></rect><rect x="17" y="3" width="4" height="18" rx="1.5"></rect></svg>
                     </button>
                 </div>
 
@@ -6135,13 +6121,13 @@
                             </div>
                         </div>
 
-                        <!-- 8. Assembly Complete & Pending -->
+                        <!-- 8. Complete vs Pending -->
                         <div class="dept-card-btn dept-theme-mod-08" id="deptCard-08" onclick="selectDepartmentModule('mod-08', this)">
                             <div class="dept-card-icon-box">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             </div>
                             <div class="dept-card-info">
-                                <div class="dept-card-name">Assembly Complete &amp; Pending</div>
+                                <div class="dept-card-name">Complete vs Pending</div>
                             </div>
                         </div>
 
@@ -6182,6 +6168,19 @@
                             </div>
                             <div class="dept-card-info">
                                 <div class="dept-card-name">Individual Check</div>
+                            </div>
+                        </div>
+
+                        <!-- 13. Complete vs Pending (FG Pending Report) -->
+                        <div class="dept-card-btn dept-theme-mod-pending" id="deptCard-pending" onclick="selectDepartmentModule('mod-pending', this)">
+                            <div class="dept-card-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </div>
+                            <div class="dept-card-info">
+                                <div class="dept-card-name">Complete vs Pending</div>
                             </div>
                         </div>
 
@@ -6554,14 +6553,14 @@
                 </div>
             </div>
 
-            <!-- Accordion 08: Assembly Complete & Pending -->
+            <!-- Accordion 08: Complete vs Pending -->
             <div class="accordion-card" id="accordion-08">
                 <div class="accordion-header" onclick="toggleAccordion('accordion-08')" role="button" tabindex="0" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' ') toggleAccordion('accordion-08')">
                     <div class="card-title-wrap">
                         <span class="drawer-card-icon" style="background:#e0e7ff; color:#4f46e5;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         </span>
-                        <span class="card-title">Assembly Complete &amp; Pending</span>
+                        <span class="card-title">Complete vs Pending</span>
                     </div>
                     <span class="accordion-chevron" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -6569,20 +6568,13 @@
                 </div>
                 <div class="accordion-body">
                     <div class="sub-report-list">
-                        <button type="button" class="sub-report-item" onclick="handleSubReportClick('Assembly Complete & Pending', 'Assembly Complete Report', event)">
+                        <a href="fg_pending_report.html" class="sub-report-item item-highlight-entry">
                             <div class="sub-item-left">
                                 <span class="sub-item-dot"></span>
-                                <span class="sub-item-title">Assembly Complete Report</span>
+                                <span class="sub-item-title">FG Pending Report</span>
                             </div>
                             <svg class="sub-item-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                        </button>
-                        <button type="button" class="sub-report-item" onclick="handleSubReportClick('Assembly Complete & Pending', 'Assembly Pending Report', event)">
-                            <div class="sub-item-left">
-                                <span class="sub-item-dot"></span>
-                                <span class="sub-item-title">Assembly Pending Report</span>
-                            </div>
-                            <svg class="sub-item-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -6812,13 +6804,13 @@
                     sessionStorage.setItem('portal_current_view', 'main');
                     switchToMainInterfaceView();
                 } else if (viewParam === 'dashboard') {
-                    sessionStorage.setItem('portal_current_view', 'dashboard');
-                    switchToDashboardView();
+                    window.location.href = 'fg_pending_report.html';
                 } else if (viewParam === 'hub') {
                     sessionStorage.setItem('portal_current_view', 'hub');
                     switchToDepartmentHub(targetMod);
                 } else if (currentView === 'dashboard') {
-                    switchToDashboardView();
+                    sessionStorage.setItem('portal_current_view', 'main');
+                    switchToMainInterfaceView();
                 } else if (currentView === 'hub') {
                     switchToDepartmentHub(targetMod);
                 } else {
@@ -6920,29 +6912,7 @@
         }
 
         function switchToDashboardView() {
-            resetInactivityTimer();
-            sessionStorage.setItem('portal_current_view', 'dashboard');
-            sessionStorage.removeItem('portal_hub_module');
-            var loginView = document.getElementById('loginView');
-            var hubView = document.getElementById('departmentHubView');
-            var dashView = document.getElementById('dashboardView');
-            var mainView = document.getElementById('mainInterfaceView');
-
-            if (loginView) loginView.style.setProperty('display', 'none', 'important');
-            if (hubView) hubView.style.setProperty('display', 'none', 'important');
-            if (mainView) mainView.style.setProperty('display', 'none', 'important');
-            if (dashView) dashView.style.setProperty('display', 'flex', 'important');
-
-            updateNavState('dashboard');
-            applyViewOnlyStateUI();
-
-            if (window.location.search) {
-                try {
-                    window.history.replaceState(null, '', window.location.pathname);
-                } catch(e) {}
-            }
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.location.href = 'fg_pending_report.html';
         }
 
         function switchToDepartmentHub(targetModuleId) {
@@ -7268,14 +7238,23 @@
                 ]
             },
             'mod-08': {
-                name: 'Assembly Complete & Pending',
-                badge: '2 Reports',
+                name: 'Complete vs Pending',
+                badge: '1 Report',
                 iconBg: '#e0e7ff',
                 iconColor: '#4f46e5',
                 iconSvg: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>',
                 reports: [
-                    { title: 'Real-time Assembly Completion', url: '#' },
-                    { title: 'Shift Pending Pipeline Logs', url: '#' }
+                    { title: 'FG Pending Report', url: 'fg_pending_report.html', highlight: true }
+                ]
+            },
+            'mod-pending': {
+                name: 'Complete vs Pending',
+                badge: '1 Report',
+                iconBg: '#e0e7ff',
+                iconColor: '#4f46e5',
+                iconSvg: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>',
+                reports: [
+                    { title: 'FG Pending Report', url: 'fg_pending_report.html', highlight: true }
                 ]
             },
             'mod-09': {
@@ -7342,6 +7321,7 @@
             else if (modKey.indexOf('06') !== -1) modKey = 'mod-06';
             else if (modKey.indexOf('07') !== -1) modKey = 'mod-07';
             else if (modKey.indexOf('08') !== -1) modKey = 'mod-08';
+            else if (modKey.indexOf('pending') !== -1) modKey = 'mod-pending';
             else if (modKey.indexOf('09') !== -1) modKey = 'mod-09';
             else if (modKey.indexOf('10') !== -1) modKey = 'mod-10';
             else if (modKey.indexOf('11') !== -1 || modKey.indexOf('individual') !== -1) modKey = 'mod-11';
