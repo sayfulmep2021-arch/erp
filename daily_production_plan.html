@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="en">
 <head>
     <link rel="stylesheet" href="corporate_design_system.css">
@@ -742,7 +742,7 @@
                     <span>? Add Item</span>
                 </button>
 
-                <button type="button" class="btn-action" style="background: linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; font-weight:700; display:inline-flex; align-items:center; gap:6px;" onclick="submitPlanToBOMFloorStock(true)" title="Calculate Per Day × BOM Quantity and Submit to Check Floor Stock">
+                <button type="button" class="btn-action" style="background: linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; font-weight:700; display:inline-flex; align-items:center; gap:6px;" onclick="submitPlanToBOMFloorStock(true)" title="Calculate Per Day ï¿½ BOM Quantity and Submit to Check Floor Stock">
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
                     <span>? Submit Per Day to Floor Stock</span>
                 </button>
@@ -902,9 +902,20 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+            const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
+                             (localStorage.getItem('portal_auth_status') === 'true');
+            if (!isAuthed) {
                 window.location.href = 'index.html';
                 return;
+            }
+            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+                sessionStorage.setItem('portal_auth_status', 'true');
+                const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
+                const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
+                const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
+                sessionStorage.setItem('portal_auth_role', storedRole);
+                sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
+                sessionStorage.setItem('portal_auth_sig', sig);
             }
 
             const todayStr = new Date().toISOString().split('T')[0];

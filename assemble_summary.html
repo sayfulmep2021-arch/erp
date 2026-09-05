@@ -1110,10 +1110,10 @@
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     <span>Print</span>
                 </button>
-                <button type="button" class="btn-action-primary" onclick="openAddItemModal()">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    <span>+ Add New Item Entry</span>
-                </button>
+                <a href="fan_assemble_erp.html" class="btn-action-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Open Source ERP Ledger (Fan Assemble) to manage stock entries">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    <span>Source ERP Ledger</span>
+                </a>
             </div>
         </div>
 
@@ -1171,9 +1171,10 @@
 
                 <!-- Category Filter -->
                 <select id="categoryFilter" class="filter-select" onchange="applyFilters()">
-                    <option value="ALL">All Sections (Raw, Packing, SFG, Consumable)</option>
+                    <option value="ALL">All Sections (Raw, Packing, Fan Series, SFG, Consumable)</option>
                     <option value="Raw Material">Raw Material (64 Items)</option>
                     <option value="Packing Item">Packing Item (53 Items)</option>
+                    <option value="1. CEILING FAN SERIES">1. CEILING FAN SERIES (17 Items)</option>
                     <option value="SFG">SFG Sub-Assembly (77 Items)</option>
                     <option value="Production Consumption">Production Consumption (36 Items)</option>
                 </select>
@@ -1228,101 +1229,95 @@
 
     </main>
 
-    <!-- Modal 1: Add / Edit Item Entry Modal -->
-    <div class="modal-backdrop" id="entryModal">
-        <div class="modal-card">
+    <!-- Modal: Live Stock Source & Calculation Trace Modal (Read-Only Single Source of Truth) -->
+    <div class="modal-backdrop" id="traceModal">
+        <div class="modal-card" style="max-width: 680px;">
             <div class="modal-header">
-                <div class="modal-title" id="modalTitle">+ Add New Item Entry</div>
-                <button type="button" class="btn-modal-close" onclick="closeEntryModal()">&times;</button>
+                <div class="modal-title" style="display:flex; align-items:center; gap:8px;">
+                    <span>🔗 Live Stock Source &amp; Calculation Trace</span>
+                </div>
+                <button type="button" class="btn-modal-close" onclick="closeTraceModal()">&times;</button>
             </div>
-            <form id="entryForm" onsubmit="handleSaveEntry(event)">
-                <input type="hidden" id="editingRecordId" value="">
-                <div class="modal-body">
-                    <div class="form-row-2">
-                        <div class="form-field">
-                            <label for="inputCategory">Section / Category *</label>
-                            <select id="inputCategory" required>
-                                <option value="Raw Material">Raw Material</option>
-                                <option value="Packing Item">Packing Item</option>
-                                <option value="SFG">SFG</option>
-                                <option value="Production Consumption">Production Consumption</option>
-                            </select>
+            <div class="modal-body" style="padding: 20px 24px;">
+                <!-- Item Meta Bar -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
+                        <div>
+                            <div style="font-size: 0.74rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;" id="traceItemCategory">Section</div>
+                            <div style="font-size: 1.12rem; font-weight: 900; color: #0f2942; line-height: 1.3;" id="traceItemName">Item Name</div>
                         </div>
-                        <div class="form-field">
-                            <label for="inputItemCode">Item Code (Auto-Master Match) *</label>
-                            <input type="text" id="inputItemCode" placeholder="e.g. 3101010113 or SFG1010076" oninput="lookupMasterCode(this.value)" required>
-                        </div>
+                        <span id="traceItemCode" style="font-family: var(--font-mono); font-weight: 800; font-size: 0.88rem; background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 6px; white-space: nowrap;">CODE</span>
                     </div>
-
-                    <div class="form-row-2">
-                        <div class="form-field">
-                            <label for="inputItemName">Item Name *</label>
-                            <input type="text" id="inputItemName" placeholder="e.g. Ball Bearing 6202 (BMT)" required>
-                        </div>
-                        <div class="form-field">
-                            <label for="inputUnit">Unit *</label>
-                            <select id="inputUnit" required>
-                                <option value="Pcs">Pcs</option>
-                                <option value="KG">KG</option>
-                                <option value="Set">Set</option>
-                                <option value="Mtr">Mtr</option>
-                                <option value="Ltr">Ltr</option>
-                                <option value="Inch">Inch</option>
-                                <option value="Feet">Feet</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div style="font-size:0.78rem; font-weight:800; color:var(--brand-primary); text-transform:uppercase; margin-top:6px; letter-spacing:0.5px;">
-                        Stock Quantities &amp; Movements
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label for="inputOpening">Opening</label>
-                            <input type="number" step="any" id="inputOpening" value="0" oninput="calcClosingPreview()">
-                        </div>
-                        <div class="form-field">
-                            <label for="inputStoreRec">Store Receive</label>
-                            <input type="number" step="any" id="inputStoreRec" value="0" oninput="calcClosingPreview()">
-                        </div>
-                        <div class="form-field">
-                            <label for="inputSectionRec">Section Receive</label>
-                            <input type="number" step="any" id="inputSectionRec" value="0" oninput="calcClosingPreview()">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label for="inputProductionRec">Production Receive</label>
-                            <input type="number" step="any" id="inputProductionRec" value="0" oninput="calcClosingPreview()">
-                        </div>
-                        <div class="form-field">
-                            <label for="inputDamage">Issue To Damage</label>
-                            <input type="number" step="any" id="inputDamage" value="0" oninput="calcClosingPreview()">
-                        </div>
-                        <div class="form-field">
-                            <label for="inputOthersRec">Others Receive</label>
-                            <input type="number" step="any" id="inputOthersRec" value="0" oninput="calcClosingPreview()">
-                        </div>
-                    </div>
-
-                    <div class="form-row-2">
-                        <div class="form-field">
-                            <label for="inputDelivery">Consumption</label>
-                            <input type="number" step="any" id="inputDelivery" value="0" oninput="calcClosingPreview()">
-                        </div>
-                        <div class="form-field">
-                            <label style="color:#0284c7;">Calculated Bin Closing</label>
-                            <input type="text" id="previewClosing" value="0" style="font-family:var(--font-mono); font-weight:800; color:#0284c7; background:#e0f2fe;" readonly>
-                        </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 0.82rem;">
+                        <span style="color: #475569;">Unit: <strong id="traceItemUnit" style="color: #0f2942;">Pcs</strong></span>
+                        <span id="traceSourceBadge" style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; font-weight: 800; padding: 2px 8px; border-radius: 6px; font-size: 0.76rem;">
+                            🟢 Live Linked: Closing ERP ➔ Fan Assemble
+                        </span>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-reset-filter" onclick="closeEntryModal()">Cancel</button>
-                    <button type="submit" class="btn-action-primary">Save Stock Record</button>
+
+                <!-- 8-Column Movements Breakdown Grid -->
+                <div style="font-size:0.76rem; font-weight:800; color:var(--brand-primary); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.5px;">
+                    📊 Real-Time Movement Ledger
                 </div>
-            </form>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;">
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 700;">Opening</div>
+                        <div id="traceOpening" style="font-size: 1.05rem; font-weight: 800; color: #0f2942; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 700;">Store Rec</div>
+                        <div id="traceStoreRec" style="font-size: 1.05rem; font-weight: 800; color: #0f2942; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 700;">Section Rec</div>
+                        <div id="traceSectionRec" style="font-size: 1.05rem; font-weight: 800; color: #0f2942; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 700;">Production Rec</div>
+                        <div id="traceProductionRec" style="font-size: 1.05rem; font-weight: 800; color: #0f2942; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 700;">Others Rec</div>
+                        <div id="traceOthersRec" style="font-size: 1.05rem; font-weight: 800; color: #0f2942; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #e11d48; font-weight: 700;">Issue To Damage</div>
+                        <div id="traceDamage" style="font-size: 1.05rem; font-weight: 800; color: #e11d48; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #d97706; font-weight: 700;">Consumption / Issue</div>
+                        <div id="traceDelivery" style="font-size: 1.05rem; font-weight: 800; color: #d97706; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                    <div style="background: #f0fdf4; border: 2px solid #86efac; border-radius: 8px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.72rem; color: #166534; font-weight: 800;">Bin Closing Stock</div>
+                        <div id="traceClosing" style="font-size: 1.15rem; font-weight: 900; color: #15803d; font-family: var(--font-mono); margin-top: 2px;">0</div>
+                    </div>
+                </div>
+
+                <!-- Arithmetic Calculation Trace & Formula Box -->
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;">
+                    <div style="font-size: 0.76rem; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">
+                        📐 Dynamic Calculation Formula
+                    </div>
+                    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #1e3a8a; line-height: 1.45;">
+                        <div>Formula: <strong>Bin Closing = Opening + StoreRec + SectionRec + PrdRec + OthersRec - Damage - Consumption</strong></div>
+                        <div style="margin-top: 4px; color: #0284c7; font-weight: 700;" id="traceFormulaValue">0 = 0 + 0 + 0 + 0 + 0 - 0 - 0</div>
+                    </div>
+                </div>
+
+                <!-- Single Source of Truth Note -->
+                <div style="display: flex; align-items: flex-start; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 0.78rem; color: #92400e; line-height: 1.4;">
+                    <span style="font-size: 1rem; line-height: 1;">🛡️</span>
+                    <span><strong>Single Source of Truth:</strong> This stock report is strictly live-computed from the operational ERP ledger. Manual stock saving on report summaries is disabled to guarantee zero data conflict.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
+                <a href="fan_assemble_erp.html" class="btn-action-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:8px 16px; font-size:0.88rem;">
+                    <span>🔗 Open in Source ERP (Fan Assemble)</span>
+                </a>
+                <button type="button" class="btn-reset-filter" onclick="closeTraceModal()" style="padding: 8px 18px;">Close</button>
+            </div>
         </div>
     </div>
 
@@ -1357,6 +1352,8 @@
     <!-- Scripts -->
     <script src="master_database.js"></script>
     <script src="assemble_summary_data.js"></script>
+    <script src="fg_summary_data.js"></script>
+    <script src="closing_fg_data.js"></script>
     <script src="fan_assemble_erp_data.js"></script>
     <script src="erp_engine.js"></script>
     <script>
@@ -1368,15 +1365,27 @@
         const CATEGORY_ORDER = [
             'Raw Material',
             'Packing Item',
+            '1. CEILING FAN SERIES',
             'SFG',
             'Production Consumption'
         ];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+            const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
+                             (localStorage.getItem('portal_auth_status') === 'true');
+            if (!isAuthed) {
                 window.location.href = 'index.html';
                 return;
+            }
+            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+                sessionStorage.setItem('portal_auth_status', 'true');
+                const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
+                const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
+                const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
+                sessionStorage.setItem('portal_auth_role', storedRole);
+                sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
+                sessionStorage.setItem('portal_auth_sig', sig);
             }
 
             loadAssembleData();
@@ -1385,12 +1394,14 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
-            // Reactive Multi-Tab Auto Sync from Closing ERP (Fan Assemble)
+            // Reactive Multi-Tab Auto Sync from Closing ERP & FG Summary
             window.addEventListener('storage', (e) => {
-                if (e.key === 'mep_fan_assemble_erp_data' || e.key === 'mep_fan_assemble_erp_data_updated' || e.key === ASSEMBLE_STORAGE_KEY) {
+                if (e.key === 'mep_fan_assemble_erp_data' || e.key === 'mep_fan_assemble_erp_data_updated' ||
+                    e.key === 'mep_fg_summary_data' || e.key === 'mep_fg_summary_last_updated' ||
+                    e.key === 'mep_closing_fg_data' || e.key === 'mep_closing_fg_last_updated') {
                     loadAssembleData();
                     applyFilters();
-                    showToast("🔄 Auto-refreshed from Closing ERP ➔ Fan Assemble!");
+                    showToast("🔄 Auto-refreshed from Live Linked ERP & FG Data!");
                 }
             });
 
@@ -1419,7 +1430,7 @@
         }
 
         function loadAssembleData() {
-            // Live Linked Calculation Engine
+            // Live Linked Calculation Engine (Strict Single Source of Truth)
             if (typeof MEP_ERP_ENGINE !== 'undefined') {
                 const liveList = MEP_ERP_ENGINE.computeLiveAssembleSummary();
                 if (Array.isArray(liveList) && liveList.length > 0) {
@@ -1435,12 +1446,11 @@
                     id: item.id || `base_${idx}`
                 }));
             }
-
             allAssembleData = base;
         }
 
         function saveStateToStorage() {
-            localStorage.setItem(ASSEMBLE_STORAGE_KEY, JSON.stringify(allAssembleData));
+            // Assemble Summary is 100% live computed from Source ERP (Fan Assemble); no detached manual saving.
         }
 
         function applyFilters() {
@@ -1595,9 +1605,20 @@
                     if (closingVal === 0) stockClass += ' stock-zero';
                     else if (closingVal > 5000) stockClass += ' stock-high';
 
+                    const isView = (sessionStorage.getItem('portal_view_only') === 'true') || 
+                                   (localStorage.getItem('portal_view_only') === 'true') ||
+                                   (sessionStorage.getItem('portal_auth_role') === 'VIEW') ||
+                                   (localStorage.getItem('portal_auth_role') === 'VIEW');
+
+                    tr.style.cursor = 'pointer';
+                    tr.title = 'Double-click to inspect Live Stock Source & Calculation Trace';
+                    tr.ondblclick = () => openTraceModal(item.id);
+
                     tr.innerHTML = `
                         <td class="cell-serial sticky-col-1">${idx + 1}</td>
-                        <td class="cell-left sticky-col-2"><span class="code-pill" title="${item.isLinked ? '🔗 Auto-linked from Closing ERP ➔ Fan Assemble' : escapeHTML(item.code || '')}">${escapeHTML(item.code || '')}</span></td>
+                        <td class="cell-left sticky-col-2">
+                            <span class="code-pill" title="${item.isLinked ? ('🔗 Linked: ' + escapeHTML(item.linkedSource || 'ERP')) : escapeHTML(item.code || '')}">${escapeHTML(item.code || '')}</span>
+                        </td>
                         <td class="cell-left item-name-cell sticky-col-3" title="${escapeHTML(item.name || '')}">${escapeHTML(item.name || '')}</td>
                         <td class="cell-center sticky-col-4"><span class="unit-badge">${escapeHTML(item.unit || 'Pcs')}</span></td>
                         <td>${formatNum(item.opening)}</td>
@@ -1609,6 +1630,22 @@
                         <td>${formatNum(item.delivery)}</td>
                         <td class="${stockClass}">${formatNum(closingVal)}</td>
                     `;
+
+                    const codeCell = tr.querySelector('.cell-left.sticky-col-2');
+                    if (codeCell) {
+                        const traceBtn = document.createElement('button');
+                        traceBtn.type = 'button';
+                        traceBtn.className = 'btn-trace-entry';
+                        traceBtn.title = 'Inspect Live Stock Source & Calculation Trace';
+                        traceBtn.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; margin-left:4px; padding:0; border:none; background:#e0f2fe; color:#0284c7; border-radius:4px; cursor:pointer; font-size:11px;';
+                        traceBtn.innerHTML = '🔍';
+                        traceBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            openTraceModal(item.id);
+                        };
+                        codeCell.appendChild(traceBtn);
+                    }
+
                     tbody.appendChild(tr);
                 });
             });
@@ -1630,127 +1667,84 @@
             tbody.appendChild(grandRow);
         }
 
-        // Master Code Lookup
-        function lookupMasterCode(val) {
-            if (!val) return;
-            const clean = val.trim();
-            if (typeof getMasterItem === 'function') {
-                const item = getMasterItem(clean);
-                if (item) {
-                    document.getElementById('inputItemName').value = item.name;
-                    if (item.unit) document.getElementById('inputUnit').value = item.unit;
-                    showToast(`✨ Auto-matched from Master: ${item.name}`);
+        // Live Stock Source & Calculation Trace Handlers (Single Source of Truth)
+        function openTraceModal(id) {
+            const item = allAssembleData.find(i => i.id === id);
+            if (!item) return;
+
+            const elCat = document.getElementById('traceItemCategory');
+            const elName = document.getElementById('traceItemName');
+            const elCode = document.getElementById('traceItemCode');
+            const elUnit = document.getElementById('traceItemUnit');
+
+            if (elCat) elCat.innerText = item.category || 'Raw Material';
+            if (elName) elName.innerText = item.name || '';
+            if (elCode) elCode.innerText = item.code || '';
+            if (elUnit) elUnit.innerText = item.unit || 'Pcs';
+
+            const sourceBadge = document.getElementById('traceSourceBadge');
+            if (sourceBadge) {
+                if (item.isLinked) {
+                    sourceBadge.innerHTML = `🟢 Live Linked: ${escapeHTML(item.linkedSource || 'Source ERP')}`;
+                    sourceBadge.style.background = '#ecfdf5';
+                    sourceBadge.style.color = '#059669';
+                    sourceBadge.style.borderColor = '#a7f3d0';
+                } else {
+                    sourceBadge.innerHTML = `🔗 Source Ledger: Fan Assemble ERP`;
+                    sourceBadge.style.background = '#f0f9ff';
+                    sourceBadge.style.color = '#0284c7';
+                    sourceBadge.style.borderColor = '#bae6fd';
                 }
             }
+
+            const op = Number(item.opening) || 0;
+            const sr = Number(item.storeRec) || 0;
+            const sec = Number(item.sectionRec) || 0;
+            const pr = Number(item.productionRec) || 0;
+            const oth = Number(item.othersRec) || 0;
+            const dam = Number(item.damage) || 0;
+            const del = Number(item.delivery) || 0;
+            const cl = Number(item.closing) || 0;
+
+            const elOp = document.getElementById('traceOpening');
+            const elSr = document.getElementById('traceStoreRec');
+            const elSec = document.getElementById('traceSectionRec');
+            const elPr = document.getElementById('traceProductionRec');
+            const elOth = document.getElementById('traceOthersRec');
+            const elDam = document.getElementById('traceDamage');
+            const elDel = document.getElementById('traceDelivery');
+            const elCl = document.getElementById('traceClosing');
+
+            if (elOp) elOp.innerText = formatNum(op);
+            if (elSr) elSr.innerText = formatNum(sr);
+            if (elSec) elSec.innerText = formatNum(sec);
+            if (elPr) elPr.innerText = formatNum(pr);
+            if (elOth) elOth.innerText = formatNum(oth);
+            if (elDam) elDam.innerText = formatNum(dam);
+            if (elDel) elDel.innerText = formatNum(del);
+            if (elCl) elCl.innerText = formatNum(cl);
+
+            const formulaEl = document.getElementById('traceFormulaValue');
+            if (formulaEl) {
+                formulaEl.innerText = `${formatNum(cl)} = ${formatNum(op)} + ${formatNum(sr)} + ${formatNum(sec)} + ${formatNum(pr)} + ${formatNum(oth)} - ${formatNum(dam)} - ${formatNum(del)}`;
+            }
+
+            const modal = document.getElementById('traceModal');
+            if (modal) modal.classList.add('active');
         }
 
-        function calcClosingPreview() {
-            const op = parseFloat(document.getElementById('inputOpening').value) || 0;
-            const sr = parseFloat(document.getElementById('inputStoreRec').value) || 0;
-            const sec = parseFloat(document.getElementById('inputSectionRec').value) || 0;
-            const pr = parseFloat(document.getElementById('inputProductionRec').value) || 0;
-            const oth = parseFloat(document.getElementById('inputOthersRec').value) || 0;
-            const dam = parseFloat(document.getElementById('inputDamage').value) || 0;
-            const del = parseFloat(document.getElementById('inputDelivery').value) || 0;
-
-            const closing = op + sr + sec + pr + oth - dam - del;
-            document.getElementById('previewClosing').value = formatNum(closing);
+        function closeTraceModal() {
+            const modal = document.getElementById('traceModal');
+            if (modal) modal.classList.remove('active');
         }
 
-        // Add / Edit Handlers
-        function openAddItemModal() {
-            document.getElementById('modalTitle').innerText = '+ Add New Item Entry';
-            document.getElementById('editingRecordId').value = '';
-            document.getElementById('entryForm').reset();
-            document.getElementById('previewClosing').value = '0';
-            document.getElementById('entryModal').classList.add('active');
-            document.getElementById('inputItemCode').focus();
-        }
-
+        // Backward compatibility wrapper
         function openEditModal(id) {
-            const item = allAssembleData.find(i => i.id === id);
-            if (!item) return;
-
-            document.getElementById('modalTitle').innerText = '✏️ Edit Stock Entry';
-            document.getElementById('editingRecordId').value = item.id;
-            document.getElementById('inputCategory').value = item.category || 'Raw Material';
-            document.getElementById('inputItemCode').value = item.code || '';
-            document.getElementById('inputItemName').value = item.name || '';
-            document.getElementById('inputUnit').value = item.unit || 'Pcs';
-            document.getElementById('inputOpening').value = item.opening || 0;
-            document.getElementById('inputStoreRec').value = item.storeRec || 0;
-            document.getElementById('inputSectionRec').value = item.sectionRec || 0;
-            document.getElementById('inputProductionRec').value = item.productionRec || 0;
-            document.getElementById('inputOthersRec').value = item.othersRec || 0;
-            document.getElementById('inputDamage').value = item.damage || 0;
-            document.getElementById('inputDelivery').value = item.delivery || 0;
-
-            calcClosingPreview();
-            document.getElementById('entryModal').classList.add('active');
+            openTraceModal(id);
         }
 
-        function closeEntryModal() {
-            document.getElementById('entryModal').classList.remove('active');
-        }
-
-        function handleSaveEntry(event) {
-            event.preventDefault();
-            const editId = document.getElementById('editingRecordId').value;
-            const category = document.getElementById('inputCategory').value;
-            const code = document.getElementById('inputItemCode').value.trim();
-            const name = document.getElementById('inputItemName').value.trim();
-            const unit = document.getElementById('inputUnit').value.trim();
-
-            const op = parseFloat(document.getElementById('inputOpening').value) || 0;
-            const sr = parseFloat(document.getElementById('inputStoreRec').value) || 0;
-            const sec = parseFloat(document.getElementById('inputSectionRec').value) || 0;
-            const pr = parseFloat(document.getElementById('inputProductionRec').value) || 0;
-            const oth = parseFloat(document.getElementById('inputOthersRec').value) || 0;
-            const dam = parseFloat(document.getElementById('inputDamage').value) || 0;
-            const del = parseFloat(document.getElementById('inputDelivery').value) || 0;
-            const closing = op + sr + sec + pr + oth - dam - del;
-
-            if (!code || !name) {
-                alert("Code and Item Name are required.");
-                return;
-            }
-
-            if (editId) {
-                const idx = allAssembleData.findIndex(i => i.id === editId);
-                if (idx >= 0) {
-                    allAssembleData[idx] = {
-                        ...allAssembleData[idx],
-                        category, code, name, unit,
-                        opening: op, storeRec: sr, sectionRec: sec, productionRec: pr,
-                        othersRec: oth, damage: dam, delivery: del, closing
-                    };
-                }
-            } else {
-                const newItem = {
-                    id: 'custom_' + Date.now(),
-                    category, code, name, unit,
-                    opening: op, storeRec: sr, sectionRec: sec, productionRec: pr,
-                    othersRec: oth, damage: dam, delivery: del, closing
-                };
-                allAssembleData.unshift(newItem);
-            }
-
-            saveStateToStorage();
-            applyFilters();
-            closeEntryModal();
-            showToast(`✅ Saved stock entry [${code}] ${name}!`);
-        }
-
-        function handleDelete(id) {
-            const item = allAssembleData.find(i => i.id === id);
-            if (!item) return;
-
-            if (!confirm(`Are you sure you want to delete [${item.code}] ${item.name}?`)) return;
-
-            allAssembleData = allAssembleData.filter(i => i.id !== id);
-            saveStateToStorage();
-            applyFilters();
-            showToast(`🗑️ Deleted entry [${item.code}]`);
+        function openAddItemModal() {
+            window.location.href = 'fan_assemble_erp.html';
         }
 
         // Bulk Import
@@ -1899,7 +1893,13 @@
         }
 
         function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function escapeJS(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
         }
     </script>
     <script src="report_sidebar.js"></script>

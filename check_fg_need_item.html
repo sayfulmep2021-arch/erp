@@ -270,6 +270,43 @@
             box-shadow: 0 4px 12px rgba(2, 132, 199, 0.45);
         }
 
+        /* View-Only Explicit Lock */
+        body.portal-view-only #selectSfgCode,
+        body.portal-view-only .entry-select {
+            pointer-events: none !important;
+            cursor: not-allowed !important;
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #1e293b !important;
+            user-select: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+        }
+
+        body.portal-view-only .btn-update-entry,
+        body.portal-view-only #btnColSettings {
+            display: none !important;
+        }
+        body.portal-view-only #inputQuantity {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: #334155 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+            font-weight: 700 !important;
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+        body.portal-view-only #inputQuantity::-webkit-outer-spin-button,
+        body.portal-view-only #inputQuantity::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+        }
+        body.portal-view-only #inputQuantity {
+            -moz-appearance: textfield !important;
+        }
+
         /* Action Buttons Bar */
         .actions-bar {
             display: flex;
@@ -1282,6 +1319,12 @@
             } else {
                 nameInput.value = "";
             }
+
+            // Real-time calculation on selecting model without needing an update button
+            const qtyInput = document.getElementById('inputQuantity');
+            const qty = parseFloat(qtyInput ? qtyInput.value : 5000) || 5000;
+            activeQuantity = qty;
+            generateBOMCalculation(activeSfgCode, activeQuantity);
         }
 
         /**
@@ -1555,14 +1598,86 @@
             if (clockEl) clockEl.innerText = timeStr;
         }
 
+        function applyViewOnlyModeIfNeeded() {
+            try {
+                const sig = sessionStorage.getItem('portal_auth_sig') || localStorage.getItem('portal_auth_sig') || '';
+                let isView = false;
+                if (sig === btoa('VIEW:::MEP_SECURE_PORTAL_2026')) {
+                    isView = true;
+                } else if (sig === btoa('ADMIN:::MEP_SECURE_PORTAL_2026')) {
+                    isView = false;
+                } else {
+                    isView = (sessionStorage.getItem('portal_view_only') === 'true') ||
+                             (localStorage.getItem('portal_view_only') === 'true') ||
+                             ((sessionStorage.getItem('portal_auth_role') || '').toUpperCase() === 'VIEW') ||
+                             ((localStorage.getItem('portal_auth_role') || '').toUpperCase() === 'VIEW');
+                }
+                if (isView) {
+                    if (document.documentElement) document.documentElement.classList.add('portal-view-only');
+                    if (document.body) document.body.classList.add('portal-view-only');
+
+                    const btnUpdate = document.querySelector('.btn-update-entry');
+                    if (btnUpdate) btnUpdate.style.setProperty('display', 'none', 'important');
+
+                    const btnCol = document.getElementById('btnColSettings');
+                    if (btnCol) btnCol.style.setProperty('display', 'none', 'important');
+
+                    const sfgSelect = document.getElementById('selectSfgCode');
+                    if (sfgSelect) {
+                        sfgSelect.disabled = true;
+                        sfgSelect.style.pointerEvents = 'none';
+                        sfgSelect.style.cursor = 'not-allowed';
+                        sfgSelect.style.backgroundColor = '#f8fafc';
+                        sfgSelect.title = 'SFG Code is locked in View-Only mode';
+                    }
+
+                    const sfgLabel = document.querySelector('.interactive-entry-bar .entry-group:nth-child(1) .entry-label');
+                    if (sfgLabel && !sfgLabel.querySelector('.view-lock-badge')) {
+                        sfgLabel.innerHTML = 'SFG Code <span class="view-lock-badge" style="font-size:0.75rem; color:#64748b; font-weight:700;">(🔒 Locked)</span>';
+                    }
+
+                    const qtyInput = document.getElementById('inputQuantity');
+                    if (qtyInput) {
+                        qtyInput.readOnly = true;
+                        qtyInput.disabled = true;
+                        qtyInput.style.pointerEvents = 'none';
+                        qtyInput.style.backgroundColor = '#f1f5f9';
+                        qtyInput.style.cursor = 'not-allowed';
+                        qtyInput.title = 'Production Quantity is locked in View-Only mode';
+                    }
+
+                    const titleSpan = document.querySelector('.top-sfg-title span');
+                    if (titleSpan) titleSpan.textContent = 'Automatic SFG Code Lookup & BOM Requirements Viewer';
+
+                    const prodQtyLabel = document.querySelector('.interactive-entry-bar .entry-group:nth-child(3) .entry-label');
+                    if (prodQtyLabel && !prodQtyLabel.querySelector('.view-lock-badge')) {
+                        prodQtyLabel.innerHTML = 'Production Quantity <span class="view-lock-badge" style="font-size:0.75rem; color:#64748b; font-weight:700;">(🔒 Locked: Standard Batch)</span>';
+                    }
+                }
+            } catch(e) {}
+        }
+        applyViewOnlyModeIfNeeded();
+
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+            const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
+                             (localStorage.getItem('portal_auth_status') === 'true');
+            if (!isAuthed) {
                 window.location.href = 'index.html';
                 return;
+            }
+            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+                sessionStorage.setItem('portal_auth_status', 'true');
+                const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
+                const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
+                const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
+                sessionStorage.setItem('portal_auth_role', storedRole);
+                sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
+                sessionStorage.setItem('portal_auth_sig', sig);
             }
             populateSfgDropdown();
             loadColumnVisibility();
             handleUpdateClick(); // Automatically calculate with default on load
+            applyViewOnlyModeIfNeeded();
             updateClock();
             setInterval(updateClock, 1000);
         });

@@ -119,25 +119,83 @@ const MEP_ERP_ENGINE = (function() {
             ? JSON.parse(JSON.stringify(RAW_ASSEMBLE_SUMMARY_DATA))
             : [];
 
+        // Build FG Summary and Closing FG map for 1. CEILING FAN SERIES dynamic link
+        let fgList = [];
+        try {
+            const savedFg = localStorage.getItem('mep_fg_summary_data');
+            if (savedFg) fgList = JSON.parse(savedFg);
+        } catch(e) {}
+        if (!Array.isArray(fgList) || fgList.length === 0) {
+            if (typeof RAW_FG_SUMMARY_DATA !== 'undefined' && Array.isArray(RAW_FG_SUMMARY_DATA)) {
+                fgList = RAW_FG_SUMMARY_DATA;
+            }
+        }
+
+        let cfgList = [];
+        try {
+            const savedCfg = localStorage.getItem('mep_closing_fg_data');
+            if (savedCfg) cfgList = JSON.parse(savedCfg);
+        } catch(e) {}
+        if (!Array.isArray(cfgList) || cfgList.length === 0) {
+            if (typeof RAW_CLOSING_FG_DATA !== 'undefined' && Array.isArray(RAW_CLOSING_FG_DATA)) {
+                cfgList = RAW_CLOSING_FG_DATA;
+            }
+        }
+
+        const cleanCode = (c) => (c || '').toString().trim().toUpperCase().replace(/\s+/g, '');
+        const fgMap = new Map();
+        if (Array.isArray(fgList)) {
+            fgList.forEach(r => {
+                if (!r.code) return;
+                const k = cleanCode(r.code);
+                fgMap.set(k, r);
+                if (r.code.includes('/')) {
+                    r.code.split('/').forEach(p => {
+                        const sub = cleanCode(p);
+                        if (sub && !fgMap.has(sub)) fgMap.set(sub, r);
+                    });
+                }
+            });
+        }
+
+        const cfgMap = new Map();
+        if (Array.isArray(cfgList)) {
+            cfgList.forEach(r => {
+                if (!r.code) return;
+                const k = cleanCode(r.code);
+                if (!cfgMap.has(k)) cfgMap.set(k, []);
+                cfgMap.get(k).push(r);
+                if (r.code.includes('/')) {
+                    r.code.split('/').forEach(p => {
+                        const sub = cleanCode(p);
+                        if (sub) {
+                            if (!cfgMap.has(sub)) cfgMap.set(sub, []);
+                            cfgMap.get(sub).push(r);
+                        }
+                    });
+                }
+            });
+        }
+
         const matchedSourceCodes = new Set();
 
-        // 1. Update Base Assemble Summary items by Item Code
+        // 1. Update Base Assemble Summary items directly from Source ERP (Primary Single Source of Truth)
         baseList.forEach(item => {
-            const itemCode = (item.code || '').trim().toUpperCase();
-            let matched = sourceMap.get(itemCode);
-            if (!matched && itemCode.includes('/')) {
-                const parts = itemCode.split('/');
+            const normCode = cleanCode(item.code);
+            let matched = sourceMap.get(normCode);
+            if (!matched && item.code && item.code.includes('/')) {
+                const parts = item.code.split('/');
                 for (const p of parts) {
-                    const sub = sourceMap.get(p.trim());
+                    const sub = sourceMap.get(cleanCode(p));
                     if (sub) { matched = sub; break; }
                 }
             }
 
             if (matched) {
-                const matchedKey = (matched.code || matched.erpCode || '').trim().toUpperCase();
+                const matchedKey = cleanCode(matched.code || matched.erpCode || '');
                 matchedSourceCodes.add(matchedKey);
-                if (matched.code) matchedSourceCodes.add(matched.code.trim().toUpperCase());
-                if (matched.erpCode) matchedSourceCodes.add(matched.erpCode.trim().toUpperCase());
+                if (matched.code) matchedSourceCodes.add(cleanCode(matched.code));
+                if (matched.erpCode) matchedSourceCodes.add(cleanCode(matched.erpCode));
 
                 item.opening = parseFloat(matched.opening) || 0;
                 item.storeRec = parseFloat(matched.storeReceive) || 0;
@@ -147,12 +205,84 @@ const MEP_ERP_ENGINE = (function() {
                     ? (parseFloat(matched.issueToDamage) || 0)
                     : (parseFloat(matched.damageReceive) || 0);
                 item.othersRec = parseFloat(matched.othersReceive) || 0;
-                item.delivery = parseFloat(matched.consumption) || 0;
+                item.delivery = (matched.consumption !== undefined && matched.consumption !== null && matched.consumption !== '' && parseFloat(matched.consumption) !== 0)
+                    ? (parseFloat(matched.consumption) || 0)
+                    : ((parseFloat(matched.totalIssue) || parseFloat(matched.wipIssue) || 0));
                 item.closing = (matched.binClosing !== undefined && matched.binClosing !== null && matched.binClosing !== '')
                     ? (parseFloat(matched.binClosing) || 0)
                     : (parseFloat(matched.closing) || 0);
                 item.isLinked = true;
                 item.linkedSource = 'Closing ERP ➔ Fan Assemble';
+                return;
+            }
+
+            // Fallback for Ceiling Fan Series NOT in Source ERP: check FG Summary / Closing FG
+            if (item.category === '1. CEILING FAN SERIES') {
+                let matchedFg = fgMap.get(normCode);
+                if (!matchedFg && item.code && item.code.includes('/')) {
+                    for (const p of item.code.split('/')) {
+                        const sub = fgMap.get(cleanCode(p));
+                        if (sub) { matchedFg = sub; break; }
+                    }
+                }
+
+                if (matchedFg) {
+                    item.opening = parseFloat(matchedFg.opening) || 0;
+                    item.storeRec = 0;
+                    item.sectionRec = 0;
+                    item.productionRec = parseFloat(matchedFg.production) || 0;
+                    item.damage = 0;
+                    item.othersRec = 0;
+                    item.delivery = parseFloat(matchedFg.delivery) || 0;
+                    item.closing = matchedFg.closing !== undefined ? (parseFloat(matchedFg.closing) || 0) : (item.opening + item.productionRec - item.delivery);
+                    item.isLinked = true;
+                    item.linkedSource = 'FG Summary Report';
+                    return;
+                }
+
+                let cfgMatches = cfgMap.get(normCode) || [];
+                if (cfgMatches.length === 0 && item.code && item.code.includes('/')) {
+                    for (const p of item.code.split('/')) {
+                        const sub = cfgMap.get(cleanCode(p));
+                        if (sub && sub.length > 0) { cfgMatches = sub; break; }
+                    }
+                }
+
+                if (cfgMatches.length > 0) {
+                    let sumOp = 0, sumProd = 0, sumDel = 0, sumClose = 0;
+                    cfgMatches.forEach(r => {
+                        sumOp += parseFloat(r.opening) || 0;
+                        const prod = r.otherReceive !== undefined ? r.otherReceive : (r.receiveOther !== undefined ? r.receiveOther : (r.other !== undefined ? r.other : 0));
+                        sumProd += parseFloat(prod) || 0;
+                        const del = r.transfer !== undefined ? r.transfer : (r.transferIssue !== undefined ? r.transferIssue : 0);
+                        sumDel += parseFloat(del) || 0;
+                        const cl = r.binClosing !== undefined ? r.binClosing : (r.closing !== undefined ? r.closing : 0);
+                        sumClose += parseFloat(cl) || 0;
+                    });
+                    item.opening = sumOp;
+                    item.storeRec = 0;
+                    item.sectionRec = 0;
+                    item.productionRec = sumProd;
+                    item.damage = 0;
+                    item.othersRec = 0;
+                    item.delivery = sumDel;
+                    item.closing = sumClose;
+                    item.isLinked = true;
+                    item.linkedSource = 'Closing ERP (Finish Good FG)';
+                    return;
+                }
+
+                // If not found in any source -> STRICT ZERO (0)
+                item.opening = 0;
+                item.storeRec = 0;
+                item.sectionRec = 0;
+                item.productionRec = 0;
+                item.damage = 0;
+                item.othersRec = 0;
+                item.delivery = 0;
+                item.closing = 0;
+                item.isLinked = false;
+                item.linkedSource = '';
             }
         });
 

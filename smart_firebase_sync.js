@@ -43,6 +43,9 @@
         'mep_armature_custom_data',
         'smart_system_notifications',
         'smart_notif_unread',
+        'mep_notification_history',
+        'mep_notification_unread',
+        'portal_view_page_permissions',
         'mep_daily_prod_assemble_manual_month',
         'mep_daily_prod_assemble_manual_year'
     ];
@@ -56,6 +59,7 @@
     const rawSetItem = localStorage.setItem.bind(localStorage);
     const rawRemoveItem = localStorage.removeItem.bind(localStorage);
     const rawGetItem = localStorage.getItem.bind(localStorage);
+    const rawClear = localStorage.clear.bind(localStorage);
 
     // Dynamic Script Loader
     function loadScript(src) {
@@ -154,20 +158,37 @@
         });
     }
 
-    // Helper to check view-only mode
+    // Helper to check view-only mode with multi-layered tamper detection
     function isViewOnlyMode() {
         try {
-            return sessionStorage.getItem('portal_view_only') === 'true';
+            const sig = sessionStorage.getItem('portal_auth_sig') || '';
+            if (sig === btoa('VIEW:::MEP_SECURE_PORTAL_2026')) {
+                return true;
+            }
+            if (sig === btoa('ADMIN:::MEP_SECURE_PORTAL_2026')) {
+                return false;
+            }
+            const isView = sessionStorage.getItem('portal_view_only') === 'true';
+            const role = (sessionStorage.getItem('portal_auth_role') || '').toUpperCase();
+            const localRole = (localStorage.getItem('portal_auth_role') || '').toUpperCase();
+            return isView || role === 'VIEW' || localRole === 'VIEW';
         } catch (e) {
             return false;
         }
     }
 
-    // Push local change to Firebase
+    // Permitted local storage keys for non-data UI preferences only
+    const PERMITTED_VIEW_KEYS = [
+        'mep_portal_theme',
+        'mep_sidebar_collapsed',
+        'mep_notification_unread'
+    ];
+
+    // Push local change to Firebase (Blocked in View-Only mode)
     function pushToCloud(key, value) {
-        if (isApplyingCloudUpdate) return; // Do not echo back cloud updates
+        if (isApplyingCloudUpdate) return;
         if (isViewOnlyMode()) {
-            console.warn(`🔒 [SmartCloud] Cloud push skipped for '${key}': View-Only session.`);
+            console.warn(`🔒 [Security Guard] Cloud push blocked for '${key}': View-Only session.`);
             return;
         }
         if (!db) return;
@@ -194,11 +215,11 @@
         });
     }
 
-    // Delete node from Firebase
+    // Delete node from Firebase (Blocked in View-Only mode)
     function removeFromCloud(key) {
         if (isApplyingCloudUpdate) return;
         if (isViewOnlyMode()) {
-            console.warn(`🔒 [SmartCloud] Cloud deletion skipped for '${key}': View-Only session.`);
+            console.warn(`🔒 [Security Guard] Cloud deletion blocked for '${key}': View-Only session.`);
             return;
         }
         if (!db) return;
@@ -211,27 +232,82 @@
         });
     }
 
-    // Intercept localStorage transparently with View-Only enforcement
+    // Intercept localStorage transparently with View-Only enforcement & Audit Logging
     localStorage.setItem = function(key, value) {
-        if (TRACKED_KEYS.includes(key) && isViewOnlyMode()) {
-            console.warn(`🔒 [SmartCloud] Blocked localStorage modification for tracked key '${key}' in View-Only mode.`);
-            return;
+        if (isViewOnlyMode()) {
+            if (!PERMITTED_VIEW_KEYS.includes(key)) {
+                console.warn(`🔒 [Security Guard] Blocked unauthorized localStorage.setItem for '${key}' in View-Only mode.`);
+                return;
+            }
         }
         rawSetItem(key, value);
-        if (TRACKED_KEYS.includes(key)) {
+        if (TRACKED_KEYS.includes(key) && !isViewOnlyMode()) {
             pushToCloud(key, value);
+
+            // Dynamically notify system changelog on Admin updates (avoid looping on notification keys)
+            if (!isApplyingCloudUpdate && typeof window.logSystemChange === 'function') {
+                if (!key.includes('notif') && key !== 'portal_view_page_permissions') {
+                    const keyFriendlyNames = {
+                        'custom_fg_production_entries': { page: 'Daily FG Production Entry', module: 'Daily Check Report', type: 'Data Entry Added/Edited' },
+                        'mep_fan_damage_custom': { page: 'Fan Damage Calculation Entry', module: 'Daily Check Report', type: 'Damage Data Updated' },
+                        'mep_yearly_production_plans_all': { page: 'Production Plan', module: 'All Report Summary', type: 'Yearly Plan Modified' },
+                        'mep_daily_plan_per_day': { page: 'Daily Production Plan', module: 'Daily Check Report', type: 'Daily Target Updated' },
+                        'mep_daily_prod_received_assemble_data': { page: 'Daily Production Received Assemble', module: 'Daily Check Report', type: 'Production Received Saved' },
+                        'mep_check_floor_stock_custom': { page: 'Check Floor Stock', module: 'Daily Check Report', type: 'Floor Stock Saved' },
+                        'mep_check_floor_stock_data': { page: 'Check Floor Stock', module: 'Daily Check Report', type: 'Floor Stock Database Modified' },
+                        'mep_bom_data_custom': { page: 'BOM Details', module: 'All Report Summary', type: 'BOM Ratio Updated' },
+                        'mep_bom_with_sfg_data': { page: 'BOM with SFG', module: 'All Report Summary', type: 'SFG Formulation Modified' },
+                        'mep_assemble_custom_data': { page: 'Assemble Summary', module: 'All Report Summary', type: 'Assemble Data Updated' },
+                        'mep_armature_custom_data': { page: 'Armature Summary', module: 'All Report Summary', type: 'Armature Data Updated' }
+                    };
+                    const meta = keyFriendlyNames[key] || { page: 'System Database', module: 'ERP Core', type: 'Data Record Updated' };
+                    window.logSystemChange({
+                        page: meta.page,
+                        module: meta.module,
+                        type: meta.type,
+                        title: `Admin Updated ${meta.page}`,
+                        description: `Data successfully saved and synchronized with live cloud ERP database.`,
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            }
         }
     };
 
     localStorage.removeItem = function(key) {
-        if (TRACKED_KEYS.includes(key) && isViewOnlyMode()) {
-            console.warn(`🔒 [SmartCloud] Blocked localStorage deletion for tracked key '${key}' in View-Only mode.`);
-            return;
+        if (isViewOnlyMode()) {
+            if (!PERMITTED_VIEW_KEYS.includes(key)) {
+                console.warn(`🔒 [Security Guard] Blocked unauthorized localStorage.removeItem for '${key}' in View-Only mode.`);
+                return;
+            }
         }
         rawRemoveItem(key);
-        if (TRACKED_KEYS.includes(key)) {
+        if (TRACKED_KEYS.includes(key) && !isViewOnlyMode()) {
             removeFromCloud(key);
+
+            if (!isApplyingCloudUpdate && typeof window.logSystemChange === 'function') {
+                if (!key.includes('notif')) {
+                    window.logSystemChange({
+                        page: "ERP Database",
+                        module: "Data Operations",
+                        type: "Data Record Deleted",
+                        badgeColor: "#ef4444",
+                        badgeBg: "#fee2e2",
+                        title: `Admin Deleted Record: ${key}`,
+                        description: `Record '${key}' was deleted and synchronized to cloud database.`,
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            }
         }
+    };
+
+    localStorage.clear = function() {
+        if (isViewOnlyMode()) {
+            console.warn("🔒 [Security Guard] Blocked unauthorized localStorage.clear() in View-Only mode.");
+            return;
+        }
+        rawClear();
     };
 
     // UI Status Badge Helper

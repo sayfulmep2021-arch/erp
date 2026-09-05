@@ -7,9 +7,59 @@
 
 (function() {
     // 0. Session Auth Guard - Ensure active login session, otherwise redirect to login page
-    if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+    const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
+                     (localStorage.getItem('portal_auth_status') === 'true');
+    if (!isAuthed) {
         window.location.href = 'index.html';
         return;
+    }
+
+    // Hydrate sessionStorage if authenticated via localStorage (supports new tab / direct explorer launch)
+    if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+        sessionStorage.setItem('portal_auth_status', 'true');
+        const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
+        const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
+        const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
+        sessionStorage.setItem('portal_auth_role', storedRole);
+        sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
+        sessionStorage.setItem('portal_auth_sig', sig);
+    }
+
+    // 0.1 View-Only Role Page Access Guard with Signature Verification
+    const rawPathFile = (window.location.pathname || '').replace(/\\/g, '/').split('/').pop() || '';
+    const currentPageFile = decodeURIComponent(rawPathFile).split('?')[0].split('#')[0].toLowerCase();
+    
+    function isCurrentUserViewOnly() {
+        try {
+            const sig = sessionStorage.getItem('portal_auth_sig') || localStorage.getItem('portal_auth_sig') || '';
+            if (sig === btoa('VIEW:::MEP_SECURE_PORTAL_2026')) return true;
+            if (sig === btoa('ADMIN:::MEP_SECURE_PORTAL_2026')) return false;
+            const isView = (sessionStorage.getItem('portal_view_only') === 'true') || (localStorage.getItem('portal_view_only') === 'true');
+            const role = (sessionStorage.getItem('portal_auth_role') || '').toUpperCase();
+            const localRole = (localStorage.getItem('portal_auth_role') || '').toUpperCase();
+            return isView || role === 'VIEW' || localRole === 'VIEW';
+        } catch(e) {
+            return false;
+        }
+    }
+
+    const isViewOnlyUser = isCurrentUserViewOnly();
+
+    function getViewPagePermissions() {
+        const raw = localStorage.getItem('portal_view_page_permissions');
+        if (raw) {
+            try { return JSON.parse(raw); } catch(e) {}
+        }
+        return null;
+    }
+
+    if (isViewOnlyUser && currentPageFile && currentPageFile !== 'index.html') {
+        const perms = getViewPagePermissions();
+        if (perms && perms[currentPageFile] === false) {
+            alert("Access Denied: You do not have permission to view this page.");
+            window.location.href = 'index.html';
+            return;
+        }
     }
 
     // 1. Module Definition with Bespoke Pastel SVG Icons
@@ -134,9 +184,9 @@
             iconColor: "#475569",
             iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
             items: [
-                { name: "Quality Inspection Log", url: "#" },
-                { name: "Maintenance & Breakdown Log", url: "#" },
-                { name: "Miscellaneous Operational Logs", url: "#" }
+                { name: "Month wish Assemble Summary", url: "assemble_summary.html" },
+                { name: "Month wish Armature Summary", url: "armature_summary.html" },
+                { name: "Yearly FG Summary ERP", url: "yearly_production_summary_erp.html" }
             ]
         },
         {
@@ -339,22 +389,6 @@
                 const oldBell = navRight.querySelector('.notif-btn-wrapper, .notif-bell-btn');
                 if (oldBell) oldBell.remove();
 
-                // Realtime Firebase Cloud Status Indicator: "Live"
-                if (!navRight.querySelector('.smart-cloud-status-badge')) {
-                    const cloudBadge = document.createElement('div');
-                    cloudBadge.className = 'smart-cloud-status-badge';
-                    cloudBadge.id = 'smartCloudStatusBadge';
-                    cloudBadge.title = 'Realtime Cloud: Connected (Live Sync)';
-                    cloudBadge.innerHTML = `
-                        <span class="cloud-pulse-dot"></span>
-                        <span class="cloud-status-text">Live</span>
-                    `;
-                    navRight.insertBefore(cloudBadge, navRight.firstChild);
-                } else {
-                    const txt = navRight.querySelector('.smart-cloud-status-badge .cloud-status-text');
-                    if (txt && txt.textContent.includes('Cloud Live')) txt.textContent = 'Live';
-                }
-
                 // View-Only Mode Status Indicator (Dynamic: Only shown if logged in as View-Only)
                 const isViewOnlyMode = (sessionStorage.getItem('portal_view_only') === 'true');
                 let viewBadge = navRight.querySelector('.smart-view-only-badge');
@@ -375,19 +409,39 @@
                     viewBadge.remove();
                 }
 
-                // Ensure Live Clock Badge exists
-                if (!navRight.querySelector('.live-clock-badge')) {
-                    const clockBadge = document.createElement('div');
+                // Ensure Live Clock Badge exists with integrated Realtime Cloud Status
+                let clockBadge = navRight.querySelector('.live-clock-badge');
+                if (!clockBadge) {
+                    clockBadge = document.createElement('div');
                     clockBadge.className = 'live-clock-badge';
                     clockBadge.id = 'liveClockBadge';
                     clockBadge.title = 'Live System Day & Time';
                     clockBadge.innerHTML = `
+                        <span class="smart-cloud-status-badge" id="smartCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
+                            <span class="cloud-pulse-dot"></span>
+                            <span class="cloud-status-text">Live</span>
+                        </span>
                         <div class="live-clock-info">
                             <span class="live-day-text" id="liveDayText">Loading date...</span>
                             <span class="live-time-text" id="liveTimeText">--:--:-- --</span>
                         </div>
                     `;
                     navRight.insertBefore(clockBadge, navRight.querySelector('.user-brand-card') || null);
+                } else {
+                    let cloudBadge = navRight.querySelector('.smart-cloud-status-badge');
+                    if (!cloudBadge) {
+                        cloudBadge = document.createElement('span');
+                        cloudBadge.className = 'smart-cloud-status-badge';
+                        cloudBadge.id = 'smartCloudStatusBadge';
+                        cloudBadge.title = 'Realtime Cloud: Connected (Live Sync)';
+                        cloudBadge.innerHTML = `
+                            <span class="cloud-pulse-dot"></span>
+                            <span class="cloud-status-text">Live</span>
+                        `;
+                    }
+                    if (cloudBadge.parentNode !== clockBadge) {
+                        clockBadge.insertBefore(cloudBadge, clockBadge.firstChild);
+                    }
                 }
 
                 if (!navRight.querySelector('.user-brand-card')) {
@@ -408,6 +462,27 @@
                     navRight.appendChild(userBrand);
                 }
 
+                // Header Top-Right Notification Bell Button with Live Red Dot
+                if (!navRight.querySelector('.btn-nav-notif')) {
+                    const notifBtn = document.createElement('button');
+                    notifBtn.type = 'button';
+                    notifBtn.className = 'btn-nav-notif';
+                    notifBtn.title = 'Notifications & Audit History';
+                    notifBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span class="notif-red-dot" style="display:none;"></span>
+                    `;
+                    notifBtn.onclick = function(e) {
+                        if (typeof window.toggleSmartNotificationPanel === 'function') {
+                            window.toggleSmartNotificationPanel();
+                        }
+                    };
+                    navRight.appendChild(notifBtn);
+                }
+
                 // Header Top-Right Logout Button (Uniform across all report pages)
                 if (!navRight.querySelector('.header-logout-btn')) {
                     const logoutBtn = document.createElement('button');
@@ -424,8 +499,14 @@
                     logoutBtn.onclick = function() {
                         sessionStorage.removeItem('portal_auth_status');
                         sessionStorage.removeItem('portal_view_only');
+                        sessionStorage.removeItem('portal_auth_role');
+                        sessionStorage.removeItem('portal_auth_sig');
                         sessionStorage.removeItem('portal_current_view');
                         sessionStorage.removeItem('portal_hub_module');
+                        localStorage.removeItem('portal_auth_status');
+                        localStorage.removeItem('portal_view_only');
+                        localStorage.removeItem('portal_auth_role');
+                        localStorage.removeItem('portal_auth_sig');
                         window.location.href = 'index.html';
                     };
                     navRight.appendChild(logoutBtn);
@@ -435,13 +516,26 @@
 
         // 3. Build Full Accordion Sidebar containing ALL Main Headings (Modules)
         let accordionHtml = '';
+        const viewPerms = isViewOnlyUser ? getViewPagePermissions() : null;
 
         MEP_NAV_MODULES.forEach(mod => {
             const isThisActiveModule = (mod.id === activeModule.id);
             const isClosing = !!mod.isClosingERP;
 
+            // Filter items for View-Only users based on admin permissions
+            const accessibleItems = mod.items.filter(item => {
+                if (!isViewOnlyUser || !viewPerms) return true;
+                if (item.url === '#') return true;
+                const file = item.url.split('/').pop().split('?')[0].toLowerCase();
+                return viewPerms[file] !== false;
+            });
+
+            if (isViewOnlyUser && accessibleItems.length === 0) {
+                return; // Hide entire module heading if all its reports are restricted
+            }
+
             let subItemsHtml = '';
-            mod.items.forEach(item => {
+            accessibleItems.forEach(item => {
                 const isActiveItem = (currentPage === item.url || (activeModule && item.name === activeItemName));
                 let statusTagHtml = '';
                 let dotClass = 'sub-item-dot';
@@ -466,7 +560,7 @@
                 `;
             });
 
-            const badgeText = mod.badge || (isClosing ? 'LIVE ERP' : `${mod.items.length} Reports`);
+            const badgeText = mod.badge || (isClosing ? 'LIVE ERP' : `${accessibleItems.length} Reports`);
 
             accordionHtml += `
                 <div class="mep-module-accordion ${isThisActiveModule ? 'is-open' : ''}" id="mep-acc-group-${mod.id}">
@@ -618,11 +712,39 @@
             const formattedHours = String(hours).padStart(2, '0');
 
             const dateStr = `${dayName}, ${dateNum} ${monthName} ${yearNum}`;
-            const timeStr = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+            const slottedTime = `<span class="t-num-slot">${formattedHours[0]}</span><span class="t-num-slot">${formattedHours[1]}</span>:<span class="t-num-slot">${minutes[0]}</span><span class="t-num-slot">${minutes[1]}</span>:<span class="t-num-slot">${seconds[0]}</span><span class="t-num-slot">${seconds[1]}</span> <span class="t-ampm-slot">${ampm}</span>`;
 
             document.querySelectorAll('.live-day-text').forEach(function(el) { el.innerText = dateStr; });
-            document.querySelectorAll('.live-time-text').forEach(function(el) { el.innerText = timeStr; });
+            document.querySelectorAll('.live-time-text').forEach(function(el) { el.innerHTML = slottedTime; });
         }
+        window.runSubReportLiveClock = runSubReportLiveClock;
+        window.updateLiveClock = runSubReportLiveClock;
+
+        // Global slot protection: if any inline script on any page assigns innerText/textContent, wrap it in slots
+        try {
+            document.querySelectorAll('.live-time-text').forEach(function(tEl) {
+                const proto = HTMLElement.prototype;
+                const descText = Object.getOwnPropertyDescriptor(proto, 'innerText') || Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+                function slotWrap(val) {
+                    const m = String(val).match(/(\d{2}):(\d{2}):(\d{2})\s*(AM|PM)?/i);
+                    if (m) {
+                        return `<span class="t-num-slot">${m[1][0]}</span><span class="t-num-slot">${m[1][1]}</span>:<span class="t-num-slot">${m[2][0]}</span><span class="t-num-slot">${m[2][1]}</span>:<span class="t-num-slot">${m[3][0]}</span><span class="t-num-slot">${m[3][1]}</span> <span class="t-ampm-slot">${m[4] || ''}</span>`;
+                    }
+                    return val;
+                }
+                Object.defineProperty(tEl, 'innerText', {
+                    get() { return descText && descText.get ? descText.get.call(this) : this.innerHTML; },
+                    set(val) { this.innerHTML = slotWrap(val); },
+                    configurable: true
+                });
+                Object.defineProperty(tEl, 'textContent', {
+                    get() { return descText && descText.get ? descText.get.call(this) : this.innerHTML; },
+                    set(val) { this.innerHTML = slotWrap(val); },
+                    configurable: true
+                });
+            });
+        } catch(e) {}
+
         runSubReportLiveClock();
         setInterval(runSubReportLiveClock, 1000);
         updateSidebarClosingStatus();
@@ -908,11 +1030,19 @@
         'assemble_summary': {
             title: 'Assemble Summary',
             path: 'All Report Summary → Assemble Summary',
-            desc: 'Consolidated assembly floor inventory ledger tracking opening, received, dispatch, and bin closing balances.',
+            desc: 'Consolidated assembly floor inventory ledger tracking opening, received, dispatch, and bin closing balances across Raw Material, Packing Item, 1. CEILING FAN SERIES (17 Items), SFG, and Consumables.',
             links: [
                 {
+                    col: 'Ceiling Fan Series (17 Items)',
+                    sourcePage: 'FG Summary Report / Closing (ERP) FG',
+                    sourcePageUrl: 'fg_summary.html',
+                    sourceCol: 'Opening, Production, Delivery, Closing',
+                    matchKey: 'Code ↔ Code',
+                    desc: 'Live linked finished ceiling fan series dynamically synced from FG Summary & Closing FG'
+                },
+                {
                     col: 'Opening Balance',
-                    sourcePage: 'Previous Assemble Summary',
+                    sourcePage: 'Previous Assemble Summary / Source ERP',
                     sourcePageUrl: 'assemble_summary.html',
                     sourceCol: 'Bin Closing',
                     matchKey: 'Item Code',
@@ -938,7 +1068,11 @@
             calcs: [
                 {
                     target: 'Bin Closing Formula',
-                    formula: 'Bin Closing = Opening + Production Received − Issue / Transfer'
+                    formula: 'Bin Closing = Opening + Store Receive + Section Receive + Production Receive + Others Receive − Issue To Damage − Consumption'
+                },
+                {
+                    target: 'Ceiling Fan Dynamic Sync',
+                    formula: 'Ceiling Fan Opening, Production Receive, Delivery, Closing ➔ Synced Live from FG Summary (Finish Good - FG)'
                 },
                 {
                     target: 'Downstream Output',
@@ -946,6 +1080,7 @@
                 }
             ],
             visualMap: [
+                { sourcePage: 'FG Summary', sourceCol: '1. CEILING FAN SERIES', key: 'Code Match', targetCol: 'Assemble Summary (Fan Series)' },
                 { sourcePage: 'Daily Prod Received', sourceCol: 'Received Qty', key: 'Item Code Match', targetCol: 'Production Received' },
                 { sourcePage: 'Assemble Summary', sourceCol: 'Bin Closing', key: 'Feeds Downstream', targetCol: 'Check FG Need Item' }
             ]
@@ -1210,72 +1345,309 @@
 
     // Enforce View-Only restrictions when in Viewer mode
     function enforceViewOnlyRestrictions() {
-        if (sessionStorage.getItem('portal_view_only') !== 'true') return;
+        if (!isCurrentUserViewOnly()) return;
 
-        document.body.classList.add('portal-view-only');
+        // Ensure portal-view-only is attached to root and body immediately
+        if (document.documentElement) document.documentElement.classList.add('portal-view-only');
+        if (document.body) document.body.classList.add('portal-view-only');
 
-        // Intercept clicks on any edit / add / save / paste / delete buttons
-        document.addEventListener('click', function(e) {
-            if (sessionStorage.getItem('portal_view_only') !== 'true') return;
+        // Function to strip and lock all editing elements in DOM
+        function stripAndLockDOM() {
+            if (!isCurrentUserViewOnly()) return;
 
-            const target = e.target.closest('button, .btn-action, .btn-plan, a');
+            // 1. Hide/remove any edit/add/delete/save/import/paste/update/reset buttons
+            const blockedSelectors = [
+                '.btn-add', '.btn-save', '.btn-edit', '.btn-delete', '.btn-import', '.btn-paste',
+                '.btn-save-plan', '.btn-add-item', '.btn-new-entry', '.btn-delete-entry',
+                '.btn-edit-entry', '.btn-row-delete', '.btn-row-add', '.btn-sync-yearly',
+                '.btn-save-stock', '.btn-save-bom', '.action-btn-delete', '.action-btn-edit',
+                '.edit-action-btn', '.delete-action-btn', '.action-col', '.col-action',
+                '.col-actions', '.th-action', '.td-action', '.th-actions', '.td-actions',
+                '.table-action-cell', '.table-actions-cell', '.actions-column', '.actions-col',
+                '.actions-cell', '.action-cell', '#settingsTabAccess', '#savePermissionsBtn',
+                '.btn-update-entry', '.btn-update', '.btn-reset', '.btn-action.btn-reset',
+                '.btn-corp-primary', '.btn-corp-outline', '.btn-action-paste', '.btn-action-purple',
+                '.btn-table-edit', '.btn-table-del', '.btn-del-row',
+                '.btn-col-settings:not(#btnLinkDetails)', '#btnColSettings',
+                '#addItemModal', '#pasteModal', '#addDamageModal', '#bulkPasteModal',
+                '#addMasterModal', '#columnSettingsModal',
+                'button[onclick*="save" i]', 'button[onclick*="openAdd" i]',
+                'button[onclick*="openNew" i]:not([onclick*="openlinkdetails" i]):not([onclick*="opendataflow" i])',
+                'button[onclick*="openPaste" i]', 'button[onclick*="openBulk" i]',
+                'button[onclick*="openColSettings" i]', 'button[onclick*="openColumnSettings" i]',
+                'button[onclick*="handleUpdateClick" i]', 'button[onclick*="update" i]',
+                'button[onclick*="reset" i]', 'button[onclick*="sync" i]',
+                'button[onclick*="recalculate" i]',
+                'button[onclick*="delete" i]', 'button[onclick*="edit" i]',
+                'button[onclick*="import" i]', 'button[onclick*="paste" i]',
+                'button[onclick*="insert" i]',
+                'a[onclick*="save" i]', 'a[onclick*="openAdd" i]',
+                'a[onclick*="openNew" i]:not([onclick*="openlinkdetails" i]):not([onclick*="opendataflow" i])',
+                'a[onclick*="openPaste" i]', 'a[onclick*="delete" i]', 'a[onclick*="edit" i]',
+                '[data-action="edit"]', '[data-action="delete"]', '[data-action="add"]',
+                '[data-action="save"]', '[data-action="update"]', '[data-action="reset"]'
+            ];
+
+            blockedSelectors.forEach(sel => {
+                document.querySelectorAll(sel).forEach(el => {
+                    el.style.setProperty('display', 'none', 'important');
+                    el.setAttribute('hidden', 'true');
+                    el.setAttribute('disabled', 'true');
+                    el.onclick = null;
+                });
+            });
+
+            // 2. Disable contenteditable cells in tables
+            document.querySelectorAll('[contenteditable], [contenteditable="true"], [contenteditable="false"]').forEach(cell => {
+                cell.setAttribute('contenteditable', 'false');
+                cell.style.cursor = 'default';
+                cell.style.userSelect = 'text';
+                cell.style.pointerEvents = 'none';
+            });
+
+            // 3. Freeze all select dropdowns across the page
+            document.querySelectorAll('select').forEach(sel => {
+                sel.disabled = true;
+                sel.style.pointerEvents = 'none';
+                sel.style.cursor = 'not-allowed';
+                sel.style.backgroundColor = '#f8fafc';
+            });
+
+            // 4. Disable all inputs and textarea fields (except search boxes)
+            document.querySelectorAll('input, textarea').forEach(inp => {
+                const id = (inp.id || '').toLowerCase();
+                const type = (inp.type || '').toLowerCase();
+                if (type === 'search' || id.includes('search')) {
+                    // allow live table search typing
+                    return;
+                }
+                inp.readOnly = true;
+                inp.disabled = true;
+                inp.style.cursor = 'not-allowed';
+                inp.style.pointerEvents = 'none';
+                inp.style.backgroundColor = '#f8fafc';
+                inp.style.opacity = '0.9';
+            });
+
+            // 5. Page-specific protections for check_fg_need_item.html
+            const sfgSelect = document.getElementById('selectSfgCode');
+            if (sfgSelect) {
+                sfgSelect.disabled = true;
+                sfgSelect.style.pointerEvents = 'none';
+                sfgSelect.style.cursor = 'not-allowed';
+                sfgSelect.style.backgroundColor = '#f8fafc';
+                sfgSelect.title = 'SFG Code is locked in View-Only mode';
+            }
+            const sfgLabel = document.querySelector('.interactive-entry-bar .entry-group:nth-child(1) .entry-label');
+            if (sfgLabel && !sfgLabel.querySelector('.view-lock-badge')) {
+                sfgLabel.innerHTML = 'SFG Code <span class="view-lock-badge" style="font-size:0.75rem; color:#64748b; font-weight:700;">(🔒 Locked)</span>';
+            }
+
+            const qtyInput = document.getElementById('inputQuantity');
+            if (qtyInput) {
+                qtyInput.readOnly = true;
+                qtyInput.disabled = true;
+                qtyInput.style.pointerEvents = 'none';
+                qtyInput.style.backgroundColor = '#f1f5f9';
+                qtyInput.style.cursor = 'not-allowed';
+                qtyInput.title = 'Production Quantity is locked in View-Only mode';
+            }
+            const updateBtn = document.querySelector('.btn-update-entry');
+            if (updateBtn) {
+                updateBtn.style.setProperty('display', 'none', 'important');
+            }
+            const colSettingsBtn = document.getElementById('btnColSettings');
+            if (colSettingsBtn) {
+                colSettingsBtn.style.setProperty('display', 'none', 'important');
+            }
+            const sfgHeaderTitle = document.querySelector('.top-sfg-title span');
+            if (sfgHeaderTitle && sfgHeaderTitle.textContent.includes('Quantity Input')) {
+                sfgHeaderTitle.textContent = 'Automatic SFG Code Lookup & BOM Requirements Viewer';
+            }
+            const prodQtyLabel = document.querySelector('.interactive-entry-bar .entry-group:nth-child(3) .entry-label');
+            if (prodQtyLabel && !prodQtyLabel.querySelector('.view-lock-badge')) {
+                prodQtyLabel.innerHTML = 'Production Quantity <span class="view-lock-badge" style="font-size:0.75rem; color:#64748b; font-weight:700;">(🔒 Locked: Standard Batch)</span>';
+            }
+        }
+
+        // Run immediately
+        stripAndLockDOM();
+
+        // Tamper-proofing MutationObserver (prevents DevTools class removal or unhiding)
+        const securityObserver = new MutationObserver(() => {
+            if (document.body && !document.body.classList.contains('portal-view-only')) {
+                document.body.classList.add('portal-view-only');
+            }
+            if (document.documentElement && !document.documentElement.classList.contains('portal-view-only')) {
+                document.documentElement.classList.add('portal-view-only');
+            }
+            stripAndLockDOM();
+        });
+
+        if (document.documentElement) {
+            securityObserver.observe(document.documentElement, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class', 'style', 'contenteditable', 'disabled']
+            });
+        }
+
+        // Capturing Event Interceptors (Zero Execution Guarantee)
+        const CAPTURE_BLOCKED_TERMS = [
+            'save', 'add', 'delete', 'edit', 'insert', 'import', 'paste', 'remove', 'modify',
+            'update', 'reset', 'sync', 'recalculate'
+        ];
+
+        window.addEventListener('click', function(e) {
+            if (!isCurrentUserViewOnly()) return;
+
+            // Allow navigation in portal navbar, frozen sidebar, user profile modal, notifications, and link details modal
+            if (e.target.closest('.portal-nav, #frozenSidebar, .mep-frozen-sidebar, .smart-user-profile-modal, #notificationBackdrop, #linkDetailsBackdrop')) {
+                return;
+            }
+
+            const target = e.target.closest('button, a, input, select, textarea, [role="button"]');
             if (!target) return;
 
-            const onclickAttr = (target.getAttribute('onclick') || '').toLowerCase();
             const classList = (target.className || '').toLowerCase();
-            const btnText = (target.textContent || '').toLowerCase();
+            const onclickAttr = (target.getAttribute('onclick') || '').toLowerCase();
+            const id = (target.id || '').toLowerCase();
+            const btnText = (target.textContent || '').trim().toLowerCase();
+            const actionAttr = (target.getAttribute('data-action') || '').toLowerCase();
 
-            const isBlockedAction = (
-                classList.includes('btn-add') ||
-                classList.includes('btn-save') ||
-                classList.includes('btn-import') ||
-                classList.includes('btn-edit') ||
-                classList.includes('btn-delete') ||
-                onclickAttr.includes('save') ||
-                onclickAttr.includes('openadd') ||
-                onclickAttr.includes('openpaste') ||
-                onclickAttr.includes('delete') ||
-                onclickAttr.includes('edit') ||
-                btnText.includes('add') ||
-                btnText.includes('save') ||
-                btnText.includes('paste') ||
-                btnText.includes('import') ||
-                btnText.includes('delete')
+            // Safe actions whitelist (exports, downloads, prints, link details modal, modal close, and page navigations)
+            const isNavigation = (
+                (target.tagName === 'A' && (target.getAttribute('href') || '').trim() && target.getAttribute('href') !== '#') ||
+                onclickAttr.includes('location.href') || onclickAttr.includes('window.location') || onclickAttr.includes('navigateto')
+            );
+            const isSafeAction = (
+                isNavigation ||
+                classList.includes('btn-export') || classList.includes('btn-print') ||
+                classList.includes('btn-export-excel') || id === 'btnexportexcel' ||
+                (classList.includes('btn-col-settings') && id === 'btnlinkdetails') ||
+                id === 'btnlinkdetails' ||
+                onclickAttr.includes('export') || onclickAttr.includes('download') ||
+                onclickAttr.includes('print') || onclickAttr.includes('openlinkdetails') ||
+                onclickAttr.includes('closelinkdetails') || onclickAttr.includes('modal-close')
             );
 
-            // Allow Link modal, export, print, filters, nav tabs
-            const isAllowed = (
-                classList.includes('btn-action-link') ||
-                onclickAttr.includes('openlinkdetails') ||
-                onclickAttr.includes('export') ||
-                onclickAttr.includes('print') ||
-                onclickAttr.includes('filter') ||
-                onclickAttr.includes('switch') ||
-                classList.includes('btn-plan-outline') ||
-                classList.includes('btn-nav-tab') ||
-                classList.includes('rail-icon-btn')
-            );
+            if (isSafeAction) return;
 
-            if (isBlockedAction && !isAllowed) {
+            // Block clicks on selects, inputs, textareas
+            if (target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                if (target.type === 'search' || id.includes('search')) return;
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
                 showViewOnlyToast();
+                return false;
+            }
+
+            const isBlocked = CAPTURE_BLOCKED_TERMS.some(term =>
+                classList.includes(term) || onclickAttr.includes(term) || btnText.includes(term) || actionAttr.includes(term) || id.includes(term)
+            );
+
+            if (isBlocked) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                showViewOnlyToast();
+                return false;
             }
         }, true);
 
-        // Disable non-filter inputs
-        setTimeout(() => {
-            document.querySelectorAll('input:not(#searchInput):not(#singleDateInput):not(#fromDateInput):not(#toDateInput), textarea').forEach(inp => {
-                const id = (inp.id || '').toLowerCase();
-                if (!id.includes('search') && !id.includes('filter') && !id.includes('date') && !id.includes('month') && !id.includes('year')) {
-                    inp.readOnly = true;
-                    inp.style.cursor = 'not-allowed';
-                    inp.style.opacity = '0.7';
+        // Block change and input events on non-search elements in capturing mode
+        ['change', 'input'].forEach(evtType => {
+            window.addEventListener(evtType, function(e) {
+                if (!isCurrentUserViewOnly()) return;
+                const target = e.target;
+                if (!target) return;
+                const id = (target.id || '').toLowerCase();
+                const type = (target.type || '').toLowerCase();
+                if (type === 'search' || id.includes('search')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                showViewOnlyToast();
+                return false;
+            }, true);
+        });
+
+        // Block keyboard modifications in contenteditable cells or disabled inputs
+        window.addEventListener('keydown', function(e) {
+            if (!isCurrentUserViewOnly()) return;
+            const target = e.target;
+            if (target && (target.isContentEditable || target.getAttribute('contenteditable') === 'true')) {
+                e.preventDefault();
+                e.stopPropagation();
+                showViewOnlyToast();
+                return false;
+            }
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+                const id = (target.id || '').toLowerCase();
+                const type = (target.type || '').toLowerCase();
+                const isSafeSearchOrFilter = (type === 'search' || id.includes('search'));
+                if (!isSafeSearchOrFilter) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showViewOnlyToast();
+                    return false;
                 }
-            });
-        }, 500);
+            }
+        }, true);
+
+        // Block paste and drop
+        ['paste', 'drop'].forEach(evtType => {
+            window.addEventListener(evtType, function(e) {
+                if (!isCurrentUserViewOnly()) return;
+                const target = e.target;
+                const id = (target && target.id ? target.id : '').toLowerCase();
+                if (!id.includes('search')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showViewOnlyToast();
+                    return false;
+                }
+            }, true);
+        });
+
+        // Global Data-Modifying Function Neutralization
+        const PROTECTED_FUNCTIONS = [
+            'saveStateToStorage', 'saveBOMData', 'editItem', 'deleteItem', 'saveStockData',
+            'saveDataset', 'saveCurrentPlan', 'updateItemField', 'saveNewItem', 'deleteItemRow',
+            'updateDamageQty', 'deleteDamageRecord', 'saveDamageData', 'saveItem',
+            'saveViewPermissions', 'saveDemandData', 'saveAndSyncToYearlyERP',
+            'handleSaveNewEntry', 'deleteEntry', 'saveCustomEntries', 'saveTableData',
+            'processBulkPaste', 'saveColumnVisibility', 'openNewEntryModal', 'openPasteModal',
+            'openColumnSettingsModal', 'openColSettings',
+            'resetToDefaultData', 'resetToDefault', 'resetToBaseline', 'resetDefaults',
+            'submitNewItem', 'submitNewDamageEntry', 'openAddItemModal',
+            'openAddDamageModal', 'openBulkModal', 'openBulkPasteModal',
+            'openAddMasterModal', 'processErpPaste',
+            'handleCellEdit', 'handleOpeningEdit', 'onRMCodeInput'
+        ];
+
+        PROTECTED_FUNCTIONS.forEach(fn => {
+            try {
+                Object.defineProperty(window, fn, {
+                    configurable: true,
+                    enumerable: true,
+                    get: function() {
+                        return function() {
+                            console.warn(`🔒 [Security Guard] Blocked execution of ${fn}() in View-Only mode.`);
+                            showViewOnlyToast();
+                            return false;
+                        };
+                    },
+                    set: function() { /* Prevent override */ }
+                });
+            } catch(e) {}
+        });
     }
+
+    // Run enforceViewOnlyRestrictions immediately on script evaluation
+    enforceViewOnlyRestrictions();
 
     function showViewOnlyToast() {
         let toast = document.getElementById('viewOnlyToastAlert');
@@ -1307,10 +1679,11 @@
         const seconds = String(now.getSeconds()).padStart(2, '0');
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12 || 12;
-        const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+        const formattedHours = String(hours).padStart(2, '0');
+        const slottedTime = `<span class="t-num-slot">${formattedHours[0]}</span><span class="t-num-slot">${formattedHours[1]}</span>:<span class="t-num-slot">${minutes[0]}</span><span class="t-num-slot">${minutes[1]}</span>:<span class="t-num-slot">${seconds[0]}</span><span class="t-num-slot">${seconds[1]}</span> <span class="t-ampm-slot">${ampm}</span>`;
 
         document.querySelectorAll('#liveDayText, .live-day-text').forEach(el => { el.textContent = dateStr; });
-        document.querySelectorAll('#liveTimeText, .live-time-text').forEach(el => { el.textContent = timeStr; });
+        document.querySelectorAll('#liveTimeText, .live-time-text').forEach(el => { el.innerHTML = slottedTime; });
     }
 
     if (document.readyState === 'loading') {

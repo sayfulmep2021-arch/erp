@@ -272,13 +272,19 @@ body.dark-theme .smart-page-title {
 .live-clock-badge {
     display: inline-flex !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-end !important;
+    gap: 9px !important;
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     line-height: 1 !important;
+    width: auto !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    flex-shrink: 0 !important;
+    user-select: none !important;
 }
 
 .portal-nav .live-clock-info,
@@ -288,28 +294,88 @@ body.dark-theme .smart-page-title {
     align-items: flex-end !important;
     justify-content: center !important;
     gap: 2px !important;
-    line-height: 1.2 !important;
+    line-height: 1.15 !important;
+    text-align: right !important;
 }
 
 .portal-nav .live-day-text,
 .live-day-text {
-    font-size: 0.74rem !important;
+    font-family: 'Times New Roman', Times, 'Playfair Display', serif !important;
+    font-size: 0.86rem !important;
     font-weight: 700 !important;
-    color: #0284c7 !important;
-    line-height: 1.2 !important;
+    color: #334e68 !important; /* Soft Pastel Slate-Navy */
+    line-height: 1.15 !important;
     margin: 0 !important;
     padding: 0 !important;
+    letter-spacing: 0.1px !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+    display: block !important;
+}
+
+.portal-nav .live-time-row,
+.live-time-row {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
 }
 
 .portal-nav .live-time-text,
 .live-time-text {
-    font-family: inherit !important;
-    font-size: 0.82rem !important;
-    font-weight: 800 !important;
-    color: #0369a1 !important;
-    line-height: 1.2 !important;
+    font-family: 'Times New Roman', Times, 'Playfair Display', serif !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" 1, "zero" 1 !important;
+    font-size: 0.98rem !important;
+    font-weight: 700 !important;
+    color: #334e68 !important; /* Soft Pastel Slate-Navy */
+    line-height: 1.15 !important;
     margin: 0 !important;
     padding: 0 !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    width: 96px !important;
+    min-width: 96px !important;
+    max-width: 96px !important;
+    text-align: left !important;
+    letter-spacing: 0.3px !important;
+    flex-shrink: 0 !important;
+}
+
+.portal-nav .live-time-text .t-num-slot,
+.live-time-text .t-num-slot {
+    display: inline-block !important;
+    width: 7.8px !important;
+    text-align: center !important;
+}
+
+.portal-nav .live-time-text .t-ampm-slot,
+.live-time-text .t-ampm-slot {
+    display: inline-block !important;
+    margin-left: 2px !important;
+}
+
+[data-theme="dark"] .live-day-text,
+body.dark-mode .live-day-text {
+    color: #cbd5e1 !important; /* Soft Pastel Light Slate */
+}
+
+[data-theme="dark"] .live-time-text,
+body.dark-mode .live-time-text {
+    color: #cbd5e1 !important; /* Soft Pastel Light Slate */
+}
+
+[data-theme="dark"] .smart-cloud-status-badge,
+body.dark-mode .smart-cloud-status-badge {
+    background: rgba(22, 101, 52, 0.25) !important;
+    border-color: #15803d !important;
+    color: #4ade80 !important;
+}
+
+[data-theme="dark"] .smart-cloud-status-badge .cloud-pulse-dot,
+body.dark-mode .smart-cloud-status-badge .cloud-pulse-dot {
+    background: #4ade80 !important;
 }
 
 /* User Brand Component: [Photo] Sayful Islam - Balanced with Live Time */
@@ -324,17 +390,19 @@ body.dark-theme .smart-page-title {
     background: #ffffff !important;
     border: 1.5px solid #cbd5e1 !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
     box-shadow: 0 2px 6px rgba(15, 41, 66, 0.04) !important;
     user-select: none !important;
     text-decoration: none !important;
+    flex-shrink: 0 !important;
+    transform: none !important;
 }
 
 .user-brand-card:hover {
-    border: none !important;
+    border: 1.5px solid #0284c7 !important;
     background: #f8fafc !important;
     box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12) !important;
-    transform: translateY(-1px) !important;
+    transform: none !important;
 }
 
 .brand-s-logo {
@@ -1502,12 +1570,16 @@ body.dark-theme .smart-page-title {
 .mep-module-sublist {
     display: none !important;
     flex-direction: column !important;
-    gap: 5px !important;
-    padding: 6px 4px 6px 10px !important;
+    gap: 4px !important;
+    padding: 6px 4px 4px 10px !important;
     border-left: 2.5px solid #e0f2fe !important;
     margin-left: 15px !important;
     margin-top: 4px !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 4px !important;
+}
+
+.mep-module-sublist .sub-report-item:last-child {
+    margin-bottom: 0 !important;
 }
 
 .mep-module-accordion.is-open .mep-module-sublist {
@@ -1831,9 +1903,13 @@ body.dark-theme {
     color: #ffffff !important;
 }
 
-[data-theme="dark"] .user-brand-card,
-[data-theme="dark"] .live-clock-badge {
+[data-theme="dark"] .user-brand-card {
     background: #162244 !important;
+    border: 1.5px solid #2a3756 !important;
+}
+
+[data-theme="dark"] .live-clock-badge {
+    background: transparent !important;
     border: none !important;
 }
 
@@ -2489,40 +2565,32 @@ header.portal-nav .notif-bell-btn,
 .smart-cloud-status-badge {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 7px !important;
-    padding: 5px 12px !important;
+    gap: 5px !important;
+    padding: 2.5px 8px !important;
+    height: 22px !important;
     background: #f0fdf4 !important;
-    border: 1.5px solid #bbf7d0 !important;
-    border-radius: 20px !important;
-    font-size: 0.76rem !important;
-    font-weight: 800 !important;
+    border: 1px solid #bbf7d0 !important;
+    border-radius: 12px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
     color: #15803d !important;
     letter-spacing: 0.2px !important;
     user-select: none !important;
-    transition: all 0.3s ease !important;
-    margin-right: 6px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 
 .smart-cloud-status-badge .cloud-pulse-dot {
-    width: 8px !important;
-    height: 8px !important;
+    width: 6px !important;
+    height: 6px !important;
     border-radius: 50% !important;
     background: #22c55e !important;
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7) !important;
-    animation: cloudPulse 2s infinite !important;
+    box-shadow: none !important;
+    animation: none !important; /* Zero jitter - Strictly no pulsing animation */
     flex-shrink: 0 !important;
-}
-
-@keyframes cloudPulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-    }
 }
 
 .smart-cloud-status-badge.offline {
@@ -2544,6 +2612,7 @@ header.portal-nav .notif-bell-btn,
 
 .smart-cloud-status-badge.syncing .cloud-pulse-dot {
     background: #f59e0b !important;
+    animation: none !important;
 }
 
 /* ==========================================================================
@@ -2570,31 +2639,180 @@ header.portal-nav .notif-bell-btn,
     stroke: #0284c7 !important;
 }
 
-/* Dim & Lock Add/Edit/Save buttons when in View Only Mode */
+/* ==========================================================================
+   VIEW USER SECURITY LOCKDOWN: COMPLETE HIDING OF ALL EDIT / ADD / SAVE CONTROLS
+   ========================================================================== */
+body.portal-view-only .btn-action-primary:not(.btn-filter-apply):not(.btn-search),
+body.portal-view-only .btn-action-import,
 body.portal-view-only .btn-save-plan,
 body.portal-view-only .btn-add-item,
-body.portal-view-only .btn-action-import,
+body.portal-view-only .btn-new-entry,
 body.portal-view-only .btn-action.btn-add,
 body.portal-view-only .btn-action.btn-save,
-body.portal-view-only .btn-new-entry,
-body.portal-view-only button[onclick*="save"],
-body.portal-view-only button[onclick*="openAdd"],
-body.portal-view-only button[onclick*="openPaste"],
-body.portal-view-only button[onclick*="delete"],
-body.portal-view-only button[onclick*="edit"] {
-    opacity: 0.55 !important;
+body.portal-view-only .btn-action.btn-delete,
+body.portal-view-only .btn-action.btn-edit,
+body.portal-view-only .btn-action-save,
+body.portal-view-only .btn-action-delete,
+body.portal-view-only .btn-action-edit,
+body.portal-view-only .btn-delete-entry,
+body.portal-view-only .btn-edit-entry,
+body.portal-view-only .btn-row-delete,
+body.portal-view-only .btn-row-add,
+body.portal-view-only .btn-sync-yearly,
+body.portal-view-only .btn-save-stock,
+body.portal-view-only .btn-save-bom,
+body.portal-view-only .action-btn-delete,
+body.portal-view-only .action-btn-edit,
+body.portal-view-only .edit-action-btn,
+body.portal-view-only .delete-action-btn,
+body.portal-view-only .action-col,
+body.portal-view-only .col-action,
+body.portal-view-only .col-actions,
+body.portal-view-only .th-action,
+body.portal-view-only .td-action,
+body.portal-view-only .th-actions,
+body.portal-view-only .td-actions,
+body.portal-view-only .table-action-cell,
+body.portal-view-only .table-actions-cell,
+body.portal-view-only .actions-column,
+body.portal-view-only .actions-col,
+body.portal-view-only .actions-cell,
+body.portal-view-only .action-cell,
+body.portal-view-only .btn-update-entry,
+body.portal-view-only .btn-update,
+body.portal-view-only .btn-reset,
+body.portal-view-only .btn-action.btn-reset,
+body.portal-view-only .btn-corp-primary,
+body.portal-view-only .btn-corp-outline,
+body.portal-view-only .btn-action-paste,
+body.portal-view-only .btn-action-purple,
+body.portal-view-only .btn-table-edit,
+body.portal-view-only .btn-table-del,
+body.portal-view-only .btn-del-row,
+body.portal-view-only .btn-col-settings:not(#btnLinkDetails),
+body.portal-view-only #btnColSettings,
+body.portal-view-only #settingsTabAccess,
+body.portal-view-only #savePermissionsBtn,
+body.portal-view-only #addItemModal,
+body.portal-view-only #pasteModal,
+body.portal-view-only #addDamageModal,
+body.portal-view-only #bulkPasteModal,
+body.portal-view-only #addMasterModal,
+body.portal-view-only #columnSettingsModal,
+body.portal-view-only button[onclick*="save" i],
+body.portal-view-only button[onclick*="update" i],
+body.portal-view-only button[onclick*="reset" i],
+body.portal-view-only button[onclick*="sync" i],
+body.portal-view-only button[onclick*="recalculate" i],
+body.portal-view-only button[onclick*="openAdd" i],
+body.portal-view-only button[onclick*="openNew" i]:not([onclick*="openlinkdetails" i]):not([onclick*="opendataflow" i]),
+body.portal-view-only button[onclick*="openPaste" i],
+body.portal-view-only button[onclick*="openBulk" i],
+body.portal-view-only button[onclick*="openColSettings" i],
+body.portal-view-only button[onclick*="openColumnSettings" i],
+body.portal-view-only button[onclick*="handleUpdateClick" i],
+body.portal-view-only button[onclick*="delete" i],
+body.portal-view-only button[onclick*="edit" i],
+body.portal-view-only button[onclick*="import" i],
+body.portal-view-only button[onclick*="paste" i],
+body.portal-view-only button[onclick*="insert" i],
+body.portal-view-only a[onclick*="save" i],
+body.portal-view-only a[onclick*="openAdd" i],
+body.portal-view-only a[onclick*="openNew" i]:not([onclick*="openlinkdetails" i]):not([onclick*="opendataflow" i]),
+body.portal-view-only a[onclick*="openPaste" i],
+body.portal-view-only a[onclick*="delete" i],
+body.portal-view-only a[onclick*="edit" i],
+body.portal-view-only [data-action="edit"],
+body.portal-view-only [data-action="delete"],
+body.portal-view-only [data-action="add"],
+body.portal-view-only [data-action="save"],
+body.portal-view-only [data-action="update"],
+body.portal-view-only [data-action="reset"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.portal-view-only [contenteditable],
+body.portal-view-only [contenteditable="true"],
+body.portal-view-only [contenteditable="false"],
+body.portal-view-only td[contenteditable] {
+    -webkit-user-modify: read-only !important;
+    pointer-events: none !important;
+    cursor: default !important;
+    user-select: text !important;
+    outline: none !important;
+}
+
+body.portal-view-only .cell-input,
+body.portal-view-only input.cell-input {
+    pointer-events: none !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: default !important;
+    user-select: text !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Universal Form / Select Dropdowns Freeze in View-Only */
+body.portal-view-only select,
+body.portal-view-only .entry-select,
+body.portal-view-only .form-select,
+body.portal-view-only .matrix-select,
+body.portal-view-only .excel-validation-select,
+body.portal-view-only #selectSfgCode {
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    background-color: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    user-select: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Universal Inputs, Checkboxes, Dates Freeze in View-Only */
+body.portal-view-only input:not([type="search"]):not([id*="search" i]),
+body.portal-view-only textarea,
+body.portal-view-only input[type="checkbox"],
+body.portal-view-only input[type="radio"],
+body.portal-view-only input[type="date"],
+body.portal-view-only input[type="number"] {
+    pointer-events: none !important;
+    user-select: text !important;
+    cursor: not-allowed !important;
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+/* Hide number spinners for view-only */
+body.portal-view-only input::-webkit-outer-spin-button,
+body.portal-view-only input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+body.portal-view-only input[type="number"] {
+    -moz-appearance: textfield !important;
+}
+
+/* Check FG Need Item Page Specific View-Only Fix */
+body.portal-view-only #inputQuantity {
+    background-color: #f1f5f9 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #334155 !important;
+    font-weight: 700 !important;
+    pointer-events: none !important;
     cursor: not-allowed !important;
 }
 
-body.portal-view-only .btn-save-plan:hover,
-body.portal-view-only .btn-add-item:hover,
-body.portal-view-only .btn-action-import:hover,
-body.portal-view-only .btn-action.btn-add:hover,
-body.portal-view-only .btn-action.btn-save:hover,
-body.portal-view-only .btn-new-entry:hover {
-    transform: none !important;
-    box-shadow: none !important;
-}
 
 
 /* ==========================================================================

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <link rel="stylesheet" href="corporate_design_system.css">
@@ -1038,9 +1038,20 @@
         const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+            const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
+                             (localStorage.getItem('portal_auth_status') === 'true');
+            if (!isAuthed) {
                 window.location.href = 'index.html';
                 return;
+            }
+            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+                sessionStorage.setItem('portal_auth_status', 'true');
+                const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
+                const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
+                const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
+                sessionStorage.setItem('portal_auth_role', storedRole);
+                sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
+                sessionStorage.setItem('portal_auth_sig', sig);
             }
 
             loadPlanForCurrentSelection();

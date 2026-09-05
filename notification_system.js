@@ -15,12 +15,25 @@
 
     const INITIAL_LOGS = [
         {
+            id: "notif_5",
+            page: "View Access Control",
+            module: "Settings & Security",
+            type: "Access Control Activated",
+            badgeColor: "#059669",
+            badgeBg: "#d1fae5",
+            title: "View Role Page Permissions Activated",
+            linkDetails: null,
+            description: "System Administrator can now control which pages are accessible or hidden/blocked for 'View' login users directly from the Settings modal.",
+            timestamp: "06-Sep-2026 09:30 AM",
+            isUnread: true
+        },
+        {
             id: "notif_4",
             page: "Smart Time Management Portal",
             module: "Executive System",
             type: "Design Changed",
-            badgeColor: "#059669",
-            badgeBg: "#d1fae5",
+            badgeColor: "#0284c7",
+            badgeBg: "#e0f2fe",
             title: "Header Branding & Borderless Menu System",
             linkDetails: null,
             description: "Updated top header brand to 'Smart Time Management', removed sidebar menu borders, and integrated live Update History notification drawer.",
@@ -87,7 +100,7 @@
         if (raw) {
             try {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             } catch (e) {
                 console.error("Error reading notification history:", e);
             }
@@ -102,11 +115,13 @@
     }
 
     function isUnread() {
+        const list = getHistory();
+        const hasUnreadItem = list.some(item => item.isUnread === true);
         const state = localStorage.getItem(NOTIF_UNREAD_KEY);
         if (state === null) {
-            return true;
+            return hasUnreadItem;
         }
-        return state === 'true';
+        return state === 'true' || hasUnreadItem;
     }
 
     function setUnreadState(val) {

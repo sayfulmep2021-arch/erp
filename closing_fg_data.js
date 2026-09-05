@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Closing (ERP) - Finish Good (FG) Stock Movement Report
  * Warehouse: FAN Floor-68
  * Date Interval: 2026-08-01 to 2026-08-26
@@ -592,12 +592,12 @@ const RAW_CLOSING_FG_DATA = [
         "code":  "CF5601WH/CF5601WH",
         "itemName":  "56 Inch Premium Ceiling Fan - White",
         "unit":  "Pcs",
-        "opening":  23,
-        "totalReceive":  49,
-        "totalStock":  72,
-        "outTotal":  49,
-        "closing":  23,
-        "binClosing":  23,
+        "opening":  0,
+        "totalReceive":  33,
+        "totalStock":  33,
+        "outTotal":  33,
+        "closing":  0,
+        "binClosing":  0,
         "diff":  0,
         "rate":  5544.31,
         "remarks":  ""
