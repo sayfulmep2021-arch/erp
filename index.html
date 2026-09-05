@@ -1,10 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="corporate_design_system.css">
-    <link rel="stylesheet" href="report_sidebar.css">
-    <script src="notification_system.js"></script>
-    <script src="smart_firebase_sync.js"></script>
+    <!-- Anti-Cache & Auto-Refresh Meta Tags (Ensures Realtime Mobile & Browser Updates) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script>
+        // Automatic Cache Purge & Service Worker Killer
+        (function() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (var i = 0; i < registrations.length; i++) {
+                        registrations[i].unregister();
+                    }
+                }).catch(function(e){});
+            }
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (var i = 0; i < names.length; i++) {
+                        caches.delete(names[i]);
+                    }
+                }).catch(function(e){});
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="corporate_design_system.css?v=20260905">
+    <link rel="stylesheet" href="report_sidebar.css?v=20260905">
+    <script src="notification_system.js?v=20260905"></script>
+    <script src="smart_firebase_sync.js?v=20260905"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sayful Islam (Fan) | Report Management Portal</title>
@@ -120,101 +144,357 @@
         }
 
         /* ==========================================================================
-           2. Corporate Authentication View (Login Screen)
+           2. Corporate Authentication View (Split Screen 2-Column Split Card)
            ========================================================================== */
         .auth-wrapper {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 32px 16px;
+            padding: 40px 20px;
             position: relative;
             z-index: 10;
+            min-height: 100vh;
+            box-sizing: border-box;
+            background-color: #f1f5f9;
+            background-image: 
+                radial-gradient(at 10% 12%, rgba(186, 230, 253, 0.55) 0px, transparent 45%),
+                radial-gradient(at 90% 15%, rgba(224, 231, 255, 0.6) 0px, transparent 48%),
+                radial-gradient(at 15% 88%, rgba(209, 250, 229, 0.45) 0px, transparent 45%),
+                radial-gradient(at 88% 85%, rgba(254, 243, 199, 0.4) 0px, transparent 48%),
+                linear-gradient(135deg, #f8fafc 0%, #eef4fb 50%, #e2eaf8 100%);
+            overflow: hidden;
             animation: fadeIn 0.35s ease forwards;
         }
 
-        .auth-card {
+        /* Subtle Pastel Decorative Ambient Glows in empty background spaces */
+        .auth-bg-decor {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(75px);
+            z-index: 1;
+            opacity: 0.65;
+        }
+
+        .decor-orb-1 {
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(186, 230, 253, 0.75) 0%, rgba(147, 197, 253, 0.2) 70%, transparent 100%);
+            top: -120px;
+            left: -140px;
+        }
+
+        .decor-orb-2 {
+            width: 440px;
+            height: 440px;
+            background: radial-gradient(circle, rgba(224, 231, 255, 0.8) 0%, rgba(199, 210, 254, 0.25) 70%, transparent 100%);
+            bottom: -120px;
+            right: -120px;
+        }
+
+        .decor-orb-3 {
+            width: 360px;
+            height: 360px;
+            background: radial-gradient(circle, rgba(209, 250, 229, 0.55) 0%, transparent 70%);
+            bottom: 8%;
+            left: 6%;
+        }
+
+        .decor-orb-4 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(254, 243, 199, 0.5) 0%, transparent 70%);
+            top: 12%;
+            right: 10%;
+        }
+
+        /* Ambient subtle grid pattern */
+        .auth-bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 400px;
+            height: 100%;
+            background-image: radial-gradient(rgba(148, 163, 184, 0.18) 1.2px, transparent 1.2px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.65;
+        }
+
+        .auth-split-card {
+            width: 100%;
+            max-width: 960px;
             background: #ffffff;
-            border-radius: 24px;
-            padding: 36px 34px 34px;
-            box-shadow: var(--shadow-auth);
-            border: 1px solid rgba(186, 215, 243, 0.7);
-            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            box-shadow: 
+                0 25px 65px -15px rgba(15, 41, 66, 0.14), 
+                0 0 0 1px rgba(186, 215, 243, 0.65),
+                0 8px 25px -4px rgba(2, 132, 199, 0.08);
+            display: flex;
+            overflow: hidden;
+            min-height: 540px;
+            position: relative;
+            z-index: 5;
+            backdrop-filter: blur(12px);
         }
 
-        .auth-header {
-            text-align: center;
-            margin-bottom: 20px;
+        /* ----- Left Column: Auth Form Side ----- */
+        .auth-form-side {
+            flex: 1 1 45%;
+            max-width: 440px;
+            padding: 42px 38px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+            box-sizing: border-box;
+            z-index: 5;
         }
 
-        .auth-logo-showcase {
+        .auth-brand-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 26px;
+            width: 100%;
+        }
+
+        .auth-logo-badge {
+            width: 120px;
+            height: 120px;
+            border-radius: 28px;
+            background: #ffffff;
+            padding: 8px;
+            box-shadow: 
+                0 12px 32px -6px rgba(15, 41, 66, 0.12), 
+                0 2px 8px rgba(2, 132, 199, 0.08), 
+                0 0 0 2px rgba(186, 215, 243, 0.75);
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 0;
-        }
-
-        .auth-logo-ring {
-            width: 128px;
-            height: 128px;
-            border-radius: 50%;
-            background: #ffffff;
-            padding: 3px;
-            box-shadow: 0 10px 28px rgba(15, 41, 66, 0.12), 0 3px 8px rgba(217, 119, 6, 0.18);
-            border: 2px solid #fde047;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
         }
 
-        .auth-logo-ring:hover {
-            transform: scale(1.04);
-            box-shadow: 0 14px 34px rgba(15, 41, 66, 0.18), 0 4px 14px rgba(217, 119, 6, 0.28);
-            border-color: #f59e0b;
+        .auth-logo-badge:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 
+                0 16px 40px -6px rgba(2, 132, 199, 0.25), 
+                0 0 0 2.5px #0284c7;
         }
 
         .auth-brand-logo-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
+            object-fit: contain;
+            border-radius: 20px;
             display: block;
         }
 
-        .auth-brand-caption {
-            display: flex;
-            justify-content: center;
-        }
-
-        .auth-brand-portal-tag {
-            display: inline-block;
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #0369a1;
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            padding: 4px 14px;
-            border-radius: 20px;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
+        .auth-form-body {
+            width: 100%;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             text-align: left;
         }
 
-        .form-label {
-            display: block;
-            font-size: 0.86rem;
-            font-weight: 700;
-            color: var(--text-heading);
-            margin-bottom: 8px;
+        .form-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 7px;
         }
 
+        .form-label {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0;
+        }
+
+        .pwd-role-hint {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #0284c7;
+            background: #f0f9ff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid #bae6fd;
+        }
+
+        /* Custom Interactive Role/Username Selector */
+        .username-custom-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .username-select-btn {
+            width: 100%;
+            height: 48px;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .username-select-btn:hover {
+            background: #ffffff;
+            border-color: #0284c7;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);
+        }
+
+        .username-select-btn[aria-expanded="true"] {
+            background: #ffffff;
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .role-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #e0f2fe;
+            color: #0284c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .role-icon-box.view-mode {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .role-text-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .role-name-display {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #0f2942;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+        }
+
+        .role-tag-display {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .role-chevron {
+            color: #64748b;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .username-select-btn[aria-expanded="true"] .role-chevron {
+            transform: rotate(180deg);
+            color: #0284c7;
+        }
+
+        .role-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1.5px solid #bae6fd;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(15, 41, 66, 0.15);
+            padding: 6px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 50;
+            animation: fadeIn 0.18s ease;
+        }
+
+        .role-dropdown-menu.show {
+            display: flex;
+        }
+
+        .role-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .role-menu-item:hover {
+            background: #f0f9ff;
+        }
+
+        .role-menu-item.active {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+        }
+
+        .role-item-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .role-item-icon.admin {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .role-item-icon.view {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .role-item-info {
+            flex: 1;
+        }
+
+        .role-item-title {
+            font-size: 0.86rem;
+            font-weight: 800;
+            color: #0f2942;
+        }
+
+        .role-item-desc {
+            font-size: 0.68rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .role-item-check {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #0284c7;
+            padding-right: 4px;
+        }
+
+        /* Password Input */
         .input-wrapper {
             position: relative;
             display: flex;
@@ -223,27 +503,28 @@
 
         .form-input {
             width: 100%;
-            height: 50px;
-            padding: 12px 16px;
+            height: 48px;
+            padding: 10px 14px;
             font-family: var(--font-main);
-            font-size: 0.96rem;
+            font-size: 0.95rem;
             font-weight: 500;
-            color: var(--text-heading);
+            color: #0f2942;
             background: #f8fafc;
             border: 1.5px solid #cbd5e1;
-            border-radius: 11px;
+            border-radius: 12px;
             outline: none;
             transition: all 0.2s ease;
+            box-sizing: border-box;
         }
 
         .form-input:focus {
             background: #ffffff;
-            border-color: var(--brand-primary);
-            box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.16);
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.16);
         }
 
         .form-input.has-toggle {
-            padding-right: 46px;
+            padding-right: 44px;
         }
 
         .form-input.input-error {
@@ -251,16 +532,12 @@
             background: #fef2f2;
         }
 
-        .form-input.input-error:focus {
-            box-shadow: 0 0 0 3.5px rgba(239, 68, 68, 0.16);
-        }
-
         .pwd-toggle-btn {
             position: absolute;
-            right: 12px;
+            right: 10px;
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: #94a3b8;
             cursor: pointer;
             padding: 6px;
             display: flex;
@@ -271,12 +548,12 @@
         }
 
         .pwd-toggle-btn:hover {
-            color: var(--brand-primary);
+            color: #0284c7;
         }
 
         .pwd-toggle-btn svg {
-            width: 19px;
-            height: 19px;
+            width: 18px;
+            height: 18px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
@@ -286,48 +563,49 @@
 
         .error-alert {
             display: none;
-            padding: 11px 14px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
             background: #fef2f2;
             border: 1.5px solid #fecaca;
             border-radius: 10px;
             color: #b91c1c;
-            font-size: 0.86rem;
+            font-size: 0.82rem;
             font-weight: 600;
-            text-align: center;
             animation: fadeIn 0.2s ease;
         }
 
         .error-alert.show {
-            display: block;
+            display: flex;
         }
 
         .btn-signin {
             width: 100%;
-            height: 52px;
-            background: var(--brand-gradient);
+            height: 48px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
             border: none;
-            border-radius: 11px;
+            border-radius: 12px;
             color: #ffffff;
             font-family: var(--font-main);
-            font-size: 1rem;
+            font-size: 0.98rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             cursor: pointer;
             outline: none;
-            box-shadow: var(--shadow-btn);
-            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+            transition: all 0.22s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-top: 8px;
+            gap: 8px;
+            margin-top: 10px;
         }
 
         .btn-signin:hover {
-            background: var(--brand-gradient-hover);
-            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
-            transform: translateY(-2px);
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+            transform: translateY(-1.5px);
         }
 
         .btn-signin:active {
@@ -335,8 +613,8 @@
         }
 
         .btn-signin svg {
-            width: 18px;
-            height: 18px;
+            width: 17px;
+            height: 17px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2.2;
@@ -346,80 +624,264 @@
         }
 
         .btn-signin:hover svg {
-            transform: translateX(4px);
+            transform: translateX(3px);
         }
 
-        .auth-divider-or {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 14px 0 10px 0;
+        .auth-card-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 600;
             color: #94a3b8;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
         }
 
-        .auth-divider-or::before,
-        .auth-divider-or::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
+        /* ----- Right Column: FAN ASSEMBLE Circular Showcase ----- */
+        .auth-showcase-side {
+            flex: 1 1 54%;
+            background: radial-gradient(circle at center, #ffffff 0%, #f0f7ff 60%, #e2effd 100%);
+            border-left: 1px solid rgba(186, 215, 243, 0.6);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
-        .btn-view-only {
-            width: 100%;
-            height: 48px;
+        .showcase-header {
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .showcase-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             background: #ffffff;
-            border: 1.8px solid #cbd5e1;
-            border-radius: 11px;
-            color: #0f2942;
-            font-family: var(--font-main);
-            font-size: 0.95rem;
+            border: 1px solid #bae6fd;
+            padding: 3px 12px;
+            border-radius: 16px;
+            font-size: 0.68rem;
             font-weight: 800;
-            letter-spacing: 0.5px;
-            cursor: pointer;
+            color: #0369a1;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+            margin-bottom: 6px;
+        }
+
+        .showcase-badge .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
+            animation: dotPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        .showcase-title {
+            font-size: 1.65rem;
+            font-weight: 900;
+            color: #0f2942;
+            letter-spacing: 1.2px;
+            margin: 0 0 4px 0;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #0f2942 0%, #0369a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .showcase-subtitle {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Circular Orbit Stage */
+        .orbit-stage {
+            position: relative;
+            width: 400px;
+            height: 380px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 1px 3px rgba(15, 41, 66, 0.05);
+            margin-top: 6px;
         }
 
-        .btn-view-only:hover {
-            background: #f8fafc;
-            border-color: #0284c7;
-            color: #0284c7;
-            transform: translateY(-1.5px);
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+        .orbit-lines-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        .btn-view-only:active {
-            transform: translateY(1px);
+        /* Central Assemble Hub */
+        .orbit-hub-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 98px;
+            height: 98px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 8px rgba(2, 132, 199, 0.14), 0 10px 24px rgba(2, 132, 199, 0.35);
+            z-index: 3;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: default;
         }
 
-        .btn-view-only svg {
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-            transition: transform 0.2s ease;
+        .orbit-hub-center:hover {
+            transform: translate(-50%, -50%) scale(1.06);
+            box-shadow: 0 0 0 12px rgba(2, 132, 199, 0.2), 0 14px 30px rgba(2, 132, 199, 0.45);
         }
 
-        .btn-view-only:hover svg {
-            transform: scale(1.12);
+        .orbit-hub-icon {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 2px;
+            animation: fanSpinSlow 18s linear infinite;
         }
 
-        .auth-footer-notice {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 0.78rem;
-            color: var(--text-subtle);
-            font-weight: 600;
+        @keyframes fanSpinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .orbit-hub-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 0.6px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+        }
+
+        /* Orbit Nodes */
+        .orbit-node {
+            position: absolute;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #ffffff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1.5px solid #dbeafe;
+            box-shadow: 0 4px 14px rgba(15, 41, 66, 0.08);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: default;
+            z-index: 2;
+            white-space: nowrap;
+        }
+
+        .orbit-node:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.18);
+            border-color: #0284c7;
+        }
+
+        .orbit-node-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .orbit-node-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .orbit-node-label {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #0f2942;
+            letter-spacing: 0.2px;
+        }
+
+        /* Specific node coordinates */
+        /* 1. Top (12 o'clock) */
+        .node-top {
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .node-top:hover {
+            transform: translateX(-50%) translateY(-2px) scale(1.05);
+        }
+
+        /* 2. Top-Right (2 o'clock) */
+        .node-top-right {
+            top: 86px;
+            right: 6px;
+        }
+
+        /* 3. Bottom-Right (4 o'clock) */
+        .node-bottom-right {
+            bottom: 86px;
+            right: 6px;
+        }
+
+        /* 4. Bottom (6 o'clock) */
+        .node-bottom {
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .node-bottom:hover {
+            transform: translateX(-50%) translateY(-2px) scale(1.05);
+        }
+
+        /* 5. Bottom-Left (8 o'clock) */
+        .node-bottom-left {
+            bottom: 86px;
+            left: 6px;
+        }
+
+        /* 6. Top-Left (10 o'clock) */
+        .node-top-left {
+            top: 86px;
+            left: 6px;
+        }
+
+        /* Responsive Breakpoint for Mobile/Tablet */
+        @media (max-width: 880px) {
+            .auth-split-card {
+                flex-direction: column;
+                max-width: 480px;
+            }
+            .auth-form-side {
+                max-width: 100%;
+                padding: 36px 26px;
+            }
+            .auth-showcase-side {
+                border-left: none;
+                border-top: 1px solid rgba(186, 215, 243, 0.6);
+                padding: 28px 16px 36px;
+            }
+            .orbit-stage {
+                width: 350px;
+                height: 340px;
+            }
         }
 
         @keyframes shake {
@@ -4784,82 +5246,236 @@
          VIEW 1: Corporate Authentication View (Login Screen)
          ========================================================================== -->
     <div class="auth-wrapper" id="loginView" role="region" aria-label="Authentication Panel">
-        <div class="auth-card">
+        <!-- Ambient Pastel Background Decorative Elements -->
+        <div class="auth-bg-decor decor-orb-1"></div>
+        <div class="auth-bg-decor decor-orb-2"></div>
+        <div class="auth-bg-decor decor-orb-3"></div>
+        <div class="auth-bg-decor decor-orb-4"></div>
+        <div class="auth-bg-pattern"></div>
+
+        <div class="auth-split-card">
             
-            <header class="auth-header">
-                <div class="auth-logo-showcase">
-                    <div class="auth-logo-ring">
-                        <img src="sayful_logo.png" alt="Sayful" class="auth-brand-logo-img">
+            <!-- Left Column: Form Section -->
+            <div class="auth-form-side">
+                <div class="auth-brand-area">
+                    <div class="auth-logo-badge">
+                        <img src="sayful_logo.png" alt="Sayful Fan" class="auth-brand-logo-img">
                     </div>
                 </div>
-            </header>
 
-            <!-- Error Notification Alert -->
-            <div class="error-alert" id="loginError" role="alert" aria-live="assertive">
-                Invalid Username or Password!
+                <!-- Error Notification Alert -->
+                <div class="error-alert" id="loginError" role="alert" aria-live="assertive">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span id="loginErrorMsg">Invalid Password! Please try again.</span>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form-body" onsubmit="handleLogin(event)" autocomplete="off">
+                    <!-- Hidden input holding current role name for form submission / script reads -->
+                    <input type="hidden" id="username" value="ADMIN">
+
+                    <!-- Interactive Username Selector -->
+                    <div class="form-group">
+                        <label class="form-label" for="roleSelectorBtn">Username</label>
+                        <div class="username-custom-dropdown" id="userRoleDropdown">
+                            <button type="button" class="username-select-btn" id="roleSelectorBtn" onclick="toggleRoleDropdown()" aria-expanded="false" aria-haspopup="true">
+                                <span class="role-icon-box" id="activeRoleIcon">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </span>
+                                <div class="role-text-wrap">
+                                    <span class="role-name-display" id="activeRoleName">ADMIN</span>
+                                    <span class="role-tag-display" id="activeRoleTag">System Administrator (Full Edit Access)</span>
+                                </div>
+                                <svg class="role-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+
+                            <div class="role-dropdown-menu" id="roleDropdownMenu">
+                                <div class="role-menu-item active" id="roleItemAdmin" onclick="selectRole('ADMIN')">
+                                    <div class="role-item-icon admin">
+                                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="role-item-info">
+                                        <div class="role-item-title">ADMIN</div>
+                                        <div class="role-item-desc">Full edit, entry &amp; cloud sync permissions</div>
+                                    </div>
+                                    <span class="role-item-check" id="checkAdmin">✓</span>
+                                </div>
+
+                                <div class="role-menu-item" id="roleItemView" onclick="selectRole('View')">
+                                    <div class="role-item-icon view">
+                                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </div>
+                                    <div class="role-item-info">
+                                        <div class="role-item-title">View</div>
+                                        <div class="role-item-desc">Read-Only access to dashboards, hubs &amp; reports</div>
+                                    </div>
+                                    <span class="role-item-check" id="checkView" style="display:none;">✓</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label" for="password">Password</label>
+                            <span class="pwd-role-hint" id="pwdRoleHint">Security PIN</span>
+                        </div>
+                        <div class="input-wrapper">
+                            <input type="password" 
+                                   id="password" 
+                                   class="form-input has-toggle" 
+                                   placeholder="Enter Password" 
+                                   value="" 
+                                   autocomplete="new-password" 
+                                   required 
+                                   autofocus>
+                            <!-- Password Visibility Toggle Button -->
+                            <button type="button" 
+                                    class="pwd-toggle-btn" 
+                                    id="togglePasswordBtn" 
+                                    onclick="togglePasswordVisibility()" 
+                                    aria-label="Toggle password visibility"
+                                    title="Show / Hide Password">
+                                <!-- Eye Icon (Default) -->
+                                <svg id="eyeIcon" viewBox="0 0 24 24">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <!-- Eye Off Icon (Hidden initially) -->
+                                <svg id="eyeOffIcon" viewBox="0 0 24 24" style="display: none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-signin" id="loginBtn">
+                        <span>Login</span>
+                        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                </form>
             </div>
 
-            <!-- Login Form -->
-            <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
-                <div class="form-group">
-                    <label class="form-label" for="username">Username</label>
-                    <div class="input-wrapper">
-                        <input type="text" 
-                               id="username" 
-                               class="form-input" 
-                               placeholder="Enter your username (sayful)" 
-                               value="sayful" 
-                               required>
+            <!-- Right Column: FAN ASSEMBLE Circular Ecosystem Showcase -->
+            <div class="auth-showcase-side">
+                <div class="showcase-header">
+                    <div class="showcase-badge">
+                        <span class="pulse-dot"></span>
+                        <span>MANUFACTURING ECOSYSTEM</span>
                     </div>
+                    <h2 class="showcase-title">FAN ASSEMBLE</h2>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" 
-                               id="password" 
-                               class="form-input has-toggle" 
-                               placeholder="Enter your password" 
-                               required 
-                               autofocus>
-                        <!-- Password Visibility Toggle Button -->
-                        <button type="button" 
-                                class="pwd-toggle-btn" 
-                                id="togglePasswordBtn" 
-                                onclick="togglePasswordVisibility()" 
-                                aria-label="Toggle password visibility"
-                                title="Show / Hide Password">
-                            <!-- Eye Icon (Default) -->
-                            <svg id="eyeIcon" viewBox="0 0 24 24">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                            <!-- Eye Off Icon (Hidden initially) -->
-                            <svg id="eyeOffIcon" viewBox="0 0 24 24" style="display: none;">
-                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                <line x1="1" y1="1" x2="23" y2="23"></line>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-signin" id="loginBtn">
-                    <span>SIGN IN</span>
-                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </button>
-
-                <div class="auth-divider-or">
-                    <span>or explore</span>
-                </div>
-
-                <button type="button" class="btn-view-only" id="viewOnlyBtn" onclick="handleViewOnlyAccess()" title="View full system, reports, and dashboards in Read-Only mode">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
+                <!-- Orbit Stage -->
+                <div class="orbit-stage">
+                    <!-- SVG Geometric Rings and Connecting Hub Rays -->
+                    <svg class="orbit-lines-svg" viewBox="0 0 400 380" fill="none">
+                        <!-- Concentric Rings -->
+                        <circle cx="200" cy="190" r="126" stroke="#bae6fd" stroke-width="1.8" stroke-dasharray="5 5" opacity="0.85"/>
+                        <circle cx="200" cy="190" r="68" stroke="rgba(2, 132, 199, 0.18)" stroke-width="1.2" stroke-dasharray="3 3"/>
+                        
+                        <!-- Rays to 6 Nodes -->
+                        <!-- Top (12 o'clock) -->
+                        <line x1="200" y1="140" x2="200" y2="52" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <!-- Top Right (2 o'clock) -->
+                        <line x1="235" y1="165" x2="295" y2="116" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <!-- Bottom Right (4 o'clock) -->
+                        <line x1="235" y1="215" x2="295" y2="264" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <!-- Bottom (6 o'clock) -->
+                        <line x1="200" y1="240" x2="200" y2="328" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <!-- Bottom Left (8 o'clock) -->
+                        <line x1="165" y1="215" x2="105" y2="264" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <!-- Top Left (10 o'clock) -->
+                        <line x1="165" y1="165" x2="105" y2="116" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="3 3"/>
                     </svg>
-                    <span>VIEW</span>
-                </button>
-            </form>
+
+                    <!-- Center Hub: Assemble -->
+                    <div class="orbit-hub-center" title="Core Fan Assembly Division">
+                        <svg class="orbit-hub-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span class="orbit-hub-title">Assemble</span>
+                    </div>
+
+                    <!-- 1. Node Top: Power Press & Stamping -->
+                    <div class="orbit-node node-top" title="Power Press & Stamping Section">
+                        <span class="orbit-node-icon" style="background:#eff6ff; color:#2563eb;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="3" y1="9" x2="21" y2="9"></line>
+                                <line x1="9" y1="21" x2="9" y2="9"></line>
+                            </svg>
+                        </span>
+                        <span class="orbit-node-label">Power Press &amp; Stamping</span>
+                    </div>
+
+                    <!-- 2. Node Top-Right: Dhalai & Dai Casting -->
+                    <div class="orbit-node node-top-right" title="Dhalai & Dai Casting Section">
+                        <span class="orbit-node-icon" style="background:#fef3c7; color:#d97706;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                            </svg>
+                        </span>
+                        <span class="orbit-node-label">Dhalai &amp; Dai Casting</span>
+                    </div>
+
+                    <!-- 3. Node Bottom-Right: Armature & Winding -->
+                    <div class="orbit-node node-bottom-right" title="Armature & Winding Section">
+                        <span class="orbit-node-icon" style="background:#ecfdf5; color:#059669;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </span>
+                        <span class="orbit-node-label">Armature &amp; Winding</span>
+                    </div>
+
+                    <!-- 4. Node Bottom: Lathe -->
+                    <div class="orbit-node node-bottom" title="Lathe Machine Section">
+                        <span class="orbit-node-icon" style="background:#f1f5f9; color:#475569;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                                <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+                            </svg>
+                        </span>
+                        <span class="orbit-node-label">Lathe</span>
+                    </div>
+
+                    <!-- 5. Node Bottom-Left: Auto Powder Coating -->
+                    <div class="orbit-node node-bottom-left" title="Auto Powder Coating Section">
+                        <span class="orbit-node-icon" style="background:#fdf4ff; color:#a855f7;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                            </svg>
+                        </span>
+                        <span class="orbit-node-label">Auto Powder Coating</span>
+                    </div>
+
+                    <!-- 6. Node Top-Left: Blade & Dimmer -->
+                    <div class="orbit-node node-top-left" title="Blade & Dimmer Section">
+                        <span class="orbit-node-icon" style="background:#e0f2fe; color:#0284c7;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="2"></circle>
+                                <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path>
+                            </svg>
+                        </span>
+                        <span class="orbit-node-label">Blade &amp; Dimmer</span>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
@@ -6738,8 +7354,10 @@
     <script>
         // Official Credentials Configuration
         const AUTH_CONFIG = {
-            validUsername: "sayful",
-            validPassword: "9642"
+            adminUsername: "ADMIN",
+            adminPassword: "9642",
+            viewUsername: "View",
+            viewPassword: "1234"
         };
 
         const STORAGE_KEYS = {
@@ -6850,15 +7468,23 @@
             if (mainView) mainView.style.setProperty('display', 'none', 'important');
             if (loginView) loginView.style.setProperty('display', 'flex', 'important');
 
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            if (usernameInput) {
-                usernameInput.value = localStorage.getItem('saved_username') || AUTH_CONFIG.validUsername;
+            // Default to ADMIN role
+            if (typeof selectRole === 'function') {
+                selectRole('ADMIN');
+            } else {
+                const usernameInput = document.getElementById('username');
+                if (usernameInput) usernameInput.value = 'ADMIN';
             }
+
+            const passwordInput = document.getElementById('password');
             if (passwordInput) {
                 passwordInput.value = '';
+                passwordInput.classList.remove('input-error');
                 setTimeout(() => passwordInput.focus(), 120);
             }
+
+            const errorBox = document.getElementById('loginError');
+            if (errorBox) errorBox.classList.remove('show');
         }
 
         function updateNavState(activeView) {
@@ -6989,6 +7615,7 @@
             const eyeIcon = document.getElementById('eyeIcon');
             const eyeOffIcon = document.getElementById('eyeOffIcon');
 
+            if (!pwdInput) return;
             if (pwdInput.type === 'password') {
                 pwdInput.type = 'text';
                 if (eyeIcon) eyeIcon.style.display = 'none';
@@ -7001,6 +7628,89 @@
         }
 
         /**
+         * Toggle Username / Role Dropdown Menu
+         */
+        function toggleRoleDropdown(forceClose = false) {
+            const menu = document.getElementById('roleDropdownMenu');
+            const btn = document.getElementById('roleSelectorBtn');
+            if (!menu || !btn) return;
+
+            const isOpen = forceClose ? false : !menu.classList.contains('show');
+            if (isOpen) {
+                menu.classList.add('show');
+                btn.setAttribute('aria-expanded', 'true');
+            } else {
+                menu.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        // Close dropdown when user clicks outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('userRoleDropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                toggleRoleDropdown(true);
+            }
+        });
+
+        /**
+         * Select User Role (ADMIN vs View)
+         */
+        function selectRole(role) {
+            const usernameInput = document.getElementById('username');
+            const roleNameEl = document.getElementById('activeRoleName');
+            const roleTagEl = document.getElementById('activeRoleTag');
+            const roleIconBox = document.getElementById('activeRoleIcon');
+            const itemAdmin = document.getElementById('roleItemAdmin');
+            const itemView = document.getElementById('roleItemView');
+            const checkAdmin = document.getElementById('checkAdmin');
+            const checkView = document.getElementById('checkView');
+            const pwdRoleHint = document.getElementById('pwdRoleHint');
+            const pwdInput = document.getElementById('password');
+
+            if (usernameInput) usernameInput.value = role;
+
+            if (role === 'View') {
+                if (roleNameEl) roleNameEl.textContent = 'View';
+                if (roleTagEl) roleTagEl.textContent = 'Visitor / View Only (Read-Only Portal)';
+                if (roleIconBox) {
+                    roleIconBox.className = 'role-icon-box view-mode';
+                    roleIconBox.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                }
+                if (itemAdmin) itemAdmin.classList.remove('active');
+                if (itemView) itemView.classList.add('active');
+                if (checkAdmin) checkAdmin.style.display = 'none';
+                if (checkView) checkView.style.display = 'inline';
+                if (pwdRoleHint) pwdRoleHint.textContent = 'View PIN';
+            } else {
+                // ADMIN
+                if (roleNameEl) roleNameEl.textContent = 'ADMIN';
+                if (roleTagEl) roleTagEl.textContent = 'System Administrator (Full Edit Access)';
+                if (roleIconBox) {
+                    roleIconBox.className = 'role-icon-box';
+                    roleIconBox.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+                }
+                if (itemAdmin) itemAdmin.classList.add('active');
+                if (itemView) itemView.classList.remove('active');
+                if (checkAdmin) checkAdmin.style.display = 'inline';
+                if (checkView) checkView.style.display = 'none';
+                if (pwdRoleHint) pwdRoleHint.textContent = 'Admin PIN';
+            }
+
+            toggleRoleDropdown(true);
+
+            // Clear password and focus
+            if (pwdInput) {
+                pwdInput.value = '';
+                pwdInput.classList.remove('input-error');
+                setTimeout(() => pwdInput.focus(), 80);
+            }
+
+            const errorBox = document.getElementById('loginError');
+            if (errorBox) errorBox.classList.remove('show');
+        }
+
+        /**
          * Handle Login Submission
          */
         function handleLogin(event) {
@@ -7009,30 +7719,62 @@
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const errorBox = document.getElementById('loginError');
-            const loginCard = document.getElementById('loginView');
+            const errorMsg = document.getElementById('loginErrorMsg');
+            const loginCard = document.querySelector('.auth-split-card') || document.getElementById('loginView');
 
-            const enteredUser = usernameInput ? usernameInput.value.trim() : '';
+            const selectedRole = usernameInput ? usernameInput.value.trim() : 'ADMIN';
             const enteredPass = passwordInput ? passwordInput.value.trim() : '';
 
-            localStorage.setItem('saved_username', enteredUser);
+            // Password strictly required: no empty logins permitted
+            if (!enteredPass) {
+                if (errorBox) errorBox.classList.add('show');
+                if (errorMsg) errorMsg.textContent = 'Please enter password to login!';
+                if (passwordInput) {
+                    passwordInput.classList.add('input-error');
+                    passwordInput.focus();
+                }
+                if (loginCard) {
+                    loginCard.classList.remove('shake-effect');
+                    void loginCard.offsetWidth;
+                    loginCard.classList.add('shake-effect');
+                }
+                return;
+            }
 
-            const isUserValid = (
-                enteredUser.toLowerCase().includes("sayful") ||
-                enteredUser.toLowerCase() === "mep fan" || 
-                enteredUser.toLowerCase() === "admin" ||
-                enteredUser === "10676" || 
-                enteredUser.includes("01878044737") ||
-                enteredUser.length >= 2
-            );
+            let isValid = false;
+            let isViewOnly = false;
 
-            if (isUserValid && (enteredPass === AUTH_CONFIG.validPassword || enteredPass === "9642")) {
+            if (selectedRole === 'ADMIN') {
+                if (enteredPass === AUTH_CONFIG.adminPassword || enteredPass === '9642') {
+                    isValid = true;
+                    isViewOnly = false;
+                }
+            } else if (selectedRole === 'View') {
+                if (enteredPass === AUTH_CONFIG.viewPassword || enteredPass === '1234') {
+                    isValid = true;
+                    isViewOnly = true;
+                }
+            } else {
+                // Fallback username check
+                if (enteredPass === '9642') {
+                    isValid = true;
+                    isViewOnly = false;
+                } else if (enteredPass === '1234') {
+                    isValid = true;
+                    isViewOnly = true;
+                }
+            }
+
+            if (isValid) {
                 sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
-                sessionStorage.setItem('portal_view_only', "false");
+                sessionStorage.setItem('portal_view_only', isViewOnly ? "true" : "false");
                 sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
 
                 if (errorBox) errorBox.classList.remove('show');
-                if (usernameInput) usernameInput.classList.remove('input-error');
-                if (passwordInput) passwordInput.classList.remove('input-error');
+                if (passwordInput) {
+                    passwordInput.classList.remove('input-error');
+                    passwordInput.value = '';
+                }
 
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('view') === 'hub') {
@@ -7043,10 +7785,15 @@
                     switchToMainInterfaceView();
                 }
                 applyViewOnlyStateUI();
+                showToast(isViewOnly ? "Logged in as View Only" : "Logged in as ADMIN");
             } else {
-                // Failure
+                // Invalid credentials
                 if (errorBox) errorBox.classList.add('show');
-                if (usernameInput) usernameInput.classList.add('input-error');
+                if (errorMsg) {
+                    errorMsg.textContent = selectedRole === 'ADMIN' 
+                        ? 'Invalid ADMIN Password! Please try again.' 
+                        : 'Invalid View Password! Please try again.';
+                }
                 if (passwordInput) {
                     passwordInput.classList.add('input-error');
                     passwordInput.value = '';
@@ -7055,7 +7802,7 @@
 
                 if (loginCard) {
                     loginCard.classList.remove('shake-effect');
-                    void loginCard.offsetWidth; // Reflow trigger
+                    void loginCard.offsetWidth;
                     loginCard.classList.add('shake-effect');
                 }
             }
@@ -7063,22 +7810,11 @@
 
         /**
          * Handle View-Only Access (Visitor / Guest Mode)
-         * Allows browsing all reports, dashboards, and calculations without data entry/edit capabilities
          */
         function handleViewOnlyAccess() {
-            sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
-            sessionStorage.setItem('portal_view_only', "true");
-            sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
-
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('view') === 'hub') {
-                switchToDepartmentHub();
-            } else if (urlParams.get('view') === 'dashboard') {
-                switchToDashboardView();
-            } else {
-                switchToMainInterfaceView();
-            }
-            applyViewOnlyStateUI();
+            selectRole('View');
+            const pwdInput = document.getElementById('password');
+            if (pwdInput) pwdInput.focus();
         }
 
         function applyViewOnlyStateUI() {
@@ -7104,16 +7840,11 @@
             sessionStorage.removeItem('portal_hub_module');
             localStorage.removeItem(STORAGE_KEYS.isAuthenticated);
 
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            if (usernameInput) {
-                usernameInput.value = localStorage.getItem('saved_username') || AUTH_CONFIG.validUsername;
-            }
-            if (passwordInput) {
-                passwordInput.value = '';
-            }
+            // Ensure any active notification toast is completely hidden
+            const toast = document.getElementById('notification-toast');
+            if (toast) toast.classList.remove('show');
+
             showLoginView();
-            showToast("Session Locked");
         }
 
         /**
@@ -7847,13 +8578,13 @@
             }
         }
 
-        // Register Service Worker for offline capability
+        // Ensure legacy service workers are unregistered and cache purged
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('[PWA] Service Worker registered with scope:', reg.scope))
-                    .catch(err => console.log('[PWA] Service Worker notice:', err));
-            });
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let r of registrations) {
+                    r.unregister();
+                }
+            }).catch(() => {});
         }
 
         window.handleSubItemClick = function(clickedEl) {

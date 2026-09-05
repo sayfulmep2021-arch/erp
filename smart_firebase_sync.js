@@ -154,9 +154,22 @@
         });
     }
 
+    // Helper to check view-only mode
+    function isViewOnlyMode() {
+        try {
+            return sessionStorage.getItem('portal_view_only') === 'true';
+        } catch (e) {
+            return false;
+        }
+    }
+
     // Push local change to Firebase
     function pushToCloud(key, value) {
         if (isApplyingCloudUpdate) return; // Do not echo back cloud updates
+        if (isViewOnlyMode()) {
+            console.warn(`🔒 [SmartCloud] Cloud push skipped for '${key}': View-Only session.`);
+            return;
+        }
         if (!db) return;
 
         updateStatusBadge('syncing');
@@ -184,6 +197,10 @@
     // Delete node from Firebase
     function removeFromCloud(key) {
         if (isApplyingCloudUpdate) return;
+        if (isViewOnlyMode()) {
+            console.warn(`🔒 [SmartCloud] Cloud deletion skipped for '${key}': View-Only session.`);
+            return;
+        }
         if (!db) return;
 
         updateStatusBadge('syncing');
@@ -194,8 +211,12 @@
         });
     }
 
-    // Intercept localStorage transparently
+    // Intercept localStorage transparently with View-Only enforcement
     localStorage.setItem = function(key, value) {
+        if (TRACKED_KEYS.includes(key) && isViewOnlyMode()) {
+            console.warn(`🔒 [SmartCloud] Blocked localStorage modification for tracked key '${key}' in View-Only mode.`);
+            return;
+        }
         rawSetItem(key, value);
         if (TRACKED_KEYS.includes(key)) {
             pushToCloud(key, value);
@@ -203,6 +224,10 @@
     };
 
     localStorage.removeItem = function(key) {
+        if (TRACKED_KEYS.includes(key) && isViewOnlyMode()) {
+            console.warn(`🔒 [SmartCloud] Blocked localStorage deletion for tracked key '${key}' in View-Only mode.`);
+            return;
+        }
         rawRemoveItem(key);
         if (TRACKED_KEYS.includes(key)) {
             removeFromCloud(key);
