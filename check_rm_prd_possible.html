@@ -1,6 +1,8 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Global Permanent Authentication Guard -->
+    <script src="portal_guard.js"></script>
     <link rel="stylesheet" href="corporate_design_system.css">
     <link rel="stylesheet" href="report_sidebar.css">
     <meta charset="UTF-8">
@@ -1095,20 +1097,14 @@
         }
 
         function initPage() {
-            const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
-                             (localStorage.getItem('portal_auth_status') === 'true');
-            if (!isAuthed) {
-                window.location.href = 'index.html';
+            if (typeof window.validateCurrentSession === 'function') {
+                if (!window.validateCurrentSession().valid) {
+                    window.location.replace('index.html');
+                    return;
+                }
+            } else if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+                window.location.replace('index.html');
                 return;
-            }
-            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
-                sessionStorage.setItem('portal_auth_status', 'true');
-                const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
-                const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
-                const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
-                sessionStorage.setItem('portal_auth_role', storedRole);
-                sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
-                sessionStorage.setItem('portal_auth_sig', sig);
             }
             calculateFanModelPossibilities();
             updateClock();

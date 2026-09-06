@@ -16,27 +16,31 @@ const DEFAULT_PRODUCTION_PLAN = {
                 {
                     sl: "1",
                     code: "CF5601/CF5601IV",
+                    customDesc: "SFG1010079",
                     name: "56 Inch Premium Ceiling Fan - Ivory",
                     unit: "Pcs",
-                    months: [12000, 12000, 12000, 12000, 24500, 24500, 23500, 23500, 29500, 29500, 0, 0]
+                    months: [0, 0, 21000, 0, 24500, 24500, 23500, 23500, 29500, 29500, 0, 0]
                 },
                 {
                     sl: "2",
                     code: "CF5602/CF5602IV",
+                    customDesc: "SFG1010080",
                     name: "56 Inch Speed King Ceiling Fan - Ivory",
                     unit: "Pcs",
-                    months: [4000, 4000, 4000, 4000, 5000, 5000, 6000, 6000, 5000, 5000, 0, 0]
+                    months: [0, 0, 5000, 0, 5000, 5000, 6000, 6000, 5000, 5000, 0, 0]
                 },
                 {
                     sl: "3",
                     code: "CF5603/CF5603IV",
+                    customDesc: "SFG1010097",
                     name: "56 Inch Premium Gold Ceiling Fan - Ivory",
                     unit: "Pcs",
-                    months: [1000, 1000, 1000, 1000, 500, 500, 500, 500, 500, 500, 0, 0]
+                    months: [0, 0, 1000, 0, 500, 500, 500, 500, 500, 500, 0, 0]
                 },
                 {
                     sl: "",
                     code: "CF5606/CF5606IV",
+                    customDesc: "SFG1010137",
                     name: "56 Inch Premium Plus Ceiling Fan - Ivory",
                     unit: "Pcs",
                     months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -44,6 +48,7 @@ const DEFAULT_PRODUCTION_PLAN = {
                 {
                     sl: "4",
                     code: "CF5607/CF5607IV",
+                    customDesc: "SFG1010135",
                     name: "56 Inch Crown Ceiling Fan - Ivory",
                     unit: "Pcs",
                     months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -51,23 +56,26 @@ const DEFAULT_PRODUCTION_PLAN = {
                 {
                     sl: "5",
                     code: "CF4801/CF4801IV",
+                    customDesc: "SFG1010078",
                     name: "48 Inch Popular Ceiling Fan - Ivory",
                     unit: "Pcs",
-                    months: [0, 0, 0, 0, 0, 0, 0, 0, 5000, 5000, 0, 0]
+                    months: [0, 0, 3000, 0, 0, 0, 0, 0, 5000, 5000, 0, 0]
                 },
                 {
                     sl: "6",
                     code: "CF3601/CF3601IV",
+                    customDesc: "SFG1010077",
                     name: "36 Inch Hero Ceiling Fan - Ivory",
                     unit: "Pcs",
-                    months: [3000, 3000, 3000, 3000, 10000, 5000, 10000, 10000, 0, 0, 0, 0]
+                    months: [0, 0, 7000, 0, 10000, 5000, 10000, 10000, 0, 0, 0, 0]
                 },
                 {
                     sl: "7",
                     code: "CF2401/CF2401IV",
+                    customDesc: "SFG1010076",
                     name: "24 Inch Super Ceiling Fan - Ivory",
                     unit: "Pcs",
-                    months: [0, 0, 0, 0, 0, 5000, 0, 0, 0, 0, 0, 0]
+                    months: [0, 0, 3000, 0, 10000, 5000, 10000, 10000, 0, 0, 0, 0]
                 }
             ]
         },

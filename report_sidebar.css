@@ -221,10 +221,11 @@ body.dark-theme .smart-page-title {
     border: 1.5px solid #cbd5e1;
     cursor: pointer;
     text-decoration: none !important;
-    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     user-select: none;
     box-shadow: 0 2px 5px rgba(15, 41, 66, 0.04);
     position: relative;
+    transform: none !important;
 }
 
 .btn-nav-tab svg {
@@ -236,13 +237,13 @@ body.dark-theme .smart-page-title {
     background: #f8fafc;
     color: #0284c7;
     border-color: #38bdf8;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.16);
+    transform: none !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
 }
 
 .btn-nav-tab:hover svg {
     color: #0284c7;
-    transform: scale(1.15);
+    transform: none !important;
 }
 
 .btn-nav-tab.active {
@@ -255,7 +256,116 @@ body.dark-theme .smart-page-title {
 .btn-nav-tab.active svg {
     color: #ffffff !important;
     stroke: #ffffff !important;
-    transform: scale(1.08);
+    transform: none !important;
+}
+
+/* ==========================================================================
+   Premium Enterprise Redesign: Main Interface & Menu Buttons
+   ========================================================================== */
+.mep-sidebar-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 12px !important;
+    background: #f8fafc !important;
+    border-bottom: 1.5px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+.mep-action-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    height: 38px !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 0 10px !important;
+    border-radius: 9px !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    user-select: none !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    transform: none !important; /* Zero layout shift or jumping */
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease !important;
+    position: relative !important;
+}
+
+/* Button 1: Main Interface - Soft Sky Pastel Enterprise Theme */
+.mep-btn-main {
+    background: #ffffff !important;
+    border: 1.5px solid #bae6fd !important;
+    color: #0369a1 !important;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.06) !important;
+}
+
+.mep-btn-main .mep-btn-icon {
+    color: #0284c7 !important;
+    stroke: #0284c7 !important;
+    flex-shrink: 0 !important;
+    transition: color 0.2s ease, stroke 0.2s ease !important;
+}
+
+.mep-btn-main:hover {
+    background: #f0f9ff !important;
+    border-color: #38bdf8 !important;
+    color: #0c4a6e !important;
+    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.14) !important;
+    transform: none !important;
+}
+
+.mep-btn-main:active {
+    background: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    box-shadow: inset 0 1px 2px rgba(2, 132, 199, 0.1) !important;
+    transform: none !important;
+}
+
+/* Button 2: Menu - Refined Slate/Indigo Enterprise Theme */
+.mep-btn-menu {
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 3px rgba(15, 41, 66, 0.05) !important;
+}
+
+.mep-btn-menu .mep-btn-icon {
+    color: #64748b !important;
+    fill: #64748b !important;
+    flex-shrink: 0 !important;
+    transition: color 0.2s ease, fill 0.2s ease !important;
+}
+
+.mep-btn-menu:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.10) !important;
+    transform: none !important;
+}
+
+.mep-btn-menu:hover .mep-btn-icon {
+    color: #334155 !important;
+    fill: #334155 !important;
+}
+
+.mep-btn-menu:active {
+    background: #e2e8f0 !important;
+    border-color: #64748b !important;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.1) !important;
+    transform: none !important;
+}
+
+.mep-btn-text {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1 !important;
+    letter-spacing: 0.1px !important;
 }
 
 /* Nav Right & Vertical Center Alignment */
@@ -378,7 +488,7 @@ body.dark-mode .smart-cloud-status-badge .cloud-pulse-dot {
     background: #4ade80 !important;
 }
 
-/* User Brand Component: [Photo] Sayful Islam - Balanced with Live Time */
+/* User Brand Component: [Photo] Sayful Islam - Balanced with Live Time (Branding / Display Only) */
 .user-brand-card {
     display: inline-flex !important;
     align-items: center !important;
@@ -389,7 +499,8 @@ body.dark-mode .smart-cloud-status-badge .cloud-pulse-dot {
     border-radius: 12px !important;
     background: #ffffff !important;
     border: 1.5px solid #cbd5e1 !important;
-    cursor: pointer !important;
+    cursor: default !important;
+    pointer-events: auto !important;
     transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
     box-shadow: 0 2px 6px rgba(15, 41, 66, 0.04) !important;
     user-select: none !important;
@@ -399,9 +510,10 @@ body.dark-mode .smart-cloud-status-badge .cloud-pulse-dot {
 }
 
 .user-brand-card:hover {
-    border: 1.5px solid #0284c7 !important;
-    background: #f8fafc !important;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12) !important;
+    border: 1.5px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(15, 41, 66, 0.04) !important;
+    cursor: default !important;
     transform: none !important;
 }
 
@@ -2071,7 +2183,7 @@ body.dark-theme {
 .btn-nav-tab:hover,
 .btn-header-pill:hover,
 .rail-icon-btn:hover {
-    transform: translateY(-1.5px) !important;
+    transform: none !important; /* Zero layout shift or jump */
     box-shadow: 0 4px 10px rgba(2, 132, 199, 0.14) !important;
 }
 

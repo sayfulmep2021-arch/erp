@@ -1,6 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Global Permanent Authentication Guard -->
+    <script src="portal_guard.js"></script>
     <link rel="stylesheet" href="corporate_design_system.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -417,7 +419,7 @@
             white-space: nowrap;
         }
 
-        /* Freeze Panes up to UNIT column (Sl -> Code -> Raw Item -> Unit) */
+        /* Freeze Panes up to UNIT column (Sl -> Code -> [Custom Col] -> Raw Item -> Unit) */
         .sticky-col-1 {
             position: sticky !important;
             left: 0px !important;
@@ -440,9 +442,33 @@
             box-sizing: border-box;
         }
 
-        .sticky-col-3 {
+        /* Custom Editable Column between Code and Raw Item */
+        .sticky-col-custom {
             position: sticky !important;
             left: 176px !important;
+            width: 130px !important;
+            min-width: 130px !important;
+            max-width: 130px !important;
+            z-index: 15 !important;
+            background-color: #ffffff !important;
+            box-sizing: border-box;
+            border-right: 1px solid #cbd5e1;
+            padding: 2px 4px !important;
+            text-align: left;
+        }
+
+        .excel-table thead th.sticky-col-custom {
+            z-index: 35 !important;
+            background: #f472b6 !important;
+            color: #0f172a !important;
+            font-weight: 900;
+            padding: 4px 6px !important;
+            user-select: none;
+        }
+
+        .sticky-col-3 {
+            position: sticky !important;
+            left: 306px !important;
             width: 280px !important;
             min-width: 280px !important;
             max-width: 280px !important;
@@ -453,7 +479,7 @@
 
         .sticky-col-4 {
             position: sticky !important;
-            left: 456px !important;
+            left: 586px !important;
             width: 48px !important;
             min-width: 48px !important;
             max-width: 48px !important;
@@ -466,6 +492,7 @@
 
         .excel-table thead th.sticky-col-1,
         .excel-table thead th.sticky-col-2,
+        .excel-table thead th.sticky-col-custom,
         .excel-table thead th.sticky-col-3 {
             z-index: 35 !important;
         }
@@ -476,30 +503,161 @@
             box-shadow: 4px 0 10px -2px rgba(15, 41, 66, 0.16) !important;
         }
 
-        .category-subtotal-row td.cat-title-cell {
-            position: sticky !important;
-            left: 0px !important;
-            width: 504px !important;
-            min-width: 504px !important;
-            max-width: 504px !important;
+        .cat-banner-cell, .grand-banner-cell {
             z-index: 18 !important;
-            border-right: 2.5px solid #0284c7 !important;
-            box-shadow: 4px 0 10px -2px rgba(15, 41, 66, 0.16) !important;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+            padding: 5px 6px !important;
         }
 
-        .grand-total-row td.grand-title {
-            position: sticky !important;
-            left: 0px !important;
-            width: 504px !important;
-            min-width: 504px !important;
-            max-width: 504px !important;
-            z-index: 18 !important;
+        .category-subtotal-row td.sticky-col-4,
+        .grand-total-row td.sticky-col-4 {
+            z-index: 19 !important;
             border-right: 2.5px solid #0284c7 !important;
             box-shadow: 4px 0 10px -2px rgba(15, 41, 66, 0.16) !important;
-            box-sizing: border-box;
+        }
+
+        /* When Custom Column is Hidden */
+        .excel-table.col-custom-hidden .sticky-col-custom {
+            display: none !important;
+        }
+        .excel-table.col-custom-hidden .sticky-col-3 {
+            left: 176px !important;
+        }
+        .excel-table.col-custom-hidden .sticky-col-4 {
+            left: 456px !important;
+        }
+
+        /* Custom Column Header Elements */
+        .custom-col-th-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .custom-col-title-text {
+            flex: 1;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 12.5px;
+            letter-spacing: 0.3px;
+        }
+        .custom-col-title-text:hover {
+            text-decoration: underline;
+        }
+        .col-menu-btn {
+            background: transparent;
+            border: none;
+            color: #1e293b;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            line-height: 1;
+            margin-left: 4px;
+        }
+        .col-menu-btn:hover {
+            background: rgba(15, 23, 42, 0.15);
+            color: #000000;
+        }
+
+        /* Dropdown Menu */
+        .col-options-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.18), 0 4px 10px rgba(15, 23, 42, 0.08);
+            min-width: 175px;
+            z-index: 100;
+            padding: 6px 0;
+            text-align: left;
+            display: none;
+            font-family: var(--font-sans);
+        }
+        .col-options-dropdown.show {
+            display: block;
+        }
+        .col-menu-header {
+            font-size: 10px;
+            font-weight: 800;
+            color: #64748b;
+            padding: 4px 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 4px;
+        }
+        .col-menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.12s ease;
+        }
+        .col-menu-item:hover {
+            background: #f1f5f9;
+            color: #0284c7;
+        }
+        .col-menu-item.col-menu-danger:hover {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* Input inside custom editable cell */
+        .custom-col-input {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+            background: transparent !important;
+            padding: 3px 6px !important;
+            font-size: 13px !important;
+            color: #1e293b !important;
+            font-family: var(--font-sans) !important;
+            outline: none !important;
+            box-sizing: border-box !important;
             text-align: left !important;
-            padding-left: 10px !important;
+        }
+        .custom-col-input:focus {
+            background: #eff6ff !important;
+            box-shadow: inset 0 0 0 2px #0284c7 !important;
+            border-radius: 3px !important;
+        }
+
+        /* Visibility button in top toolbar */
+        .btn-col-hidden-state {
+            background: #fdf2f8 !important;
+            border-color: #f472b6 !important;
+            color: #db2777 !important;
+            position: relative;
+        }
+        .btn-col-hidden-state::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 7px;
+            height: 7px;
+            background: #ec4899;
+            border-radius: 50%;
         }
 
         .excel-table thead th.th-target {
@@ -930,6 +1088,9 @@
 
             <!-- Action Toolbar (Icon-Only Buttons with Premium Hover Tooltips) -->
             <div class="header-action-group">
+                <button type="button" class="btn-plan btn-plan-outline" id="btnCustomColVisibility" onclick="toggleCustomColumn()" data-tooltip="Column Visibility" aria-label="Column Visibility">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
                 <button type="button" class="btn-plan btn-save-plan" onclick="saveCurrentPlan(true)" data-tooltip="Plan" aria-label="Plan">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                 </button>
@@ -987,7 +1148,11 @@
                     <input type="text" id="newItemCode" class="form-control" placeholder="e.g. CF5608/CF5608IV" oninput="lookupMasterCode(this.value)">
                 </div>
                 <div class="form-group">
-                    <label>Raw Item / Model Name</label>
+                    <label>Description (Optional)</label>
+                    <input type="text" id="newItemCustomDesc" class="form-control" placeholder="e.g. Model, Color, or Remarks">
+                </div>
+                <div class="form-group">
+                    <label>Item Name</label>
                     <input type="text" id="newItemName" class="form-control" placeholder="e.g. 56 Inch Deluxe Ceiling Fan - Ivory">
                 </div>
                 <div class="form-group">
@@ -1038,20 +1203,14 @@
         const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         document.addEventListener('DOMContentLoaded', () => {
-            const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
-                             (localStorage.getItem('portal_auth_status') === 'true');
-            if (!isAuthed) {
-                window.location.href = 'index.html';
+            if (typeof window.validateCurrentSession === 'function') {
+                if (!window.validateCurrentSession().valid) {
+                    window.location.replace('index.html');
+                    return;
+                }
+            } else if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+                window.location.replace('index.html');
                 return;
-            }
-            if (sessionStorage.getItem('portal_auth_status') !== 'true') {
-                sessionStorage.setItem('portal_auth_status', 'true');
-                const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
-                const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
-                const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
-                sessionStorage.setItem('portal_auth_role', storedRole);
-                sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
-                sessionStorage.setItem('portal_auth_sig', sig);
             }
 
             loadPlanForCurrentSelection();
@@ -1145,9 +1304,188 @@
             const allPlans = getAllStoredPlans();
             allPlans[key] = currentPlanData;
             localStorage.setItem(PLANS_STORE_KEY, JSON.stringify(allPlans));
+            localStorage.setItem('mep_production_plan_last_updated', Date.now().toString());
 
             if (showFeedback) {
                 showToast(`💾 Plan for [${document.getElementById('fromMonthSelect').value} ${document.getElementById('fromYearSelect').value} - ${document.getElementById('toMonthSelect').value} ${document.getElementById('toYearSelect').value}] Saved!`);
+            }
+        }
+
+        // --- Custom Editable Column Management ---
+        const CUSTOM_COL_HIDDEN_KEY = 'mep_prod_plan_custom_col_hidden';
+        const CUSTOM_COL_TITLE_KEY = 'mep_prod_plan_custom_col_title';
+
+        function isUserAdmin() {
+            const role = (sessionStorage.getItem('portal_auth_role') || '').toUpperCase();
+            const viewOnly = sessionStorage.getItem('portal_view_only') === 'true';
+            return role === 'ADMIN' && !viewOnly;
+        }
+
+        function getCustomColTitle() {
+            return (currentPlanData && currentPlanData.customColTitle)
+                ? currentPlanData.customColTitle
+                : (localStorage.getItem(CUSTOM_COL_TITLE_KEY) || 'DESCRIPTION');
+        }
+
+        function setCustomColTitle(newTitle) {
+            if (!newTitle) return;
+            if (currentPlanData) {
+                currentPlanData.customColTitle = newTitle;
+                saveCurrentPlan(false);
+            }
+            localStorage.setItem(CUSTOM_COL_TITLE_KEY, newTitle);
+            renderExcelTable();
+            showToast(`✏️ Column renamed to: ${newTitle}`);
+        }
+
+        function isCustomColHidden() {
+            return localStorage.getItem(CUSTOM_COL_HIDDEN_KEY) === 'true';
+        }
+
+        function hideCustomColumn(e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            localStorage.setItem(CUSTOM_COL_HIDDEN_KEY, 'true');
+            closeCustomColMenu();
+            renderExcelTable();
+            showToast(`👁️‍🗨️ Column [${getCustomColTitle()}] Hidden. Click 'Columns' icon in toolbar to restore.`);
+        }
+
+        function showCustomColumn(e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            localStorage.setItem(CUSTOM_COL_HIDDEN_KEY, 'false');
+            closeCustomColMenu();
+            renderExcelTable();
+            showToast(`👁️ Column [${getCustomColTitle()}] is now Visible.`);
+        }
+
+        function toggleCustomColumn() {
+            if (isCustomColHidden()) {
+                showCustomColumn();
+            } else {
+                hideCustomColumn();
+            }
+        }
+
+        function toggleCustomColMenu(e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            const menu = document.getElementById('customColDropdownMenu');
+            if (!menu) return;
+            const isShown = menu.classList.contains('show');
+            closeCustomColMenu();
+            if (!isShown) {
+                menu.classList.add('show');
+            }
+        }
+
+        function closeCustomColMenu() {
+            const menu = document.getElementById('customColDropdownMenu');
+            if (menu) menu.classList.remove('show');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#thCustomCol')) {
+                closeCustomColMenu();
+            }
+        });
+
+        function onCustomHeaderClick(e) {
+            if (e.detail === 2) { // Double click
+                promptRenameCustomCol(e);
+            }
+        }
+
+        function promptRenameCustomCol(e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            closeCustomColMenu();
+            if (!isUserAdmin()) {
+                showToast("🔒 Only ADMIN can rename columns.");
+                return;
+            }
+            const cur = getCustomColTitle();
+            const next = prompt("Enter Column Name / Header Title:", cur);
+            if (next && next.trim() && next.trim() !== cur) {
+                setCustomColTitle(next.trim());
+            }
+        }
+
+        function clearCustomColData(e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            closeCustomColMenu();
+            if (!isUserAdmin()) {
+                showToast("🔒 Only ADMIN can clear column data.");
+                return;
+            }
+            if (confirm(`Are you sure you want to clear all data in the [${getCustomColTitle()}] column?`)) {
+                if (currentPlanData && currentPlanData.categories) {
+                    currentPlanData.categories.forEach(cat => {
+                        cat.items.forEach(it => {
+                            it.customDesc = '';
+                        });
+                    });
+                    saveCurrentPlan(false);
+                    renderExcelTable();
+                    showToast(`🧹 Cleared all data in [${getCustomColTitle()}] column.`);
+                }
+            }
+        }
+
+        // Excel-Style Vertical & Horizontal Navigation for Custom Column
+        function handleCustomColKeyNav(e, currentInput) {
+            const catIdx = parseInt(currentInput.dataset.cat);
+            const itemIdx = parseInt(currentInput.dataset.item);
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    // Move up
+                    const prev = document.querySelector(`.custom-col-input[data-cat="${catIdx}"][data-item="${itemIdx - 1}"]`);
+                    if (prev) { prev.focus(); prev.select(); }
+                    else if (catIdx > 0) {
+                        const prevCatInputs = document.querySelectorAll(`.custom-col-input[data-cat="${catIdx - 1}"]`);
+                        if (prevCatInputs.length > 0) {
+                            prevCatInputs[prevCatInputs.length - 1].focus();
+                            prevCatInputs[prevCatInputs.length - 1].select();
+                        }
+                    }
+                } else {
+                    // Move down
+                    const next = document.querySelector(`.custom-col-input[data-cat="${catIdx}"][data-item="${itemIdx + 1}"]`);
+                    if (next) { next.focus(); next.select(); }
+                    else {
+                        const nextCatFirst = document.querySelector(`.custom-col-input[data-cat="${catIdx + 1}"][data-item="0"]`);
+                        if (nextCatFirst) { nextCatFirst.focus(); nextCatFirst.select(); }
+                    }
+                }
+            } else if (e.key === 'ArrowDown') {
+                const next = document.querySelector(`.custom-col-input[data-cat="${catIdx}"][data-item="${itemIdx + 1}"]`);
+                if (next) { next.focus(); next.select(); e.preventDefault(); }
+                else {
+                    const nextCat = document.querySelector(`.custom-col-input[data-cat="${catIdx + 1}"][data-item="0"]`);
+                    if (nextCat) { nextCat.focus(); nextCat.select(); e.preventDefault(); }
+                }
+            } else if (e.key === 'ArrowUp') {
+                const prev = document.querySelector(`.custom-col-input[data-cat="${catIdx}"][data-item="${itemIdx - 1}"]`);
+                if (prev) { prev.focus(); prev.select(); e.preventDefault(); }
+                else if (catIdx > 0) {
+                    const prevCat = document.querySelectorAll(`.custom-col-input[data-cat="${catIdx - 1}"]`);
+                    if (prevCat.length > 0) {
+                        prevCat[prevCat.length - 1].focus();
+                        prevCat[prevCat.length - 1].select();
+                        e.preventDefault();
+                    }
+                }
+            } else if (e.key === 'ArrowRight' && currentInput.selectionStart === currentInput.value.length) {
+                const tr = currentInput.closest('tr');
+                if (tr) {
+                    const rawItemInput = tr.querySelector('.sticky-col-3 input');
+                    if (rawItemInput) { rawItemInput.focus(); rawItemInput.select(); e.preventDefault(); }
+                }
+            } else if (e.key === 'ArrowLeft' && currentInput.selectionStart === 0) {
+                const tr = currentInput.closest('tr');
+                if (tr) {
+                    const codeInput = tr.querySelector('.sticky-col-2 input');
+                    if (codeInput) { codeInput.focus(); codeInput.select(); e.preventDefault(); }
+                }
             }
         }
 
@@ -1156,12 +1494,70 @@
             const tbody = document.getElementById('tableBody');
             const tfoot = document.getElementById('tableFoot');
 
+            const isHidden = isCustomColHidden();
+            const colTitle = getCustomColTitle();
+            const isAdmin = isUserAdmin();
+
+            const tableEl = document.getElementById('planningTable');
+            if (tableEl) {
+                if (isHidden) {
+                    tableEl.classList.add('col-custom-hidden');
+                } else {
+                    tableEl.classList.remove('col-custom-hidden');
+                }
+            }
+
+            // Update top toolbar button state
+            const btnColVis = document.getElementById('btnCustomColVisibility');
+            if (btnColVis) {
+                if (isHidden) {
+                    btnColVis.classList.add('btn-col-hidden-state');
+                    btnColVis.setAttribute('data-tooltip', `Show Column [${colTitle}]`);
+                    btnColVis.setAttribute('aria-label', `Show Column [${colTitle}]`);
+                } else {
+                    btnColVis.classList.remove('btn-col-hidden-state');
+                    btnColVis.setAttribute('data-tooltip', `Hide Column [${colTitle}]`);
+                    btnColVis.setAttribute('aria-label', `Hide Column [${colTitle}]`);
+                }
+            }
+
             // 1. Build Header Row
             let headHTML = `
                 <tr>
                     <th class="sticky-col-1" style="width: 36px;">Sl</th>
                     <th class="sticky-col-2" style="width: 140px; text-align:left; padding-left:8px;">Code</th>
-                    <th class="sticky-col-3" style="width: 280px; text-align:left; padding-left:8px;">Raw Item</th>
+            `;
+
+            if (!isHidden) {
+                headHTML += `
+                    <th class="sticky-col-custom" id="thCustomCol" style="width: 130px;">
+                        <div class="custom-col-th-wrap">
+                            <span class="custom-col-title-text" id="customColTitleLabel" title="Click or double-click to rename" onclick="onCustomHeaderClick(event)">${escapeHTML(colTitle)}</span>
+                            <button type="button" class="col-menu-btn" onclick="toggleCustomColMenu(event)" title="Column Options" aria-label="Column Options">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                            </button>
+                            <div class="col-options-dropdown" id="customColDropdownMenu">
+                                <div class="col-menu-header">COLUMN OPTIONS</div>
+                                <button type="button" class="col-menu-item" onclick="hideCustomColumn(event)">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                    <span>Hide Column</span>
+                                </button>
+                                <button type="button" class="col-menu-item" onclick="promptRenameCustomCol(event)">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    <span>Rename Header</span>
+                                </button>
+                                <button type="button" class="col-menu-item col-menu-danger" onclick="clearCustomColData(event)">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <span>Clear Column Data</span>
+                                </button>
+                            </div>
+                        </div>
+                    </th>
+                `;
+            }
+
+            headHTML += `
+                    <th class="sticky-col-3" style="width: 280px; text-align:left; padding-left:8px;">Item Name</th>
                     <th class="sticky-col-4" style="width: 48px;">Unit</th>
             `;
 
@@ -1180,6 +1576,7 @@
             tbody.innerHTML = '';
             const grandMonthTotals = Array(12).fill(0);
             let grandOverallTarget = 0;
+            const titleColSpan = isHidden ? 4 : 5;
 
             if (currentPlanData && currentPlanData.categories) {
                 currentPlanData.categories.forEach((cat, catIdx) => {
@@ -1207,7 +1604,19 @@
 
                     let catRowHTML = `
                         <tr class="category-subtotal-row" style="background:${catBg}; color:${catColor};">
-                            <td colspan="4" class="cat-title-cell">${escapeHTML(cat.name)}</td>
+                            <td class="sticky-col-1 cat-banner-cell" style="background:${catBg} !important; border-right:none !important;"></td>
+                            <td class="sticky-col-2 cat-banner-cell" style="background:${catBg} !important; border-left:none !important; border-right:none !important;"></td>
+                    `;
+
+                    if (!isHidden) {
+                        catRowHTML += `
+                            <td class="sticky-col-custom cat-banner-cell" style="background:${catBg} !important; border-left:none !important; border-right:none !important;"></td>
+                        `;
+                    }
+
+                    catRowHTML += `
+                            <td class="sticky-col-3 cat-banner-cell" style="background:${catBg} !important; color:${catColor} !important; border-left:none !important; border-right:none !important; font-weight:900; font-size:13.5px; text-align:center;">${escapeHTML(cat.name)}</td>
+                            <td class="sticky-col-4 cat-banner-cell" style="background:${catBg} !important; border-left:none !important;"></td>
                     `;
 
                     catMonthTotals.forEach((tot, mIdx) => {
@@ -1229,10 +1638,29 @@
                         const rowSum = item.months.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
 
                         let rowHTML = `
-                            <td class="sticky-col-1"><input type="text" class="excel-cell-input excel-cell-center" value="${escapeHTML(item.sl || '')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'sl', this.value)"></td>
-                            <td class="sticky-col-2"><input type="text" class="excel-cell-text" value="${escapeHTML(item.code || '')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'code', this.value)"></td>
-                            <td class="sticky-col-3"><input type="text" class="excel-cell-text" value="${escapeHTML(item.name || '')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'name', this.value)"></td>
-                            <td class="sticky-col-4"><input type="text" class="excel-cell-input excel-cell-center" value="${escapeHTML(item.unit || 'Pcs')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'unit', this.value)"></td>
+                            <td class="sticky-col-1"><input type="text" class="excel-cell-input excel-cell-center" value="${escapeHTML(item.sl || '')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'sl', this.value)" ${isAdmin ? '' : 'readonly'}></td>
+                            <td class="sticky-col-2"><input type="text" class="excel-cell-text" value="${escapeHTML(item.code || '')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'code', this.value)" ${isAdmin ? '' : 'readonly'}></td>
+                        `;
+
+                        if (!isHidden) {
+                            rowHTML += `
+                                <td class="sticky-col-custom">
+                                    <input type="text" 
+                                           class="excel-cell-text custom-col-input" 
+                                           value="${escapeHTML(item.customDesc || '')}" 
+                                           placeholder="${isAdmin ? 'Type...' : ''}" 
+                                           data-cat="${catIdx}" 
+                                           data-item="${itemIdx}" 
+                                           oninput="updateItemMeta(${catIdx}, ${itemIdx}, 'customDesc', this.value)" 
+                                           onkeydown="handleCustomColKeyNav(event, this)" 
+                                           ${isAdmin ? '' : 'readonly tabindex="-1"'}>
+                                </td>
+                            `;
+                        }
+
+                        rowHTML += `
+                            <td class="sticky-col-3"><input type="text" class="excel-cell-text" value="${escapeHTML(item.name || '')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'name', this.value)" ${isAdmin ? '' : 'readonly'}></td>
+                            <td class="sticky-col-4"><input type="text" class="excel-cell-input excel-cell-center" value="${escapeHTML(item.unit || 'Pcs')}" onchange="updateItemMeta(${catIdx}, ${itemIdx}, 'unit', this.value)" ${isAdmin ? '' : 'readonly'}></td>
                         `;
 
                         for (let mIdx = 0; mIdx < 12; mIdx++) {
@@ -1246,7 +1674,8 @@
                                            data-month="${mIdx}" 
                                            value="${val === 0 ? '0' : val}" 
                                            oninput="onCellInput(this, ${catIdx}, ${itemIdx}, ${mIdx})"
-                                           onkeydown="handleGridKeyNav(event, this)">
+                                           onkeydown="handleGridKeyNav(event, this)" 
+                                           ${isAdmin ? '' : 'readonly'}>
                                 </td>
                             `;
                         }
@@ -1254,7 +1683,7 @@
                         rowHTML += `
                             <td class="target-cell" id="row-target-${catIdx}-${itemIdx}">${rowSum.toLocaleString()}</td>
                             <td style="text-align:center;">
-                                <button type="button" class="btn-del-row" onclick="deleteItemRow(${catIdx}, ${itemIdx})" title="Delete this row">&times;</button>
+                                ${isAdmin ? `<button type="button" class="btn-del-row" onclick="deleteItemRow(${catIdx}, ${itemIdx})" title="Delete this row">&times;</button>` : ''}
                             </td>
                         `;
 
@@ -1267,7 +1696,19 @@
             // 3. Render Grand Total Row in Footer
             let footHTML = `
                 <tr class="grand-total-row">
-                    <td colspan="4" class="grand-title">TOTAL YEARLY PRODUCTION PLAN</td>
+                    <td class="sticky-col-1 grand-banner-cell" style="background:#0f2942 !important; border-right:none !important;"></td>
+                    <td class="sticky-col-2 grand-banner-cell" style="background:#0f2942 !important; border-left:none !important; border-right:none !important;"></td>
+            `;
+
+            if (!isHidden) {
+                footHTML += `
+                    <td class="sticky-col-custom grand-banner-cell" style="background:#0f2942 !important; border-left:none !important; border-right:none !important;"></td>
+                `;
+            }
+
+            footHTML += `
+                    <td class="sticky-col-3 grand-banner-cell" style="background:#0f2942 !important; color:#ffffff !important; border-left:none !important; border-right:none !important; font-weight:900; font-size:12.5px; text-align:center; white-space:nowrap;">TOTAL YEARLY PRODUCTION PLAN</td>
+                    <td class="sticky-col-4 grand-banner-cell" style="background:#0f2942 !important; border-left:none !important;"></td>
             `;
 
             grandMonthTotals.forEach((tot, mIdx) => {
@@ -1367,6 +1808,7 @@
         function openAddItemModal() {
             document.getElementById('addItemModal').classList.add('active');
             document.getElementById('newItemCode').value = '';
+            document.getElementById('newItemCustomDesc').value = '';
             document.getElementById('newItemName').value = '';
             document.getElementById('newItemCode').focus();
         }
@@ -1378,11 +1820,12 @@
         function saveNewItem() {
             const catName = document.getElementById('newItemCategory').value;
             const code = document.getElementById('newItemCode').value.trim();
+            const customDesc = document.getElementById('newItemCustomDesc').value.trim();
             const name = document.getElementById('newItemName').value.trim();
             const unit = document.getElementById('newItemUnit').value.trim() || 'Pcs';
 
             if (!name) {
-                alert("Please enter Raw Item / Model Name.");
+                alert("Please enter Item Name.");
                 return;
             }
 
@@ -1405,6 +1848,7 @@
             cat.items.push({
                 sl: nextSl,
                 code: code,
+                customDesc: customDesc,
                 name: name,
                 unit: unit,
                 months: Array(12).fill(0)
@@ -1431,9 +1875,15 @@
             const fY = document.getElementById('fromYearSelect').value;
             const tM = document.getElementById('toMonthSelect').value;
             const tY = document.getElementById('toYearSelect').value;
+            const isHidden = isCustomColHidden();
+            const colTitle = getCustomColTitle();
 
             let csv = `MEP Fan Ltd. - Yearly Production Planning (${fM} ${fY} to ${tM} ${tY})\r\n`;
-            csv += `Category,Sl,Code,Raw Item,Unit,`;
+            csv += `Category,Sl,Code,`;
+            if (!isHidden) {
+                csv += `"${colTitle.replace(/"/g, '""')}",`;
+            }
+            csv += `Item Name,Unit,`;
             monthLabels.forEach(m => { csv += `"${m.short}",`; });
             csv += `Yearly Production Target\r\n`;
 
@@ -1441,7 +1891,11 @@
                 currentPlanData.categories.forEach(cat => {
                     cat.items.forEach(it => {
                         const rowSum = it.months.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
-                        csv += `"${cat.name}","${it.sl || ''}","${it.code || ''}","${(it.name || '').replace(/"/g, '""')}","${it.unit || 'Pcs'}",`;
+                        csv += `"${cat.name}","${it.sl || ''}","${it.code || ''}",`;
+                        if (!isHidden) {
+                            csv += `"${(it.customDesc || '').replace(/"/g, '""')}",`;
+                        }
+                        csv += `"${(it.name || '').replace(/"/g, '""')}","${it.unit || 'Pcs'}",`;
                         it.months.forEach(v => { csv += `${v || 0},`; });
                         csv += `${rowSum}\r\n`;
                     });

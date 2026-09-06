@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verification Suite: Cell Lock, Serial Hide/Show, Month Closing, Group Analytics</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; padding: 24px; background: #0f172a; color: #f8fafc; line-height: 1.5; }
+        .suite-box { background: #1e293b; border: 1.5px solid #334155; border-radius: 10px; padding: 20px; max-width: 900px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        h1 { color: #38bdf8; font-size: 22px; margin-top: 0; margin-bottom: 6px; }
+        .sub { color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
+        .result-item { padding: 10px 14px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .result-item:last-child { border-bottom: none; }
+        .pass { color: #4ade80; font-weight: 800; font-size: 14px; }
+        .fail { color: #f87171; font-weight: 800; font-size: 14px; }
+        .t-name { font-weight: 700; color: #f1f5f9; font-size: 13px; }
+        .t-detail { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+        .summary-bar { background: #0f172a; border-radius: 8px; padding: 12px 16px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+    <div class="suite-box">
+        <h1>Phase 4 Systems Verification Suite</h1>
+        <div class="sub">Validating: 1) Complete Cell Lock, 2) Serial Hide/Show, 3) Month Closing Archive, 4) Group Analytics Dashboard</div>
+        <div id="resultsBox">Executing tests...</div>
+        <div class="summary-bar" id="summaryBar" style="display:none;"></div>
+    </div>
+
+    <!-- Inject dependencies -->
+    <script src="portal_guard.js"></script>
+    <script src="master_database.js"></script>
+    <script src="production_plan_data.js"></script>
+    <script src="bom_data.js"></script>
+    <script src="assemble_summary_data.js"></script>
+    <script src="armature_summary_data.js"></script>
+    <script src="fan_assemble_erp_data.js"></script>
+    <script src="armature_winding_erp_data.js"></script>
+    <script src="erp_engine.js"></script>
+    <script src="monthly_rm_demand_data.js"></script>
+
+    <!-- Hidden iframe to load monthly_rm_demand_vs_received.html directly -->
+    <iframe id="testFrame" src="monthly_rm_demand_vs_received.html" style="width:1200px; height:800px; position:absolute; left:-9999px;"></iframe>
+
+    <script>
+        sessionStorage.setItem('portal_auth_status', 'true');
+        sessionStorage.setItem('portal_auth_role', 'ADMIN');
+        sessionStorage.setItem('portal_auth_sig', btoa('ADMIN:::MEP_SECURE_PORTAL_2026'));
+        sessionStorage.setItem('portal_last_active_time', Date.now().toString());
+
+        const results = [];
+
+        function recordTest(id, name, passed, details) {
+            results.push({ id, name, passed, details });
+        }
+
+        const iframe = document.getElementById('testFrame');
+
+        iframe.onload = function() {
+            setTimeout(() => {
+                runAllTests();
+            }, 800);
+        };
+
+        function runAllTests() {
+            const frameDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const frameWin = iframe.contentWindow;
+
+            try {
+                // TEST 1: Complete Cell Lock & Freeze - Zero contenteditable cells
+                const editableCells = frameDoc.querySelectorAll('.rm-demand-table [contenteditable="true"]');
+                const hasDblClick = frameDoc.querySelectorAll('.rm-demand-table [ondblclick]').length;
+                const passed1 = (editableCells.length === 0) && (hasDblClick === 0);
+                recordTest(1, "Complete Cell Lock & Freeze", passed1, `Found ${editableCells.length} editable cells, ${hasDblClick} ondblclick handlers. Expected 0 (100% locked).`);
+
+                // TEST 2: Serial Hide Button presence in col-sl
+                const hideBtns = frameDoc.querySelectorAll('.btn-hide-row');
+                const passed2 = hideBtns.length > 50;
+                recordTest(2, "Serial Number Row Hide Buttons", passed2, `Found ${hideBtns.length} .btn-hide-row elements inside table rows.`);
+
+                // TEST 3: Serial Hide Action - Hiding an item retains category & grand totals
+                const firstItem = frameWin.demandItems[0];
+                const itemKey = frameWin.getItemKey(firstItem);
+                const grandReqBefore = parseFloat(String(frameDoc.querySelector('#tableFoot .td-total-req, #tableFoot td:nth-last-child(4)').innerText).replace(/,/g, '')) || 0;
+                
+                // Hide first item
+                frameWin.hideSerial(itemKey);
+                const isHiddenInArray = frameWin.hiddenSerials.includes(itemKey);
+                const grandReqAfter = parseFloat(String(frameDoc.querySelector('#tableFoot .td-total-req, #tableFoot td:nth-last-child(4)').innerText).replace(/,/g, '')) || 0;
+                const passed3 = isHiddenInArray && (grandReqBefore === grandReqAfter) && (grandReqBefore > 0);
+                recordTest(3, "Serial Hide & Total Retention", passed3, `Hidden key: ${itemKey}. Grand Total before: ${grandReqBefore}, after: ${grandReqAfter} (Match: ${grandReqBefore === grandReqAfter})`);
+
+                // TEST 4: Serial Unhide All ("Show All")
+                frameWin.showAllSerials();
+                const passed4 = frameWin.hiddenSerials.length === 0;
+                recordTest(4, "Serials Visibility 'Show All'", passed4, `hiddenSerials array length after showAllSerials: ${frameWin.hiddenSerials.length}`);
+
+                // TEST 5: Month Closing Snapshot creation
+                const testMonth = "Jul-26";
+                frameWin.closeMonthSnapshot(testMonth);
+                const snapshots = frameWin.getMonthlySnapshots();
+                const snap = snapshots[testMonth];
+                const passed5 = snap && snap.isClosed === true && snap.items && Object.keys(snap.items).length > 50;
+                recordTest(5, "Month Closing Snapshot Archive", passed5, `Snapshot created for ${testMonth}: isClosed=${snap ? snap.isClosed : false}, items=${snap ? Object.keys(snap.items).length : 0}`);
+
+                // TEST 6: Immutable Closed Month - Snapshot Freezes Data
+                // Modify a value in item months directly, then run recalculateAllRMDemandFromSources
+                // If recalculate runs, it should restore from snapshot, NOT live summary!
+                const snapItem = snap.items[itemKey];
+                const originalSnapRec = snapItem ? snapItem.received : '';
+                frameWin.recalculateAllRMDemandFromSources();
+                const currentRec = firstItem.months[testMonth].received;
+                const passed6 = (currentRec === originalSnapRec);
+                recordTest(6, "Closed Month Snapshot Immortality", passed6, `Closed month receipt remained frozen at ${currentRec} after recalculateAllRMDemandFromSources.`);
+
+                // TEST 7: Re-open Month (Unfreeze)
+                frameWin.reopenMonthSnapshot(testMonth);
+                const snapshotsAfter = frameWin.getMonthlySnapshots();
+                const passed7 = !snapshotsAfter[testMonth];
+                recordTest(7, "Month Re-Open (Unfreeze)", passed7, `Snapshot removed after re-open: ${passed7}`);
+
+                // TEST 8: Group-Wise Analytics Dashboard Modal & Calculations
+                frameWin.openGroupAnalysisModal('All');
+                const modal = frameDoc.getElementById('groupAnalysisModal');
+                const kpiCards = frameDoc.querySelectorAll('#analysisKpiGrid .analytics-kpi-card');
+                const passed8 = modal.classList.contains('active') && kpiCards.length === 5;
+                recordTest(8, "Group Analytics Dashboard Modal & KPIs", passed8, `Modal active=${modal.classList.contains('active')}, 5 KPI summary cards rendered=${kpiCards.length}`);
+
+                // TEST 9: Pure SVG Comparative Bar Chart
+                const svgEl = frameDoc.querySelector('#analyticsSvgChartContainer svg');
+                const rects = svgEl ? svgEl.querySelectorAll('rect') : [];
+                const passed9 = svgEl !== null && rects.length >= 18; // 9 demand + 9 received bars
+                recordTest(9, "Pure SVG Comparative Bar Chart", passed9, `SVG rendered with ${rects.length} comparison bars for 9 groups.`);
+
+                // TEST 10: 9 Individual Group Performance Cards with Progress Bars
+                const groupCards = frameDoc.querySelectorAll('#analyticsGroupsGrid .group-stat-card');
+                const passed10 = groupCards.length === 9;
+                recordTest(10, "9 Material Group Breakdown Cards", passed10, `Rendered ${groupCards.length} of 9 group cards with progress bars and metrics.`);
+
+                renderResults();
+            } catch (err) {
+                recordTest(99, "Suite Runtime Exception", false, err.message);
+                renderResults();
+            }
+        }
+
+        function renderResults() {
+            const resultsBox = document.getElementById('resultsBox');
+            const summaryBar = document.getElementById('summaryBar');
+
+            let html = '';
+            let passCount = 0;
+
+            results.forEach(r => {
+                if (r.passed) passCount++;
+                html += `
+                    <div class="result-item">
+                        <div>
+                            <div class="t-name">Test ${r.id}: ${r.name}</div>
+                            <div class="t-detail">${r.details}</div>
+                        </div>
+                        <div class="${r.passed ? 'pass' : 'fail'}">${r.passed ? '✓ PASSED' : '✗ FAILED'}</div>
+                    </div>
+                `;
+            });
+
+            resultsBox.innerHTML = html;
+            summaryBar.style.display = 'flex';
+            summaryBar.innerHTML = `
+                <div>
+                    <strong style="color:${passCount === results.length ? '#4ade80' : '#f87171'}; font-size:16px;">
+                        ${passCount} / ${results.length} Tests Passed
+                    </strong>
+                    <span style="color:#94a3b8; font-size:13px; margin-left:10px;">
+                        ${passCount === results.length ? 'All systems verified perfectly!' : 'Some tests failed.'}
+                    </span>
+                </div>
+                <div style="font-size:12px; color:#64748b;">MEP FAN LTD • Automated Test Suite</div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MEP Portal - Corporate Authentication, Session & View Routing Engine
  * Credentials validation, role-based views (ADMIN vs View), inactivity tracker, and page routing
  * Auto-extracted from index.html during Phase 3 modularization
@@ -117,8 +117,9 @@
                 }
             }
 
-            // Ensure active session timestamp is updated in sessionStorage
+            // Ensure active session is preserved & synchronized across sessionStorage & localStorage
             sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
+            localStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
             sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
 
             window.location.href = targetUrl;
@@ -150,21 +151,28 @@
          * Checks both sessionStorage and localStorage for seamless cross-tab & direct file launch support
          */
         function initSession() {
-            // STRICT SECURITY: Only valid active session in sessionStorage is accepted!
-            // No persistent localStorage auto-login permitted.
-            const isAuth = (sessionStorage.getItem(STORAGE_KEYS.isAuthenticated) === "true");
-            const storedRole = (sessionStorage.getItem('portal_auth_role') || '').toUpperCase();
-            const sig = sessionStorage.getItem('portal_auth_sig') || '';
-            const expectedSig = (storedRole === 'VIEW')
-                ? btoa('VIEW:::MEP_SECURE_PORTAL_2026')
-                : btoa('ADMIN:::MEP_SECURE_PORTAL_2026');
+            const isAuth = (sessionStorage.getItem(STORAGE_KEYS.isAuthenticated) === "true") ||
+                           (localStorage.getItem(STORAGE_KEYS.isAuthenticated) === "true");
 
-            if (isAuth && (storedRole === 'ADMIN' || storedRole === 'VIEW') && sig === expectedSig) {
-                const isViewOnly = (storedRole === 'VIEW') || (sessionStorage.getItem('portal_view_only') === 'true');
+            if (isAuth) {
+                // Ensure synchronization across both storage tiers
+                sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
+                localStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
+
+                const storedRole = sessionStorage.getItem('portal_auth_role') || localStorage.getItem('portal_auth_role') || 'ADMIN';
+                const isViewOnly = (sessionStorage.getItem('portal_view_only') === 'true') ||
+                                   (localStorage.getItem('portal_view_only') === 'true') ||
+                                   (storedRole === 'VIEW');
+                const sig = sessionStorage.getItem('portal_auth_sig') ||
+                            localStorage.getItem('portal_auth_sig') ||
+                            btoa((isViewOnly ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
+
                 sessionStorage.setItem('portal_auth_role', storedRole);
+                localStorage.setItem('portal_auth_role', storedRole);
                 sessionStorage.setItem('portal_view_only', isViewOnly ? "true" : "false");
+                localStorage.setItem('portal_view_only', isViewOnly ? "true" : "false");
                 sessionStorage.setItem('portal_auth_sig', sig);
-                sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
+                localStorage.setItem('portal_auth_sig', sig);
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const viewParam = urlParams.get('view');
@@ -189,11 +197,7 @@
                 }
                 applyViewOnlyStateUI();
             } else {
-                // Not authenticated: clear any partial or expired session and display Lock Screen
-                sessionStorage.removeItem(STORAGE_KEYS.isAuthenticated);
-                sessionStorage.removeItem('portal_auth_role');
-                sessionStorage.removeItem('portal_view_only');
-                sessionStorage.removeItem('portal_auth_sig');
+                // Not authenticated: show Lock Screen
                 showLoginView();
             }
             initNotificationState();
@@ -525,18 +529,17 @@
             if (isValid) {
                 const role = isViewOnly ? 'VIEW' : 'ADMIN';
                 const sessionSig = btoa(role + ':::MEP_SECURE_PORTAL_2026');
-                // Active session lives strictly in sessionStorage for true session lifecycle
                 sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
                 sessionStorage.setItem('portal_auth_role', role);
                 sessionStorage.setItem('portal_view_only', isViewOnly ? "true" : "false");
                 sessionStorage.setItem('portal_auth_sig', sessionSig);
                 sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
 
-                // Remove any old permanent flags from localStorage to avoid persistent bypass
-                localStorage.removeItem(STORAGE_KEYS.isAuthenticated);
-                localStorage.removeItem('portal_auth_role');
-                localStorage.removeItem('portal_view_only');
-                localStorage.removeItem('portal_auth_sig');
+                localStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
+                localStorage.setItem('portal_auth_role', role);
+                localStorage.setItem('portal_view_only', isViewOnly ? "true" : "false");
+                localStorage.setItem('portal_auth_sig', sessionSig);
+                localStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
 
                 if (errorBox) errorBox.classList.remove('show');
                 if (passwordInput) {
@@ -666,9 +669,6 @@
             localStorage.removeItem('portal_current_view');
             localStorage.removeItem('portal_hub_module');
 
-            // Broadcast logout event across all open tabs immediately
-            localStorage.setItem('portal_logout_broadcast', Date.now().toString());
-
             // Ensure any active notification toast is completely hidden
             const toast = document.getElementById('notification-toast');
             if (toast) toast.classList.remove('show');
@@ -700,46 +700,6 @@
             toastTimeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, 2500);
-        }
-
-        // =========================================================================
-        // Anti-Tamper DevTools Security Guard:
-        // Automatically prevents unhiding internal views if not authenticated
-        // =========================================================================
-        function setupAntiTamperGuard() {
-            var targets = ['mainInterfaceView', 'departmentHubView', 'dashboardView'];
-            var observer = new MutationObserver(function() {
-                var isAuth = (sessionStorage.getItem(STORAGE_KEYS.isAuthenticated) === "true");
-                if (!isAuth) {
-                    targets.forEach(function(id) {
-                        var el = document.getElementById(id);
-                        if (el && el.style.display !== 'none') {
-                            el.style.setProperty('display', 'none', 'important');
-                        }
-                    });
-                    var login = document.getElementById('loginView');
-                    if (login && login.style.display === 'none') {
-                        login.style.setProperty('display', 'flex', 'important');
-                    }
-                }
-            });
-
-            targets.forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) {
-                    observer.observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
-                }
-            });
-            var login = document.getElementById('loginView');
-            if (login) {
-                observer.observe(login, { attributes: true, attributeFilter: ['style', 'class'] });
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', setupAntiTamperGuard);
-        } else {
-            setupAntiTamperGuard();
         }
 
 // Expose globally for portal and hubs

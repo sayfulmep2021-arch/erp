@@ -6,23 +6,18 @@
  */
 
 (function() {
-    // 0. Session Auth Guard - Ensure active login session, otherwise redirect to login page
-    const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true') ||
-                     (localStorage.getItem('portal_auth_status') === 'true');
-    if (!isAuthed) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    // Hydrate sessionStorage if authenticated via localStorage (supports new tab / direct explorer launch)
-    if (sessionStorage.getItem('portal_auth_status') !== 'true') {
-        sessionStorage.setItem('portal_auth_status', 'true');
-        const storedRole = localStorage.getItem('portal_auth_role') || 'ADMIN';
-        const isView = (localStorage.getItem('portal_view_only') === 'true') || (storedRole === 'VIEW');
-        const sig = localStorage.getItem('portal_auth_sig') || btoa((isView ? 'VIEW' : 'ADMIN') + ':::MEP_SECURE_PORTAL_2026');
-        sessionStorage.setItem('portal_auth_role', storedRole);
-        sessionStorage.setItem('portal_view_only', isView ? 'true' : 'false');
-        sessionStorage.setItem('portal_auth_sig', sig);
+    // 0. Session Auth Guard - Strict session validation
+    if (typeof window.validateCurrentSession === 'function') {
+        if (!window.validateCurrentSession().valid) {
+            window.location.replace('index.html');
+            return;
+        }
+    } else {
+        const isAuthed = (sessionStorage.getItem('portal_auth_status') === 'true');
+        if (!isAuthed) {
+            window.location.replace('index.html');
+            return;
+        }
     }
 
     // 0.1 View-Only Role Page Access Guard with Signature Verification
@@ -31,13 +26,16 @@
     
     function isCurrentUserViewOnly() {
         try {
-            const sig = sessionStorage.getItem('portal_auth_sig') || localStorage.getItem('portal_auth_sig') || '';
+            if (typeof window.validateCurrentSession === 'function') {
+                const s = window.validateCurrentSession();
+                return s.valid && s.role === 'VIEW';
+            }
+            const sig = sessionStorage.getItem('portal_auth_sig') || '';
             if (sig === btoa('VIEW:::MEP_SECURE_PORTAL_2026')) return true;
             if (sig === btoa('ADMIN:::MEP_SECURE_PORTAL_2026')) return false;
-            const isView = (sessionStorage.getItem('portal_view_only') === 'true') || (localStorage.getItem('portal_view_only') === 'true');
+            const isView = (sessionStorage.getItem('portal_view_only') === 'true');
             const role = (sessionStorage.getItem('portal_auth_role') || '').toUpperCase();
-            const localRole = (localStorage.getItem('portal_auth_role') || '').toUpperCase();
-            return isView || role === 'VIEW' || localRole === 'VIEW';
+            return isView || role === 'VIEW';
         } catch(e) {
             return false;
         }
@@ -57,7 +55,7 @@
         const perms = getViewPagePermissions();
         if (perms && perms[currentPageFile] === false) {
             alert("Access Denied: You do not have permission to view this page.");
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
             return;
         }
     }
@@ -444,11 +442,13 @@
                     }
                 }
 
-                if (!navRight.querySelector('.user-brand-card')) {
-                    const userBrand = document.createElement('a');
-                    userBrand.href = "index.html?view=main";
+                let userBrand = navRight.querySelector('.user-brand-card');
+                if (!userBrand) {
+                    userBrand = document.createElement('div');
                     userBrand.className = 'user-brand-card';
                     userBrand.title = "Sayful Islam - Senior Supervisor";
+                    userBrand.setAttribute('role', 'banner');
+                    userBrand.style.cursor = 'default';
                     userBrand.innerHTML = `
                         <div class="user-avatar-frame">
                             <img src="profile.jpg" alt="Sayful Islam" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -459,7 +459,18 @@
                             <span class="user-brand-role" style="font-size:0.62rem;">Senior Supervisor</span>
                         </div>
                     `;
+                    userBrand.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    };
                     navRight.appendChild(userBrand);
+                } else {
+                    userBrand.removeAttribute('href');
+                    userBrand.style.cursor = 'default';
+                    userBrand.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    };
                 }
 
                 // Header Top-Right Notification Bell Button with Live Red Dot
@@ -497,17 +508,17 @@
                         </svg>
                     `;
                     logoutBtn.onclick = function() {
-                        sessionStorage.removeItem('portal_auth_status');
-                        sessionStorage.removeItem('portal_view_only');
-                        sessionStorage.removeItem('portal_auth_role');
-                        sessionStorage.removeItem('portal_auth_sig');
-                        sessionStorage.removeItem('portal_current_view');
-                        sessionStorage.removeItem('portal_hub_module');
+                        sessionStorage.clear();
                         localStorage.removeItem('portal_auth_status');
                         localStorage.removeItem('portal_view_only');
                         localStorage.removeItem('portal_auth_role');
                         localStorage.removeItem('portal_auth_sig');
-                        window.location.href = 'index.html';
+                        localStorage.setItem('portal_logout_broadcast', Date.now().toString());
+                        try {
+                            if (document.body) document.body.innerHTML = '';
+                            document.documentElement.innerHTML = '';
+                        } catch(e) {}
+                        window.location.replace('index.html');
                     };
                     navRight.appendChild(logoutBtn);
                 }
@@ -631,14 +642,31 @@
         aside.id = 'mepFrozenSidebar';
         aside.className = 'mep-frozen-sidebar';
         aside.innerHTML = `
-            <div class="mep-sidebar-actions" style="display:flex; gap:8px; padding:8px 10px; border-bottom:1.5px solid #e2e8f0; background:#f8fafc;">
-                <!-- Button 0: Main Interface -->
-                <a href="index.html?view=main" class="btn-nav-tab btn-nav-main" style="flex:1; justify-content:center; height:34px; padding:0;" aria-label="Main Interface">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" stroke="currentColor" stroke-width="0.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <div class="mep-sidebar-actions">
+                <!-- Button 1: Main Interface -->
+                <a href="index.html?view=main" class="mep-action-btn mep-btn-main" title="Main Interface - Realtime ERP Overview" aria-label="Main Interface">
+                    <svg class="mep-btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+                        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+                        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+                    </svg>
+                    <span class="mep-btn-text">Main Interface</span>
                 </a>
-                <!-- Button 1: Home (Main Menu) -->
-                <a href="index.html?view=hub" class="btn-nav-tab btn-nav-home" style="flex:1; justify-content:center; height:34px; padding:0;" aria-label="Home">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5v9.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9.5z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <!-- Button 2: Menu (Department Hub) -->
+                <a href="index.html?view=hub" class="mep-action-btn mep-btn-menu" title="Menu - Department Hub &amp; All Modules" aria-label="Menu">
+                    <svg class="mep-btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                        <circle cx="5" cy="5" r="2.2"></circle>
+                        <circle cx="12" cy="5" r="2.2"></circle>
+                        <circle cx="19" cy="5" r="2.2"></circle>
+                        <circle cx="5" cy="12" r="2.2"></circle>
+                        <circle cx="12" cy="12" r="2.2"></circle>
+                        <circle cx="19" cy="12" r="2.2"></circle>
+                        <circle cx="5" cy="19" r="2.2"></circle>
+                        <circle cx="12" cy="19" r="2.2"></circle>
+                        <circle cx="19" cy="19" r="2.2"></circle>
+                    </svg>
+                    <span class="mep-btn-text">Menu</span>
                 </a>
             </div>
 

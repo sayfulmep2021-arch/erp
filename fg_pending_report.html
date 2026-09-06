@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Global Permanent Authentication Guard -->
+    <script src="portal_guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Anti-Cache Meta Tags (Ensures Realtime Mobile Updates) -->
@@ -592,7 +594,7 @@
                 </div>
 
                 <!-- User Profile Card -->
-                <a href="index.html?view=main" class="user-brand-card" title="Sayful Islam - Senior Supervisor">
+                <div class="user-brand-card" title="Sayful Islam - Senior Supervisor" style="cursor:default;" role="banner">
                     <div class="user-avatar-frame">
                         <img src="profile.jpg" alt="Sayful Islam" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="user-avatar-fallback" style="display:none; width:100%; height:100%; background:#0284c7; color:#fff; align-items:center; justify-content:center; font-weight:800; font-size:13px;">S</div>
@@ -601,7 +603,7 @@
                         <span class="user-brand-name">Sayful Islam</span>
                         <span class="user-brand-role">Senior Supervisor</span>
                     </div>
-                </a>
+                </div>
 
                 <!-- Top-Right Header Logout Button (Icon Only) -->
                 <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal">
@@ -945,19 +947,19 @@
 
         // Logout Handler
         function handleLogout() {
-            sessionStorage.removeItem('portal_auth_status');
-            sessionStorage.removeItem('portal_view_only');
-            sessionStorage.removeItem('portal_auth_role');
-            sessionStorage.removeItem('portal_auth_sig');
-            sessionStorage.removeItem('portal_current_view');
-            sessionStorage.removeItem('portal_hub_module');
+            sessionStorage.clear();
             localStorage.removeItem('portal_auth_status');
             localStorage.removeItem('portal_view_only');
             localStorage.removeItem('portal_auth_role');
             localStorage.removeItem('portal_auth_sig');
             localStorage.removeItem('portal_current_view');
             localStorage.removeItem('portal_hub_module');
-            window.location.href = 'index.html';
+            localStorage.setItem('portal_logout_broadcast', Date.now().toString());
+            try {
+                if (document.body) document.body.innerHTML = '';
+                document.documentElement.innerHTML = '';
+            } catch(e) {}
+            window.location.replace('index.html');
         }
 
         // Export Tables to Excel

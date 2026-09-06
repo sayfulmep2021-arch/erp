@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Anti-Cache & Auto-Refresh Meta Tags (Ensures Realtime Mobile & Browser Updates) -->
@@ -50,6 +50,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
+    <script src="portal_guard.js"></script>
     <link rel="stylesheet" href="portal_styles.css">
 </head>
 <body class="corp-themed">
@@ -1339,7 +1340,7 @@
     <!-- ==========================================================================
          VIEW 3: Department & Reports Navigation Hub Interface (Matches Screenshot)
          ========================================================================== -->
-    <div class="app-workspace" id="departmentHubView">
+    <div class="app-workspace" id="departmentHubView" style="display:none !important;">
         
         <!-- 1. Full-Width Frozen Top Navbar (100vw across entire window from far left corner) -->
         <header class="workspace-navbar" style="background:#ffffff; border-bottom:1.5px solid #cbd5e1; height:48px; min-height:48px; padding:0 16px 0 12px; width:100%; position:sticky; top:0; z-index:1000; flex-shrink:0;">
