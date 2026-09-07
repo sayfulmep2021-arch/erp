@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Global Permanent Authentication Guard -->
@@ -1446,7 +1446,13 @@
         }
 
         function saveStateToStorage() {
-            // Assemble Summary is 100% live computed from Source ERP (Fan Assemble); no detached manual saving.
+            try {
+                localStorage.setItem('mep_assemble_custom_data', JSON.stringify(allAssembleData));
+                window.dispatchEvent(new CustomEvent('mep_assemble_summary_updated', { detail: { count: allAssembleData.length } }));
+                localStorage.setItem('smart_cloud_sync_time', new Date().toISOString());
+            } catch(e) {
+                console.error("Error saving assemble data:", e);
+            }
         }
 
         function applyFilters() {

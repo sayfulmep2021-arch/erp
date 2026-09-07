@@ -113,9 +113,14 @@
         .live-clock-badge {
             display: inline-flex !important;
             align-items: center !important;
+            justify-content: flex-end !important;
             gap: 9px !important;
             user-select: none !important;
             flex-shrink: 0 !important;
+            width: 240px !important;
+            min-width: 240px !important;
+            max-width: 240px !important;
+            text-align: right !important;
             transform: none !important;
         }
 
@@ -136,6 +141,7 @@
             box-sizing: border-box !important;
             vertical-align: middle !important;
             transform: none !important;
+            flex-shrink: 0 !important;
         }
 
         .smart-cloud-status-badge .cloud-pulse-dot {
@@ -151,11 +157,11 @@
         .live-clock-info {
             display: flex !important;
             flex-direction: column !important;
-            align-items: flex-start !important;
+            align-items: flex-end !important;
             justify-content: center !important;
             line-height: 1.15 !important;
             gap: 1px !important;
-            min-width: 130px !important;
+            width: 100% !important;
         }
 
         .live-day-text {
@@ -364,6 +370,29 @@
             border-color: #4338ca !important;
             color: #ffffff !important;
             box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25) !important;
+        }
+
+        .btn-action-icon.btn-model-wise {
+            background: #f0fdf4 !important;
+            border-color: #bbf7d0 !important;
+            color: #16a34a !important;
+        }
+        .btn-action-icon.btn-model-wise:hover {
+            background: #16a34a !important;
+            border-color: #15803d !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25) !important;
+        }
+
+        .td-req-clickable {
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+        }
+        .td-req-clickable:hover {
+            background: #e0f2fe !important;
+            color: #0284c7 !important;
+            font-weight: 900 !important;
+            text-decoration: underline !important;
         }
 
         .btn-action-icon.btn-history {
@@ -1729,6 +1758,11 @@
                     <span class="erp-tooltip">Sync Production &amp; BOM</span>
                 </button>
 
+                <button type="button" class="btn-action-icon btn-model-wise" onclick="openModelWiseBreakdownModal()" aria-label="Model-Wise RM Requirement">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                    <span class="erp-tooltip">Model-Wise RM Requirement</span>
+                </button>
+
                 <button type="button" class="btn-action-icon btn-history" onclick="openHistoryArchiveModal()" aria-label="Monthly History Archive">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     <span class="erp-tooltip">Monthly History Archive</span>
@@ -2174,6 +2208,73 @@
         </div>
     </div>
 
+    <!-- Modal: Model-Wise RM Requirement Breakdown -->
+    <div class="modal-backdrop" id="modelWiseModal" onclick="if(event.target === this) closeModelWiseModal()">
+        <div class="modal-box" style="max-width:1160px; width:96vw; max-height:88vh; display:flex; flex-direction:column;">
+            <div class="modal-header" style="background:#f0fdf4; border-bottom:1.5px solid #bbf7d0;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#16a34a" stroke-width="2.3"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                    <div>
+                        <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:#14532d;">MODEL-WISE RM REQUIREMENT BREAKDOWN</h3>
+                        <div style="font-size:0.72rem; color:#15803d; font-weight:600;">Production Plan Target &times; RM Requirement Summary (BOM) Master Data</div>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeModelWiseModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:12px;">
+                <!-- Filter Bar inside modal -->
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:#f8fafc; padding:10px 14px; border-radius:8px; border:1px solid #cbd5e1;">
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <label style="font-size:0.78rem; font-weight:800; color:#0f2942;">Select Month:</label>
+                        <select class="period-select" id="modelWiseMonthSelect" onchange="renderModelWiseTable()" style="font-weight:800;">
+                            <option value="All">Full Year (Sum of 12 Months)</option>
+                            <option value="Jul-26">Jul-26</option>
+                            <option value="Aug-26">Aug-26</option>
+                            <option value="Sep-26">Sep-26</option>
+                            <option value="Oct-26">Oct-26</option>
+                            <option value="Nov-26">Nov-26</option>
+                            <option value="Dec-26">Dec-26</option>
+                            <option value="Jan-27">Jan-27</option>
+                            <option value="Feb-27">Feb-27</option>
+                            <option value="Mar-27">Mar-27</option>
+                            <option value="Apr-27">Apr-27</option>
+                            <option value="May-27">May-27</option>
+                            <option value="Jun-27">Jun-27</option>
+                        </select>
+
+                        <label style="font-size:0.78rem; font-weight:800; color:#0f2942;">Search RM:</label>
+                        <input type="text" id="modelWiseSearchInput" placeholder="Filter by Code or Item..." oninput="renderModelWiseTable()" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; font-family:'Times New Roman', Times, serif; width:200px;">
+                    </div>
+                    <div style="font-size:0.78rem; font-weight:700; color:#0f2942;" id="modelWisePlanSummary">
+                        <!-- Ceiling Fan targets for selected month -->
+                    </div>
+                </div>
+
+                <!-- Model-Wise Table -->
+                <div style="overflow:auto; max-height:55vh; border:1px solid #cbd5e1; border-radius:8px;">
+                    <table class="excel-table" id="modelWiseTable" style="width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px;">
+                        <thead id="modelWiseTableHead" style="position:sticky; top:0; z-index:10; background:#f472b6;">
+                        </thead>
+                        <tbody id="modelWiseTableBody">
+                        </tbody>
+                        <tfoot id="modelWiseTableFoot" style="position:sticky; bottom:0; z-index:10; background:#0f2942; color:#ffffff;">
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="background:#f8fafc; display:flex; justify-content:space-between; align-items:center;">
+                <button type="button" class="btn-group-toggle" onclick="exportModelWiseCSV()">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export CSV</span>
+                </button>
+                <button type="button" class="btn-modal-icon btn-modal-cancel" onclick="closeModelWiseModal()" aria-label="Close">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <span class="erp-tooltip">Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div class="toast-msg" id="toastMsg">Action completed!</div>
 
@@ -2183,6 +2284,7 @@
     <!-- Upstream Linked Sources: Production Plan, BOM Master, Summaries & Live ERP Engine -->
     <script src="production_plan_data.js"></script>
     <script src="bom_data.js"></script>
+    <script src="rm_requirement_summary_bom_data.js"></script>
     <script src="assemble_summary_data.js"></script>
     <script src="armature_summary_data.js"></script>
     <script src="fan_assemble_erp_data.js"></script>
@@ -3142,17 +3244,85 @@
             return keys;
         }
 
+        function getLiveBOMSummaryData() {
+            try {
+                const raw = localStorage.getItem('mep_rm_requirement_bom_data');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                }
+            } catch(e) {
+                console.warn("Could not load stored RM requirement BOM summary:", e);
+            }
+            if (typeof DEFAULT_RM_REQUIREMENT_BOM_DATA !== 'undefined' && Array.isArray(DEFAULT_RM_REQUIREMENT_BOM_DATA)) {
+                return DEFAULT_RM_REQUIREMENT_BOM_DATA;
+            }
+            return [];
+        }
+
+        const MODEL_CONFIGS = [
+            { key: "CF5601/CF5601IV", short: "CF5601", label: "56 Inch Premium" },
+            { key: "CF5602/CF5602IV", short: "CF5602", label: "56 Inch Speed King" },
+            { key: "CF5603/CF5603IV", short: "CF5603", label: "56 Inch Premium Gold" },
+            { key: "CF5606/CF5606IV", short: "CF5606", label: "56 Inch Premium Plus" },
+            { key: "CF5607/CF5607IV", short: "CF5607", label: "56 Inch Crown" },
+            { key: "CF4801/CF4801IV", short: "CF4801", label: "48 Inch Popular" },
+            { key: "CF3601/CF3601IV", short: "CF3601", label: "36 Inch Hero" },
+            { key: "CF2401/CF2401IV", short: "CF2401", label: "24 Inch Super" }
+        ];
+
+        function getModelProductionTargetMap(prodPlan) {
+            const map = Array.from({ length: 12 }, () => ({}));
+            MODEL_CONFIGS.forEach(mc => {
+                for (let i = 0; i < 12; i++) {
+                    map[i][mc.key] = 0;
+                }
+            });
+
+            if (prodPlan && Array.isArray(prodPlan.categories)) {
+                prodPlan.categories.forEach(cat => {
+                    (cat.items || []).forEach(item => {
+                        const code = (item.code || '').trim().toUpperCase();
+                        const name = (item.name || '').trim().toUpperCase();
+                        const months = item.months || [];
+
+                        let matched = null;
+                        for (const mc of MODEL_CONFIGS) {
+                            const k = mc.key.toUpperCase();
+                            const s = mc.short.toUpperCase();
+                            if (code === k || code === s || code.startsWith(s) || name.includes(s)) {
+                                matched = mc.key;
+                                break;
+                            }
+                        }
+
+                        if (matched) {
+                            for (let mIdx = 0; mIdx < 12; mIdx++) {
+                                const qty = parseFloat(months[mIdx]) || 0;
+                                map[mIdx][matched] = (map[mIdx][matched] || 0) + qty;
+                            }
+                        }
+                    });
+                });
+            }
+            return map;
+        }
+
         function recalculateAllRMDemandFromSources() {
             const prodPlan = getLiveProductionPlan();
             const bomList = getLiveBOMData();
+            const bomSummaryList = getLiveBOMSummaryData();
             const assembleSummary = getLiveAssembleSummaryData();
             const armatureSummary = getLiveArmatureSummaryData();
             const activeSummaryMonth = getActiveSummaryMonthKey();
 
-            // 1. Build month-by-month production map by SFG code
-            // Array of 12 objects: index 0 = Jul-26, ..., index 11 = Jun-27
-            const sfgProductionByMonth = Array.from({ length: 12 }, () => ({}));
+            // 1. Build Model Production Targets for all 12 months
+            const modelPlanByMonth = getModelProductionTargetMap(prodPlan);
 
+            // Legacy SFG production map
+            const sfgProductionByMonth = Array.from({ length: 12 }, () => ({}));
             if (prodPlan && Array.isArray(prodPlan.categories)) {
                 prodPlan.categories.forEach(cat => {
                     (cat.items || []).forEach(planItem => {
@@ -3171,36 +3341,33 @@
                 });
             }
 
-            // 2. Index BOM data with section awareness and deduplication
+            // Index RM Requirement BOM Summary by Code
+            const bomSummaryMap = new Map();
+            bomSummaryList.forEach(b => {
+                if (b && b.code) {
+                    bomSummaryMap.set(String(b.code).trim(), b);
+                }
+            });
+
+            // Index legacy BOM
             const bomAssemblyMap = new Map();
             const bomArmatureMap = new Map();
             const bomPackingMap = new Map();
-
             bomList.forEach(b => {
                 if (!b || !b.code) return;
                 const code = String(b.code).trim();
                 const cat = (b.category || '').toLowerCase();
-
                 if (cat === 'armature') {
-                    if (!bomArmatureMap.has(code)) {
-                        bomArmatureMap.set(code, b);
-                    }
+                    if (!bomArmatureMap.has(code)) bomArmatureMap.set(code, b);
                 } else if (cat === 'packing item') {
-                    if (!bomPackingMap.has(code)) {
-                        bomPackingMap.set(code, b);
-                    }
-                    if (!bomAssemblyMap.has(code)) {
-                        bomAssemblyMap.set(code, b);
-                    }
+                    if (!bomPackingMap.has(code)) bomPackingMap.set(code, b);
+                    if (!bomAssemblyMap.has(code)) bomAssemblyMap.set(code, b);
                 } else {
-                    // Raw Material (Assembly)
-                    if (!bomAssemblyMap.has(code)) {
-                        bomAssemblyMap.set(code, b);
-                    }
+                    if (!bomAssemblyMap.has(code)) bomAssemblyMap.set(code, b);
                 }
             });
 
-            // 3. Index Summary Store Receipts
+            // Index Summary Store Receipts
             const assembleRecMap = new Map();
             assembleSummary.forEach(s => {
                 if (!s || !s.code) return;
@@ -3223,7 +3390,6 @@
                 }
             });
 
-            // 4. Update each demandItem across all 12 months
             const closedSnapshots = getMonthlySnapshots();
 
             demandItems.forEach(item => {
@@ -3232,17 +3398,13 @@
                 const isArm = isArmatureSection(item.category);
                 const isPack = isPackingSection(item.category);
 
-                // Section-matched BOM record
-                let bomItem = null;
-                if (isArm) {
-                    bomItem = bomArmatureMap.get(code);
-                } else if (isPack) {
-                    bomItem = bomPackingMap.get(code) || bomAssemblyMap.get(code);
-                } else {
-                    bomItem = bomAssemblyMap.get(code);
-                }
+                const bomSummaryItem = bomSummaryMap.get(code);
 
-                // Section-matched Summary Store Receipt
+                let legacyBomItem = null;
+                if (isArm) legacyBomItem = bomArmatureMap.get(code);
+                else if (isPack) legacyBomItem = bomPackingMap.get(code) || bomAssemblyMap.get(code);
+                else legacyBomItem = bomAssemblyMap.get(code);
+
                 const summaryRec = isArm ? armatureRecMap.get(code) : assembleRecMap.get(code);
 
                 for (let mIdx = 0; mIdx < 12; mIdx++) {
@@ -3253,7 +3415,7 @@
                         item.months[monthKey] = md;
                     }
 
-                    // Check if month is closed in snapshot (FROZEN)
+                    // Check if frozen
                     if (closedSnapshots[monthKey] && closedSnapshots[monthKey].isClosed) {
                         const itemKey = getItemKey(item);
                         const snapItem = closedSnapshots[monthKey].items ? closedSnapshots[monthKey].items[itemKey] : null;
@@ -3266,35 +3428,43 @@
                         }
                     }
 
-                    // A. Calculate Required Qty if BOM item exists
-                    if (bomItem && bomItem.sfg) {
+                    // 1. Calculate Demand: Production Plan Target * BOM Master Ratio
+                    if (bomSummaryItem && bomSummaryItem.bom) {
+                        let totalDemand = 0;
+                        MODEL_CONFIGS.forEach(mc => {
+                            const modelKey = mc.key;
+                            const planQty = modelPlanByMonth[mIdx][modelKey] || 0;
+                            const bomRatio = parseFloat(bomSummaryItem.bom[modelKey]) || 0;
+                            totalDemand += planQty * bomRatio;
+                        });
+                        if (totalDemand > 0) {
+                            md.requir = (totalDemand % 1 === 0) ? String(totalDemand) : String(parseFloat(totalDemand.toFixed(3)));
+                        } else {
+                            md.requir = '0';
+                        }
+                    } else if (legacyBomItem && legacyBomItem.sfg) {
                         let totalReq = 0;
-                        let hasAnyBOMUsage = false;
-                        for (const [sfgKey, bomUsageStr] of Object.entries(bomItem.sfg)) {
+                        let hasAny = false;
+                        for (const [sfgKey, bomUsageStr] of Object.entries(legacyBomItem.sfg)) {
                             const usage = parseFloat(bomUsageStr) || 0;
                             if (usage <= 0) continue;
-                            hasAnyBOMUsage = true;
+                            hasAny = true;
                             const prodQty = sfgProductionByMonth[mIdx][sfgKey.toUpperCase()] || 0;
                             if (prodQty > 0) {
                                 totalReq += prodQty * usage;
                             }
                         }
-
-                        if (hasAnyBOMUsage) {
-                            if (totalReq > 0) {
-                                md.requir = (totalReq % 1 === 0) ? String(totalReq) : String(parseFloat(totalReq.toFixed(3)));
-                            } else {
-                                md.requir = '';
-                            }
+                        if (hasAny) {
+                            md.requir = totalReq > 0 ? ((totalReq % 1 === 0) ? String(totalReq) : String(parseFloat(totalReq.toFixed(3)))) : '0';
                         }
                     }
 
-                    // B. Set Received Qty for the active summary month
+                    // 2. Set Received Qty for active summary month
                     if (monthKey === activeSummaryMonth && summaryRec !== undefined) {
                         md.received = String(summaryRec);
                     }
 
-                    // C. Calculate Need & Percentage
+                    // 3. Calculate Need & Percentage (safe against division by zero)
                     const reqNum = parseFloat(String(md.requir).replace(/,/g, '')) || 0;
                     const recNum = parseFloat(String(md.received).replace(/,/g, '')) || 0;
                     const needNum = reqNum - recNum;
@@ -3304,11 +3474,9 @@
                     md.need = String(needNum);
                 }
 
-                // D. Recalculate Yearly Totals
                 recalculateItemTotals(item);
             });
 
-            // Persist the computed synchronized state
             localStorage.setItem("mep_monthly_rm_demand_custom", JSON.stringify(demandItems));
         }
 
@@ -3563,10 +3731,10 @@
                             tbodyHtml += `<td class="td-pct">${pctVal || '-'}</td>`;
                         } else {
                             tbodyHtml += `
-                                <td class="td-num">${reqVal}</td>
-                                <td class="td-num">${recVal}</td>
-                                <td class="td-pct">${pctVal}</td>
-                                <td class="td-need ${needClass}">${needVal}</td>
+                                <td class="td-num td-req-clickable" onclick="openModelWiseBreakdownModal('${escapeAttr(item.rmCode)}', '${m}')" title="Click to view Model-Wise Breakdown for ${escapeAttr(item.rmCode)} in ${m}">${reqVal || '-'}</td>
+                                <td class="td-num" ${isAdmin ? `contenteditable="true" onblur="updateItemQty(${globalIdx}, '${m}', 'received', this.innerText)"` : ''}>${recVal || '-'}</td>
+                                <td class="td-pct">${pctVal || '-'}</td>
+                                <td class="td-need ${needClass}">${needVal || '-'}</td>
                             `;
                         }
                     });
@@ -3982,6 +4150,244 @@
             toastTimer = setTimeout(() => {
                 toast.classList.remove('show');
             }, 2600);
+        }
+
+        // ==========================================
+        // MODEL-WISE RM REQUIREMENT BREAKDOWN MODAL
+        // ==========================================
+        function openModelWiseBreakdownModal(targetRmCode = '', targetMonthKey = '') {
+            const modal = document.getElementById('modelWiseModal');
+            if (!modal) return;
+
+            // If month was passed as first argument
+            if (ALL_MONTHS.includes(targetRmCode) || targetRmCode === 'All') {
+                targetMonthKey = targetRmCode;
+                targetRmCode = '';
+            }
+
+            const sel = document.getElementById('modelWiseMonthSelect');
+            if (sel) {
+                if (targetMonthKey && (ALL_MONTHS.includes(targetMonthKey) || targetMonthKey === 'All')) {
+                    sel.value = targetMonthKey;
+                } else if (activeMonthFilter !== 'All') {
+                    sel.value = activeMonthFilter;
+                } else {
+                    sel.value = 'Sep-26';
+                }
+            }
+
+            const searchInput = document.getElementById('modelWiseSearchInput');
+            if (searchInput) {
+                searchInput.value = targetRmCode || '';
+            }
+
+            renderModelWiseTable();
+            modal.classList.add('active');
+        }
+
+        function closeModelWiseModal() {
+            const modal = document.getElementById('modelWiseModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function renderModelWiseTable() {
+            const thead = document.getElementById('modelWiseTableHead');
+            const tbody = document.getElementById('modelWiseTableBody');
+            const tfoot = document.getElementById('modelWiseTableFoot');
+            const summaryDiv = document.getElementById('modelWisePlanSummary');
+            if (!thead || !tbody || !tfoot) return;
+
+            const selectedMonth = document.getElementById('modelWiseMonthSelect')?.value || 'Jul-26';
+            const searchTerm = (document.getElementById('modelWiseSearchInput')?.value || '').trim().toLowerCase();
+
+            const prodPlan = getLiveProductionPlan();
+            const bomSummaryList = getLiveBOMSummaryData();
+            const modelPlanByMonth = getModelProductionTargetMap(prodPlan);
+
+            // Compute model target for chosen month (or all 12 months sum)
+            const modelTargets = {};
+            let totalCeilingFanTarget = 0;
+
+            MODEL_CONFIGS.forEach(mc => {
+                let t = 0;
+                if (selectedMonth === 'All') {
+                    for (let i = 0; i < 12; i++) {
+                        t += (modelPlanByMonth[i][mc.key] || 0);
+                    }
+                } else {
+                    const mIdx = ALL_MONTHS.indexOf(selectedMonth);
+                    if (mIdx !== -1) {
+                        t = (modelPlanByMonth[mIdx][mc.key] || 0);
+                    }
+                }
+                modelTargets[mc.key] = t;
+                totalCeilingFanTarget += t;
+            });
+
+            if (summaryDiv) {
+                summaryDiv.innerHTML = `Total Fan Plan (${selectedMonth}): <strong style="color:#15803d; font-size:0.85rem;">${totalCeilingFanTarget.toLocaleString()} Pcs</strong>`;
+            }
+
+            // Build Header
+            let headHTML = `
+                <tr style="background:#f472b6; color:#0f172a;">
+                    <th style="width:36px; text-align:center; padding:6px 4px; border:1px solid #cbd5e1;">SL</th>
+                    <th style="width:105px; text-align:left; padding:6px 8px; border:1px solid #cbd5e1;">RM Code</th>
+                    <th style="width:230px; text-align:left; padding:6px 8px; border:1px solid #cbd5e1;">Item Name</th>
+                    <th style="width:48px; text-align:center; padding:6px 4px; border:1px solid #cbd5e1;">Unit</th>
+                    <th style="width:52px; text-align:center; padding:6px 4px; border:1px solid #cbd5e1;">Type</th>
+            `;
+
+            MODEL_CONFIGS.forEach(mc => {
+                const p = modelTargets[mc.key] || 0;
+                headHTML += `
+                    <th style="min-width:85px; text-align:center; padding:4px 6px; border:1px solid #cbd5e1;">
+                        <div style="font-weight:900;">${escapeHTML(mc.short)}</div>
+                        <div style="font-size:10px; font-weight:700; color:#0f2942; background:rgba(255,255,255,0.7); border-radius:4px; padding:1px 3px; margin-top:2px;">Plan: ${p.toLocaleString()}</div>
+                    </th>
+                `;
+            });
+
+            headHTML += `
+                    <th style="min-width:110px; text-align:right; padding:6px 8px; background:#0284c7; color:#ffffff; border:1px solid #cbd5e1;">Total RM Demand</th>
+                </tr>
+            `;
+            thead.innerHTML = headHTML;
+
+            // Filter BOM items
+            const filteredBOM = bomSummaryList.filter(item => {
+                if (!searchTerm) return true;
+                const str = `${item.code} ${item.name} ${item.category || ''} ${item.unit || ''} ${item.type || ''}`.toLowerCase();
+                return str.includes(searchTerm);
+            });
+
+            // Build Body
+            let bodyHTML = '';
+            const modelDemandTotals = {};
+            MODEL_CONFIGS.forEach(mc => { modelDemandTotals[mc.key] = 0; });
+            let grandTotalDemand = 0;
+
+            filteredBOM.forEach((item, idx) => {
+                let rowDemandSum = 0;
+                let cellsHTML = '';
+
+                MODEL_CONFIGS.forEach(mc => {
+                    const planQty = modelTargets[mc.key] || 0;
+                    const bomRatio = parseFloat(item.bom ? item.bom[mc.key] : 0) || 0;
+                    const req = planQty * bomRatio;
+                    rowDemandSum += req;
+                    modelDemandTotals[mc.key] += req;
+
+                    const title = `Plan: ${planQty.toLocaleString()} × Ratio: ${bomRatio} = ${req.toLocaleString()}`;
+                    cellsHTML += `
+                        <td style="text-align:right; font-family:'Times New Roman', Times, serif; font-variant-numeric:tabular-nums; padding:4px 6px; border:1px solid #cbd5e1;" title="${escapeAttr(title)}">
+                            ${req > 0 ? (req % 1 === 0 ? req.toLocaleString() : req.toFixed(3)) : '-'}
+                        </td>
+                    `;
+                });
+
+                grandTotalDemand += rowDemandSum;
+
+                bodyHTML += `
+                    <tr style="${idx % 2 === 1 ? 'background:#f8fafc;' : ''}">
+                        <td style="text-align:center; font-weight:700; color:#64748b; border:1px solid #cbd5e1;">${idx + 1}</td>
+                        <td style="font-weight:700; color:#0f2942; font-family:var(--font-mono); padding-left:8px; border:1px solid #cbd5e1;">${escapeHTML(item.code || '-')}</td>
+                        <td style="font-weight:700; color:#1e293b; padding-left:8px; border:1px solid #cbd5e1;" title="${escapeAttr(item.name || '')}">${escapeHTML(item.name || '-')}</td>
+                        <td style="text-align:center; color:#64748b; border:1px solid #cbd5e1;">${escapeHTML(item.unit || '-')}</td>
+                        <td style="text-align:center; font-size:11px; font-weight:700; color:#0369a1; border:1px solid #cbd5e1;">${escapeHTML(item.type || '-')}</td>
+                        ${cellsHTML}
+                        <td style="text-align:right; font-weight:900; color:#0284c7; background:#f0f9ff; padding-right:8px; font-family:'Times New Roman', Times, serif; font-variant-numeric:tabular-nums; border:1px solid #cbd5e1;">
+                            ${rowDemandSum > 0 ? (rowDemandSum % 1 === 0 ? rowDemandSum.toLocaleString() : rowDemandSum.toFixed(3)) : '-'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if (filteredBOM.length === 0) {
+                bodyHTML = `<tr><td colspan="15" style="text-align:center; padding:30px; color:#94a3b8; font-weight:700;">No raw materials matched your search.</td></tr>`;
+            }
+
+            tbody.innerHTML = bodyHTML;
+
+            // Build Footer
+            let footHTML = `
+                <tr style="background:#0f2942; color:#ffffff; font-weight:900;">
+                    <td colspan="5" style="text-align:right; padding:6px 10px; font-size:12px; letter-spacing:0.5px; border:1px solid #1e293b;">TOTAL MODEL-WISE DEMAND:</td>
+            `;
+
+            MODEL_CONFIGS.forEach(mc => {
+                const tot = modelDemandTotals[mc.key] || 0;
+                footHTML += `
+                    <td style="text-align:right; padding:6px 6px; font-family:'Times New Roman', Times, serif; font-variant-numeric:tabular-nums; color:#38bdf8; border:1px solid #1e293b;">
+                        ${tot > 0 ? (tot % 1 === 0 ? tot.toLocaleString() : tot.toFixed(2)) : '-'}
+                    </td>
+                `;
+            });
+
+            footHTML += `
+                    <td style="text-align:right; padding:6px 8px; color:#4ade80; font-size:13px; font-family:'Times New Roman', Times, serif; font-variant-numeric:tabular-nums; border:1px solid #1e293b;">
+                        ${grandTotalDemand > 0 ? (grandTotalDemand % 1 === 0 ? grandTotalDemand.toLocaleString() : grandTotalDemand.toFixed(2)) : '-'}
+                    </td>
+                </tr>
+            `;
+            tfoot.innerHTML = footHTML;
+        }
+
+        function exportModelWiseCSV() {
+            const selectedMonth = document.getElementById('modelWiseMonthSelect')?.value || 'Jul-26';
+            const prodPlan = getLiveProductionPlan();
+            const bomSummaryList = getLiveBOMSummaryData();
+            const modelPlanByMonth = getModelProductionTargetMap(prodPlan);
+
+            const modelTargets = {};
+            MODEL_CONFIGS.forEach(mc => {
+                let t = 0;
+                if (selectedMonth === 'All') {
+                    for (let i = 0; i < 12; i++) t += (modelPlanByMonth[i][mc.key] || 0);
+                } else {
+                    const mIdx = ALL_MONTHS.indexOf(selectedMonth);
+                    if (mIdx !== -1) t = (modelPlanByMonth[mIdx][mc.key] || 0);
+                }
+                modelTargets[mc.key] = t;
+            });
+
+            let csv = `MEP Fan Ltd. - Model-Wise RM Requirement (${selectedMonth})\r\n`;
+            let headerRow = ['SL', 'RM Code', 'Item Name', 'Unit', 'Type'];
+            MODEL_CONFIGS.forEach(mc => {
+                headerRow.push(`${mc.short} (Plan: ${modelTargets[mc.key] || 0})`);
+            });
+            headerRow.push('Total RM Demand');
+            csv += headerRow.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\r\n';
+
+            bomSummaryList.forEach((item, idx) => {
+                let rowSum = 0;
+                let row = [
+                    idx + 1,
+                    item.code || '',
+                    item.name || '',
+                    item.unit || '',
+                    item.type || ''
+                ];
+                MODEL_CONFIGS.forEach(mc => {
+                    const plan = modelTargets[mc.key] || 0;
+                    const ratio = parseFloat(item.bom ? item.bom[mc.key] : 0) || 0;
+                    const req = plan * ratio;
+                    rowSum += req;
+                    row.push(req > 0 ? req : 0);
+                });
+                row.push(rowSum);
+                csv += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\r\n';
+            });
+
+            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csv);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `MEP_Model_Wise_RM_Requirement_${selectedMonth}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("📥 Exported Model-Wise RM Requirement to CSV!");
         }
 
         function updateLiveClock() {

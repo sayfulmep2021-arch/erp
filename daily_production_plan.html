@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Global Permanent Authentication Guard -->
@@ -730,23 +730,23 @@
             <!-- Date Selector & Action Buttons -->
             <div class="header-controls">
                 <div class="date-picker-box">
-                    <span>?? Plan Date:</span>
+                    <span>Plan Date:</span>
                     <input type="date" id="planDateInput" onchange="onDateChange()">
                 </div>
 
                 <button type="button" class="btn-action btn-save" onclick="saveCurrentPlan(true)" title="Save Plan">
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                    <span>?? Save Plan</span>
+                    <span>Save Plan</span>
                 </button>
 
                 <button type="button" class="btn-action btn-add" onclick="openAddItemModal()" title="Add New Item">
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    <span>? Add Item</span>
+                    <span>Add Item</span>
                 </button>
 
-                <button type="button" class="btn-action" style="background: linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; font-weight:700; display:inline-flex; align-items:center; gap:6px;" onclick="submitPlanToBOMFloorStock(true)" title="Calculate Per Day � BOM Quantity and Submit to Check Floor Stock">
+                <button type="button" class="btn-action" style="background: linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; font-weight:700; display:inline-flex; align-items:center; gap:6px;" onclick="submitPlanToBOMFloorStock(true)" title="Calculate Per Day × BOM Quantity and Submit to Check Floor Stock">
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                    <span>? Submit Per Day to Floor Stock</span>
+                    <span>Submit Per Day to Floor Stock</span>
                 </button>
 
                 <button type="button" class="btn-action btn-outline" onclick="exportToCSV()" title="Export CSV">
@@ -925,7 +925,7 @@
         function onDateChange() {
             const selectedDate = document.getElementById('planDateInput').value;
             loadPlanForDate(selectedDate);
-            showToast(`?? Loaded Daily Plan for ${selectedDate}`);
+            showToast(`Loaded Daily Plan for ${selectedDate}`);
         }
 
         function loadPlanForDate(dateStr) {

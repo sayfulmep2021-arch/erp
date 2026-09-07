@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Global Permanent Authentication Guard -->
@@ -155,6 +155,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 14px;
+            position: relative;
+            z-index: 500;
         }
 
         .stock-meta-group {
@@ -216,79 +218,165 @@
         .stock-actions-group {
             display: flex;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 8px;
         }
 
-        .btn-action {
+        /* Standardized 36x36 Icon-Only Action Buttons with Zero-Shift Tooltip */
+        .btn-action-icon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            max-width: 36px;
+            max-height: 36px;
+            border-radius: 8px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            border-radius: 8px;
-            font-size: 0.80rem;
-            font-weight: 700;
-            border: 1.5px solid transparent;
+            justify-content: center;
+            position: relative;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            text-decoration: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+            border: 1.5px solid transparent;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            padding: 0;
+            margin: 0;
+            outline: none;
+            user-select: none;
+            box-sizing: border-box;
+            background: #ffffff;
+            color: #334155;
+            font-size: 14px;
         }
 
-        .btn-action svg {
-            width: 15px;
-            height: 15px;
+        .btn-action-icon svg {
+            width: 17px;
+            height: 17px;
+            pointer-events: none;
+            flex-shrink: 0;
         }
 
-        .btn-add {
+        /* Hover states without any translateY / layout shift */
+        .btn-action-icon:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+
+        .btn-action-icon.btn-sync {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
+            border-color: #0284c7;
+        }
+        .btn-action-icon.btn-sync:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+        }
+
+        .btn-action-icon.btn-add {
             background: #8b5cf6;
             color: #ffffff;
-            border-color: #8b5cf6;
+            border-color: #7c3aed;
         }
-        .btn-add:hover {
+        .btn-action-icon.btn-add:hover {
             background: #7c3aed;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.28);
         }
 
-        .btn-group-toggle {
+        .btn-action-icon.btn-group-toggle {
             background: #f0fdf4;
-            color: #166534;
-            border-color: #bbf7d0;
-        }
-        .btn-group-toggle:hover {
-            background: #dcfce7;
+            color: #15803d;
             border-color: #86efac;
-            transform: translateY(-1px);
+            font-size: 15px;
+            font-weight: 900;
+        }
+        .btn-action-icon.btn-group-toggle:hover {
+            background: #dcfce7;
+            border-color: #4ade80;
         }
 
-        .btn-export {
-            background: #f8fafc;
+        .btn-action-icon.btn-col-manager {
+            background: #ffffff;
+            color: #0369a1;
+            border-color: #cbd5e1;
+        }
+        .btn-action-icon.btn-col-manager:hover {
+            background: #f0f9ff;
+            border-color: #7dd3fc;
+        }
+
+        .btn-action-icon.btn-serial-manager {
+            background: #ffffff;
+            color: #d97706;
+            border-color: #cbd5e1;
+        }
+        .btn-action-icon.btn-serial-manager:hover {
+            background: #fffbeb;
+            border-color: #fcd34d;
+        }
+
+        .btn-action-icon.btn-export {
+            background: #ffffff;
             color: #0f2942;
             border-color: #cbd5e1;
         }
-        .btn-export:hover {
-            background: #e2e8f0;
+        .btn-action-icon.btn-export:hover {
+            background: #f1f5f9;
             border-color: #94a3b8;
         }
 
-        .btn-print {
-            background: #f8fafc;
+        .btn-action-icon.btn-print {
+            background: #ffffff;
             color: #0f2942;
             border-color: #cbd5e1;
         }
-        .btn-print:hover {
-            background: #e2e8f0;
+        .btn-action-icon.btn-print:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
         }
 
-        .btn-reset {
+        .btn-action-icon.btn-reset {
             background: #fff1f2;
             color: #e11d48;
             border-color: #fecdd3;
         }
-        .btn-reset:hover {
+        .btn-action-icon.btn-reset:hover {
             background: #ffe4e6;
             border-color: #fda4af;
+        }
+
+        /* Lightweight Zero-Layout-Shift Tooltip */
+        .btn-action-icon .erp-tooltip {
+            position: absolute;
+            top: calc(100% + 7px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f2942;
+            color: #ffffff;
+            font-size: 0.70rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease;
+            z-index: 9999;
+            box-shadow: 0 4px 14px rgba(15, 41, 66, 0.25);
+            line-height: 1.2;
+        }
+
+        .btn-action-icon .erp-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 4px;
+            border-style: solid;
+            border-color: transparent transparent #0f2942 transparent;
+        }
+
+        .btn-action-icon:hover .erp-tooltip {
+            opacity: 1;
+            visibility: visible;
         }
 
         /* Filter Strip */
@@ -371,15 +459,15 @@
             overflow: auto;
             max-height: calc(100vh - 200px);
             position: relative;
+            z-index: 10;
         }
 
         .stock-table {
-            width: 100%;
+            width: max-content;
+            min-width: 100%;
             border-collapse: separate !important;
             border-spacing: 0;
-            table-layout: fixed;
             font-size: 0.76rem;
-            white-space: nowrap;
             background: #ffffff;
         }
 
@@ -387,19 +475,22 @@
         .stock-table thead {
             position: sticky;
             top: 0;
-            z-index: 25;
+            z-index: 30;
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
 
         .stock-table th {
-            padding: 7px 8px;
+            padding: 8px 10px;
             border-right: 1px solid var(--border-cell);
-            border-bottom: 1px solid var(--border-cell);
+            border-bottom: 1.5px solid var(--border-cell);
             font-weight: 800;
             text-align: center;
             font-family: var(--font-sans);
             user-select: none;
             box-sizing: border-box;
+            white-space: normal !important;
+            line-height: 1.25 !important;
+            vertical-align: middle !important;
         }
 
         .stock-table th:first-child, .stock-table td:first-child {
@@ -411,8 +502,8 @@
         }
 
         /* ========================================================= */
-        /* EXCEL FREEZE PANES ENGINE (FROZEN COLUMNS 1 TO 5)         */
-        /* SL, Item Code, Item Name, Unit, Type stay fixed on scroll */
+        /* EXCEL FREEZE PANES ENGINE (FROZEN COLUMNS 1 TO 4)         */
+        /* SL, Item Code, Item Name, Unit stay fixed on scroll       */
         /* ========================================================= */
 
         /* Column 1: SL (45px) */
@@ -541,52 +632,84 @@
             padding-left: 20px !important;
         }
 
-        /* ========================================================= */
-        /* COLUMN VISIBILITY MANAGER (HIDE / UNHIDE SYSTEM)          */
-        /* ========================================================= */
-        .col-visibility-dropdown {
+        /* Serial Column Hover Hide Control */
+        .sl-cell-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sl-num-text {
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+
+        .btn-hide-row {
+            position: absolute;
+            right: 1px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            visibility: hidden;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            border-radius: 4px;
+            padding: 1px 3px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        tr:hover .btn-hide-row {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .btn-hide-row:hover {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
+        /* Serials & Columns Visibility Manager Dropdowns */
+        .col-visibility-dropdown, .serial-vis-container {
             position: relative;
             display: inline-block;
         }
 
-        .btn-col-manager {
-            background: #ffffff;
-            border: 1.5px solid #cbd5e1;
-            color: #334155;
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            font-weight: 700;
-        }
-
-        .btn-col-manager:hover {
-            background: #f8fafc;
-            border-color: #0284c7;
-            color: #0284c7;
-        }
-
-        .col-count-badge {
-            display: inline-block;
-            background: #e0f2fe;
-            color: #0369a1;
-            font-size: 0.70rem;
+        .hidden-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 0.65rem;
             font-weight: 800;
-            padding: 1px 6px;
-            border-radius: 10px;
-            border: 1px solid #bae6fd;
+            padding: 1px 5px;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            pointer-events: none;
         }
 
-        .col-manager-panel {
+        .col-manager-panel, .serial-vis-dropdown {
             display: none;
             position: absolute;
             top: calc(100% + 8px);
-            right: 0;
-            width: 320px;
+            left: 0;
+            right: auto;
+            width: 340px;
             background: #ffffff;
             border: 1.5px solid #cbd5e1;
             border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
-            z-index: 100;
+            box-shadow: 0 12px 36px rgba(15, 41, 66, 0.22);
+            z-index: 600;
             overflow: hidden;
             animation: fadeInScale 0.15s ease-out;
             text-align: left;
@@ -597,8 +720,9 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .col-manager-panel.active {
-            display: block;
+        .col-manager-panel.active, .serial-vis-dropdown.active {
+            display: flex;
+            flex-direction: column;
         }
 
         .col-manager-header {
@@ -1275,34 +1399,35 @@
             </div>
 
             <div class="stock-actions-group">
-                <button class="btn-action" id="btnSyncBOM" onclick="applyBOMCalculation(true)" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;" title="Re-calculate BOM Movement (Difference × BOM Quantity) from Daily Production Received Assemble">
-                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                    <span>⚡ Sync BOM Calc</span>
+                <!-- 1. Sync BOM Calculation -->
+                <button type="button" class="btn-action-icon btn-sync" id="btnSyncBOM" onclick="applyBOMCalculation(true)" aria-label="Sync BOM Movement">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                    <span class="erp-tooltip">Sync BOM Movement</span>
                 </button>
 
-                <button class="btn-action btn-add" onclick="openAddItemModal()" title="Add a new item via Master Database">
+                <!-- 2. Add New Item -->
+                <button type="button" class="btn-action-icon btn-add" onclick="openAddItemModal()" aria-label="Add New Item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Add New Item
+                    <span class="erp-tooltip">Add New Item</span>
                 </button>
 
-                <button class="btn-action btn-group-toggle" id="btnGroupToggle" onclick="toggleSFGGroup()" title="Toggle Excel SFG Outline/Grouping">
+                <!-- 3. Toggle SFG Outline Group -->
+                <button type="button" class="btn-action-icon btn-group-toggle" id="btnGroupToggle" onclick="toggleSFGGroup()" aria-label="Toggle SFG Columns Group">
                     <span id="groupToggleIcon">➕</span>
-                    <span id="groupToggleText">Expand SFG Group</span>
+                    <span class="erp-tooltip" id="groupToggleTooltip">Expand SFG Group</span>
                 </button>
 
-                <!-- Column Visibility Dropdown Manager -->
-                <div class="col-visibility-dropdown" style="position: relative; display: inline-block;">
-                    <button class="btn-action btn-col-manager" id="btnColManager" onclick="toggleColManagerMenu(event)" title="Hide or Unhide Table Columns">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        <span>Columns (Hide/Unhide)</span>
-                        <span class="col-count-badge" id="visibleColCountBadge">10/10</span>
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <!-- 4. Columns Visibility Manager -->
+                <div class="col-visibility-dropdown">
+                    <button type="button" class="btn-action-icon btn-col-manager" id="btnColManager" onclick="toggleColManagerMenu(event)" aria-label="Hide / Show Columns">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <span class="erp-tooltip">Columns Visibility</span>
                     </button>
                     <div class="col-manager-panel" id="colManagerPanel">
                         <div class="col-manager-header">
                             <div class="col-manager-title">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                <span>Hide / Show Columns</span>
+                                <span>Hide / Show Columns (<span id="visibleColCountBadge">10/10</span>)</span>
                             </div>
                             <div class="col-manager-quick-actions">
                                 <button type="button" class="btn-col-quick" onclick="setAllColumnsVisibility(true)">Show All</button>
@@ -1315,19 +1440,48 @@
                     </div>
                 </div>
 
-                <button class="btn-action btn-export" onclick="exportToCSV()" title="Export complete Stock table to Excel CSV">
+                <!-- 5. Serial Numbers Visibility Manager -->
+                <div class="serial-vis-container">
+                    <button type="button" class="btn-action-icon btn-serial-manager" id="btnSerialVisibility" onclick="toggleSerialVisibilityDropdown(event)" aria-label="Hide / Show Serials">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                        <span class="hidden-badge" id="hiddenSerialsBadge" style="display:none;">0</span>
+                        <span class="erp-tooltip">Serials Visibility</span>
+                    </button>
+                    <div class="serial-vis-dropdown" id="serialVisDropdown">
+                        <div class="col-manager-header">
+                            <div class="col-manager-title">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                                <span>Serials Visibility (<span id="visCountText">All visible</span>)</span>
+                            </div>
+                            <div class="col-manager-quick-actions">
+                                <button type="button" class="btn-col-quick" onclick="showAllSerials()">Show All</button>
+                            </div>
+                        </div>
+                        <div style="padding: 8px 12px; background: #ffffff; border-bottom: 1px solid #e2e8f0;">
+                            <input type="text" id="serialVisSearch" placeholder="Filter serials or items..." oninput="renderSerialVisList(this.value)" style="width:100%; padding: 4px 8px; font-size: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 6px; outline: none; box-sizing: border-box;">
+                        </div>
+                        <div class="col-manager-list" id="serialVisList" style="max-height: 320px; overflow-y: auto;">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Export CSV -->
+                <button type="button" class="btn-action-icon btn-export" onclick="exportToCSV()" aria-label="Export CSV">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Export CSV
+                    <span class="erp-tooltip">Export CSV</span>
                 </button>
 
-                <button class="btn-action btn-print" onclick="window.print()" title="Print Floor Stock Matrix">
+                <!-- 7. Print Report -->
+                <button type="button" class="btn-action-icon btn-print" onclick="window.print()" aria-label="Print Report">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                    Print
+                    <span class="erp-tooltip">Print Report</span>
                 </button>
 
-                <button class="btn-action btn-reset" onclick="resetToDefaultData()" title="Reset back to factory default Stock data">
+                <!-- 8. Reset Default Data -->
+                <button type="button" class="btn-action-icon btn-reset" onclick="resetToDefaultData()" aria-label="Reset Factory Default">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
-                    Reset Default
+                    <span class="erp-tooltip">Reset Factory Default</span>
                 </button>
             </div>
         </div>
@@ -1574,11 +1728,45 @@
             return found ? found.name : id;
         }
 
+        function smartPositionDropdown(panel, triggerBtn) {
+            if (!panel) return;
+            panel.style.left = '0px';
+            panel.style.right = 'auto';
+
+            requestAnimationFrame(() => {
+                const rect = panel.getBoundingClientRect();
+                const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+                // If overflowing on the right
+                if (rect.right > viewportWidth - 14) {
+                    panel.style.left = 'auto';
+                    panel.style.right = '0px';
+
+                    // Verify it does not hit the sidebar on the left
+                    const newRect = panel.getBoundingClientRect();
+                    const sidebar = document.getElementById('mepFrozenSidebar');
+                    const minAllowedLeft = sidebar ? (sidebar.getBoundingClientRect().right + 10) : 14;
+
+                    if (newRect.left < minAllowedLeft) {
+                        const btnRect = triggerBtn ? triggerBtn.getBoundingClientRect() : { left: minAllowedLeft };
+                        const offset = minAllowedLeft - btnRect.left;
+                        panel.style.right = 'auto';
+                        panel.style.left = Math.max(0, offset) + 'px';
+                    }
+                }
+            });
+        }
+
         function toggleColManagerMenu(event) {
             if (event) event.stopPropagation();
             const panel = document.getElementById('colManagerPanel');
+            const serialDropdown = document.getElementById('serialVisDropdown');
+            if (serialDropdown) serialDropdown.classList.remove('active');
             if (panel) {
                 panel.classList.toggle('active');
+                if (panel.classList.contains('active')) {
+                    smartPositionDropdown(panel, document.getElementById('btnColManager'));
+                }
             }
         }
 
@@ -1620,11 +1808,193 @@
             }
         });
 
+        // =========================================================
+        // SERIAL NUMBERS VISIBILITY MANAGER (HIDE / SHOW SYSTEM)
+        // =========================================================
+        let hiddenSerials = [];
+
+        function escapeHTML(str) {
+            return String(str || '').replace(/[&<>"']/g, function(m) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+            });
+        }
+
+        function escapeAttr(str) {
+            return String(str || '').replace(/["']/g, function(m) {
+                return {'"':'&quot;',"'":'&#39;'}[m];
+            });
+        }
+
+        function getSerialItemKey(item, index) {
+            return (item.category || '') + '_' + (item.code || '') + '_' + (item.sl !== undefined ? item.sl : index);
+        }
+
+        function loadHiddenSerials() {
+            const saved = localStorage.getItem('mep_check_floor_stock_hidden_serials');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) {
+                        hiddenSerials = parsed;
+                    }
+                } catch(e) {
+                    hiddenSerials = [];
+                }
+            }
+            updateHiddenSerialsBadge();
+        }
+
+        function saveHiddenSerials() {
+            localStorage.setItem('mep_check_floor_stock_hidden_serials', JSON.stringify(hiddenSerials));
+            updateHiddenSerialsBadge();
+        }
+
+        function updateHiddenSerialsBadge() {
+            const badge = document.getElementById('hiddenSerialsBadge');
+            const visText = document.getElementById('visCountText');
+            const hiddenCount = hiddenSerials.length;
+            if (badge) {
+                if (hiddenCount > 0) {
+                    badge.innerText = hiddenCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            if (visText) {
+                if (hiddenCount > 0) {
+                    visText.innerText = `${hiddenCount} hidden`;
+                } else {
+                    visText.innerText = 'All visible';
+                }
+            }
+        }
+
+        function hideSerial(key, event) {
+            if (event) event.stopPropagation();
+            if (!hiddenSerials.includes(key)) {
+                hiddenSerials.push(key);
+                saveHiddenSerials();
+                renderBody();
+                renderSerialVisList(document.getElementById('serialVisSearch') ? document.getElementById('serialVisSearch').value : '');
+                
+                const item = currentData.find((it, idx) => getSerialItemKey(it, idx) === key);
+                const label = item ? `SL ${item.sl} (${item.name || item.code})` : 'Row';
+                showToast(`🙈 Hidden: ${label}. Click 🔢 to restore.`);
+            }
+        }
+
+        function toggleSerialVisibility(key) {
+            const idx = hiddenSerials.indexOf(key);
+            if (idx >= 0) {
+                hiddenSerials.splice(idx, 1);
+            } else {
+                hiddenSerials.push(key);
+            }
+            saveHiddenSerials();
+            renderBody();
+            renderSerialVisList(document.getElementById('serialVisSearch') ? document.getElementById('serialVisSearch').value : '');
+            
+            const isHidden = hiddenSerials.includes(key);
+            const item = currentData.find((it, i) => getSerialItemKey(it, i) === key);
+            const label = item ? `SL ${item.sl} (${item.name || item.code})` : 'Row';
+            showToast(`${isHidden ? '🙈 Hidden' : '👁️ Shown'}: ${label}`);
+        }
+
+        function showAllSerials() {
+            if (hiddenSerials.length === 0) {
+                showToast('All serial rows are already visible.');
+                return;
+            }
+            hiddenSerials = [];
+            saveHiddenSerials();
+            renderBody();
+            renderSerialVisList(document.getElementById('serialVisSearch') ? document.getElementById('serialVisSearch').value : '');
+            showToast('👁️ All serial rows are now visible.');
+        }
+
+        function toggleSerialVisibilityDropdown(event) {
+            if (event) event.stopPropagation();
+            const dropdown = document.getElementById('serialVisDropdown');
+            const colPanel = document.getElementById('colManagerPanel');
+            if (colPanel) colPanel.classList.remove('active');
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+                if (dropdown.classList.contains('active')) {
+                    smartPositionDropdown(dropdown, document.getElementById('btnSerialVisibility'));
+                    renderSerialVisList('');
+                    const searchInput = document.getElementById('serialVisSearch');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        setTimeout(() => searchInput.focus(), 50);
+                    }
+                }
+            }
+        }
+
+        function renderSerialVisList(filterTerm) {
+            const listEl = document.getElementById('serialVisList');
+            if (!listEl) return;
+            const term = (filterTerm || '').toLowerCase().trim();
+
+            let html = '';
+            let displayedCount = 0;
+
+            currentData.forEach((item, index) => {
+                const key = getSerialItemKey(item, index);
+                const isHidden = hiddenSerials.includes(key);
+                const isVis = !isHidden;
+
+                const slText = `SL ${item.sl}`;
+                const nameText = item.name || '';
+                const codeText = item.code || '';
+                const catText = item.category || '';
+
+                if (term) {
+                    const match = slText.toLowerCase().includes(term) ||
+                                  nameText.toLowerCase().includes(term) ||
+                                  codeText.toLowerCase().includes(term) ||
+                                  catText.toLowerCase().includes(term);
+                    if (!match) return;
+                }
+
+                displayedCount++;
+                html += `
+                    <div class="col-manager-item" onclick="toggleSerialVisibility('${escapeAttr(key)}')">
+                        <label class="col-manager-label" onclick="event.stopPropagation()" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 235px;">
+                            <input type="checkbox" class="col-manager-checkbox" ${isVis ? 'checked' : ''} onchange="toggleSerialVisibility('${escapeAttr(key)}')">
+                            <span style="font-weight: 700; color: #0f2942; margin-right: 4px;">[${item.sl}]</span>
+                            <span title="${escapeHTML(nameText)} (${escapeHTML(codeText)})">${escapeHTML(nameText)}</span>
+                        </label>
+                        <span style="font-size: 0.70rem; color: ${isVis ? '#0284c7' : '#ef4444'}; font-weight: 700; white-space: nowrap;">
+                            ${isVis ? 'Visible' : 'Hidden'}
+                        </span>
+                    </div>
+                `;
+            });
+
+            if (displayedCount === 0) {
+                html = `<div style="padding: 12px; text-align: center; font-size: 0.75rem; color: #94a3b8;">No matching items found</div>`;
+            }
+
+            listEl.innerHTML = html;
+        }
+
+        // Close serials dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const container = document.querySelector('.serial-vis-container');
+            const dropdown = document.getElementById('serialVisDropdown');
+            if (dropdown && container && !container.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
         // Excel Group State: default is collapsed as requested by user!
         let isSFGGroupExpanded = false;
 
         function initStockData() {
             loadColumnVisibility();
+            loadHiddenSerials();
             const saved = localStorage.getItem("mep_check_floor_stock_custom");
             if (saved) {
                 try {
@@ -1983,11 +2353,11 @@
 
             // Meta Info Columns (Frozen 1 to 5)
             html += `
-                <th class="th-meta col-freeze-1">SL</th>
-                <th class="th-meta col-freeze-2">Item Code</th>
-                <th class="th-meta col-freeze-3">Item Name</th>
-                <th class="th-meta col-freeze-4">Unit</th>
-                <th class="th-meta col-freeze-5">Type</th>
+                <th class="th-meta col-freeze-1" style="width: 45px; min-width: 45px; max-width: 45px;">SL</th>
+                <th class="th-meta col-freeze-2" style="width: 110px; min-width: 110px;">Item Code</th>
+                <th class="th-meta col-freeze-3" style="width: 260px; min-width: 260px;">Item Name</th>
+                <th class="th-meta col-freeze-4" style="width: 65px; min-width: 65px;">Unit</th>
+                <th class="th-meta col-freeze-5" style="width: 75px; min-width: 75px;">Type</th>
             `;
 
             // Excel Group Header System (SFG Columns Group)
@@ -2005,7 +2375,7 @@
                     `;
                 } else {
                     html += `
-                        <th class="th-group-header" style="min-width: 160px;" title="Click to Expand SFG Group">
+                        <th class="th-group-header" style="width: 180px; min-width: 180px;" title="Click to Expand SFG Group">
                             <div class="col-header-wrapper">
                                 <button class="group-toggle-btn" type="button" onclick="toggleSFGGroup()">
                                     <span>[ + ]</span> SFG1010079 – SFG1010082
@@ -2019,7 +2389,7 @@
 
             // Summary / Balance Columns (Toggled dynamically)
             if (isColVisible('totalPending')) {
-                html += `<th class="th-yellow" style="width: 95px;">
+                html += `<th class="th-yellow" style="width: 115px; min-width: 115px;">
                     <div class="col-header-wrapper">
                         <span>Total Pending</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('totalPending', event)" title="Hide Total Pending">✕</button>
@@ -2028,7 +2398,7 @@
             }
 
             if (isColVisible('perDayConsumption')) {
-                html += `<th class="th-yellow" style="width: 100px;">
+                html += `<th class="th-yellow" style="width: 125px; min-width: 125px;">
                     <div class="col-header-wrapper">
                         <span>Per Day Consumption</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('perDayConsumption', event)" title="Hide Per Day Consumption">✕</button>
@@ -2037,7 +2407,7 @@
             }
 
             if (isColVisible('floorStore')) {
-                html += `<th class="th-yellow" style="width: 95px;" title="Auto-Linked: Code → Assemble Summary → Bin Closing Stock">
+                html += `<th class="th-yellow" style="width: 110px; min-width: 110px;" title="Auto-Linked: Code → Assemble Summary → Bin Closing Stock">
                     <div class="col-header-wrapper">
                         <span>Floor Store</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('floorStore', event)" title="Hide Floor Store">✕</button>
@@ -2046,7 +2416,7 @@
             }
 
             if (isColVisible('storeQty')) {
-                html += `<th class="th-yellow" style="width: 95px;" title="Auto-Linked: FG Column Code → Store Position Report → Store Qty">
+                html += `<th class="th-yellow" style="width: 110px; min-width: 110px;" title="Auto-Linked: FG Column Code → Store Position Report → Store Qty">
                     <div class="col-header-wrapper">
                         <span>Store Qty</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('storeQty', event)" title="Hide Store Qty">✕</button>
@@ -2055,7 +2425,7 @@
             }
 
             if (isColVisible('mixerPaper')) {
-                html += `<th class="th-yellow" style="width: 85px;">
+                html += `<th class="th-yellow" style="width: 95px; min-width: 95px;">
                     <div class="col-header-wrapper">
                         <span>Mixer Paper</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('mixerPaper', event)" title="Hide Mixer Paper">✕</button>
@@ -2064,7 +2434,7 @@
             }
 
             if (isColVisible('warningStoreStock')) {
-                html += `<th class="th-purple" style="width: 105px;" title="Store Qty ÷ Per Day Consumption (&lt;3 Days: Red Bold)">
+                html += `<th class="th-purple" style="width: 120px; min-width: 120px;" title="Store Qty ÷ Per Day Consumption (&lt;3 Days: Red Bold)">
                     <div class="col-header-wrapper">
                         <span>Warning Store Stock</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('warningStoreStock', event)" title="Hide Warning Store Stock">✕</button>
@@ -2073,7 +2443,7 @@
             }
 
             if (isColVisible('actualQtyFloor')) {
-                html += `<th class="th-green" style="width: 100px;" title="Formula: Floor Store − Total Pending (Automatic Calculation)">
+                html += `<th class="th-green" style="width: 120px; min-width: 120px;" title="Formula: Floor Store − Total Pending (Automatic Calculation)">
                     <div class="col-header-wrapper">
                         <span>Actual Qty (Floor)</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('actualQtyFloor', event)" title="Hide Actual Qty">✕</button>
@@ -2082,7 +2452,7 @@
             }
 
             if (isColVisible('needQty')) {
-                html += `<th class="th-green" style="width: 90px;">
+                html += `<th class="th-green" style="width: 105px; min-width: 105px;">
                     <div class="col-header-wrapper">
                         <span>Need Qty</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('needQty', event)" title="Hide Need Qty">✕</button>
@@ -2091,7 +2461,7 @@
             }
 
             if (isColVisible('warningFloorStock')) {
-                html += `<th class="th-purple" style="width: 105px;" title="Floor Store ÷ Per Day Consumption (&gt;5 Days: Green, 2-3 Days: Yellow Bold, &lt;2 Days: Red Bold)">
+                html += `<th class="th-purple" style="width: 120px; min-width: 120px;" title="Floor Store ÷ Per Day Consumption (&gt;5 Days: Green, 2-3 Days: Yellow Bold, &lt;2 Days: Red Bold)">
                     <div class="col-header-wrapper">
                         <span>Warning Floor Stock</span>
                         <button class="btn-col-hide-header" onclick="hideColumnDirect('warningFloorStock', event)" title="Hide Warning Floor Stock">✕</button>
@@ -2106,7 +2476,7 @@
                 html += `<tr>`;
                 html += `<th colspan="5" class="th-meta col-freeze-meta-span" style="font-size:0.68rem; background:#fce7f3 !important; color:#831843;">Item Identification Details</th>`;
                 SFG_COLUMNS.forEach(col => {
-                    html += `<th class="th-sfg">${col}</th>`;
+                    html += `<th class="th-sfg" style="width: 75px; min-width: 75px;">${col}</th>`;
                 });
                 
                 let balanceColsCount = 0;
@@ -2138,6 +2508,9 @@
             });
 
             currentData.forEach((item, index) => {
+                const itemKey = getSerialItemKey(item, index);
+                if (hiddenSerials.includes(itemKey)) return;
+
                 // Category Banner Row
                 if (item.category !== lastCategory) {
                     lastCategory = item.category;
@@ -2152,11 +2525,11 @@
                     // Armature Sub-Header
                     if (item.category === 'Armature') {
                         html += `<tr class="arm-sub-tr" data-cat="Armature">`;
-                        html += `<td class="arm-sub-header col-freeze-1">SL</td>`;
-                        html += `<td class="arm-sub-header col-freeze-2">RM</td>`;
-                        html += `<td class="arm-sub-header col-freeze-3">Item Name</td>`;
-                        html += `<td class="arm-sub-header col-freeze-4">Total&gt;&gt;</td>`;
-                        html += `<td class="arm-sub-header col-freeze-5">Type</td>`;
+                        html += `<td class="arm-sub-header col-freeze-1" style="width: 45px; min-width: 45px;">SL</td>`;
+                        html += `<td class="arm-sub-header col-freeze-2" style="width: 110px; min-width: 110px;">RM</td>`;
+                        html += `<td class="arm-sub-header col-freeze-3" style="width: 260px; min-width: 260px;">Item Name</td>`;
+                        html += `<td class="arm-sub-header col-freeze-4" style="width: 65px; min-width: 65px;">Total&gt;&gt;</td>`;
+                        html += `<td class="arm-sub-header col-freeze-5" style="width: 75px; min-width: 75px;">Type</td>`;
 
                         if (isColVisible('sfg')) {
                             if (isSFGGroupExpanded) {
@@ -2164,19 +2537,19 @@
                                 html += `<td colspan="4" class="arm-sub-complete">Complete (SFG 027, 028, 030, 141)</td>`;
                                 html += `<td colspan="13" class="arm-sub-header"></td>`;
                             } else {
-                                html += `<td class="arm-sub-header" style="background:#fff7ed; color:#c2410c; font-weight:800;">[ + ] Armature SFGs</td>`;
+                                html += `<td class="arm-sub-header" style="background:#fff7ed; color:#c2410c; font-weight:800; width: 180px; min-width: 180px;">[ + ] Armature SFGs</td>`;
                             }
                         }
 
-                        if (isColVisible('totalPending')) html += `<td class="arm-sub-header">Total Pending</td>`;
-                        if (isColVisible('perDayConsumption')) html += `<td class="arm-sub-header">Per Day</td>`;
-                        if (isColVisible('floorStore')) html += `<td class="arm-sub-header">Floor Store</td>`;
-                        if (isColVisible('storeQty')) html += `<td class="arm-sub-header">Store Qty</td>`;
-                        if (isColVisible('mixerPaper')) html += `<td class="arm-sub-header">Mixer Paper</td>`;
-                        if (isColVisible('warningStoreStock')) html += `<td class="arm-sub-header">Warning Store</td>`;
-                        if (isColVisible('actualQtyFloor')) html += `<td class="arm-sub-header">Actual Qty</td>`;
-                        if (isColVisible('needQty')) html += `<td class="arm-sub-header">Need Qty</td>`;
-                        if (isColVisible('warningFloorStock')) html += `<td class="arm-sub-header">Warning Floor</td>`;
+                        if (isColVisible('totalPending')) html += `<td class="arm-sub-header" style="width: 115px; min-width: 115px;">Total Pending</td>`;
+                        if (isColVisible('perDayConsumption')) html += `<td class="arm-sub-header" style="width: 125px; min-width: 125px;">Per Day</td>`;
+                        if (isColVisible('floorStore')) html += `<td class="arm-sub-header" style="width: 110px; min-width: 110px;">Floor Store</td>`;
+                        if (isColVisible('storeQty')) html += `<td class="arm-sub-header" style="width: 110px; min-width: 110px;">Store Qty</td>`;
+                        if (isColVisible('mixerPaper')) html += `<td class="arm-sub-header" style="width: 95px; min-width: 95px;">Mixer Paper</td>`;
+                        if (isColVisible('warningStoreStock')) html += `<td class="arm-sub-header" style="width: 120px; min-width: 120px;">Warning Store</td>`;
+                        if (isColVisible('actualQtyFloor')) html += `<td class="arm-sub-header" style="width: 120px; min-width: 120px;">Actual Qty</td>`;
+                        if (isColVisible('needQty')) html += `<td class="arm-sub-header" style="width: 105px; min-width: 105px;">Need Qty</td>`;
+                        if (isColVisible('warningFloorStock')) html += `<td class="arm-sub-header" style="width: 120px; min-width: 120px;">Warning Floor</td>`;
 
                         html += `</tr>`;
                     }
@@ -2204,7 +2577,12 @@
                 }
 
                 html += `<tr id="${rowId}" data-index="${index}" data-cat="${item.category}" class="${rowWarningClass}">`;
-                html += `<td class="td-sl col-freeze-1">${item.sl}</td>`;
+                html += `<td class="td-sl col-freeze-1">
+                    <div class="sl-cell-wrap">
+                        <span class="sl-num-text">${item.sl}</span>
+                        <button type="button" class="btn-hide-row" onclick="hideSerial('${escapeAttr(itemKey)}', event)" title="Hide SL ${item.sl}">✕</button>
+                    </div>
+                </td>`;
                 html += `<td class="td-code col-freeze-2">${item.code}</td>`;
                 html += `<td class="td-name col-freeze-3">${item.name}</td>`;
                 html += `<td class="td-unit col-freeze-4">${item.unit}</td>`;
@@ -2223,9 +2601,9 @@
                                     const numClass = (numVal === 0) ? 'td-zero' : (numVal < 0 ? 'td-neg' : '');
                                     const isWinding = c < 4;
                                     const bgStyle = isWinding ? 'background:#fffbeb;' : 'background:#f0fdf4;';
-                                    html += `<td class="td-num ${numClass}" style="${bgStyle}">${formatDisplayNum(val)}</td>`;
+                                    html += `<td class="td-num ${numClass}" style="${bgStyle}; width: 75px; min-width: 75px;">${formatDisplayNum(val)}</td>`;
                                 } else {
-                                    html += `<td class="td-num td-zero" style="background:#fafafa;">-</td>`;
+                                    html += `<td class="td-num td-zero" style="background:#fafafa; width: 75px; min-width: 75px;">-</td>`;
                                 }
                             }
                         } else {
@@ -2233,7 +2611,7 @@
                                 const val = item.sfg ? (item.sfg[sfgCode] || '0') : '0';
                                 const numVal = parseFloat(val);
                                 const numClass = (numVal === 0) ? 'td-zero' : (numVal < 0 ? 'td-neg' : '');
-                                html += `<td class="td-num ${numClass}">${formatDisplayNum(val)}</td>`;
+                                html += `<td class="td-num ${numClass}" style="width: 75px; min-width: 75px;">${formatDisplayNum(val)}</td>`;
                             });
                         }
                     } else {
@@ -2246,7 +2624,7 @@
                             });
                         }
                         const badgeText = sfgCount > 0 ? `${sfgCount} SFG models active` : '-';
-                        html += `<td class="group-collapsed-cell" title="Click [ + ] to expand all 21 SFG columns">${badgeText}</td>`;
+                        html += `<td class="group-collapsed-cell" style="width: 180px; min-width: 180px;" title="Click [ + ] to expand all 21 SFG columns">${badgeText}</td>`;
                     }
                 }
 
@@ -2709,9 +3087,16 @@
                 window.location.replace('index.html');
                 return;
             }
-                        initStockData();
+            initStockData();
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('openColManager') === '1') {
+                toggleColManagerMenu();
+            } else if (urlParams.get('openSerialManager') === '1') {
+                toggleSerialVisibilityDropdown();
+            }
         });
     </script>
     <script src="report_sidebar.js"></script>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Global Permanent Authentication Guard -->
@@ -925,6 +925,354 @@
                 overflow: visible !important;
             }
         }
+
+        /* Month Header Status Pills */
+        .month-header-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .month-header-name {
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .month-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 12px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .month-status-pill:hover {
+            transform: scale(1.06);
+        }
+
+        .month-status-pill.closed {
+            background: #1e3a8a;
+            color: #ffffff;
+            border: 1px solid #3b82f6;
+        }
+
+        .month-status-pill.live {
+            background: #059669;
+            color: #ffffff;
+            border: 1px solid #34d399;
+            animation: pulse-live 2s infinite;
+        }
+
+        @keyframes pulse-live {
+            0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+        }
+
+        /* Interactive Audit Cell */
+        .td-clickable-audit {
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+        }
+
+        .td-clickable-audit:hover {
+            background-color: #e0f2fe !important;
+            color: #0284c7 !important;
+            font-weight: 800;
+            outline: 1.5px solid #0284c7;
+            z-index: 10;
+        }
+
+        .cell-lock-icon {
+            font-size: 0.65rem;
+            margin-left: 3px;
+            opacity: 0.75;
+            vertical-align: middle;
+        }
+
+        /* Modal Overlay & Card System */
+        .audit-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 41, 66, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .audit-modal-backdrop.active {
+            display: flex;
+        }
+
+        .audit-modal-card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(15, 41, 66, 0.3);
+            width: 100%;
+            max-width: 860px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1.5px solid #cbd5e1;
+            animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.96) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .audit-modal-header {
+            background: linear-gradient(135deg, #0f2942 0%, #1e3a8a 100%);
+            color: #ffffff;
+            padding: 16px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .audit-modal-header h3 {
+            font-size: 1.12rem;
+            font-weight: 800;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .audit-modal-close-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #ffffff;
+            font-size: 1.3rem;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .audit-modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .audit-modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .audit-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .audit-info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .audit-info-box .box-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .audit-info-box .box-val {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #0f2942;
+        }
+
+        .audit-layer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .audit-layer-badge.closed {
+            background: #dbeafe;
+            color: #1e3a8a;
+            border: 1px solid #93c5fd;
+        }
+
+        .audit-layer-badge.live {
+            background: #dcfce7;
+            color: #065f46;
+            border: 1px solid #86efac;
+        }
+
+        .audit-table-wrap {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .audit-breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        .audit-breakdown-table th {
+            background: #f1f5f9;
+            color: #0f2942;
+            font-weight: 800;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1.5px solid #cbd5e1;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .audit-breakdown-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        .audit-breakdown-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .audit-formula-box {
+            background: #eff6ff;
+            border: 1px dashed #3b82f6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.82rem;
+            color: #1e3a8a;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .audit-modal-footer {
+            background: #f8fafc;
+            border-top: 1.5px solid #e2e8f0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        /* Closing Modal Styles */
+        .closing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.80rem;
+        }
+
+        .closing-table th {
+            background: #f1f5f9;
+            padding: 8px 10px;
+            font-weight: 800;
+            color: #0f2942;
+            border-bottom: 2px solid #cbd5e1;
+            text-align: left;
+        }
+
+        .closing-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .closing-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .btn-action-lock {
+            background: #1e3a8a;
+            color: #ffffff;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-action-lock:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn-action-reopen {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-action-reopen:hover {
+            background: #fee2e2;
+        }
+
+        .btn-action-inspect {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-right: 4px;
+        }
+
+        .btn-action-inspect:hover {
+            background: #dbeafe;
+        }
     </style>
     <link rel="stylesheet" href="report_sidebar.css">
 </head>
@@ -982,6 +1330,10 @@
                     <span class="audit-scope-years">2022 – 2030</span>
                 </div>
                 <div class="report-action-buttons">
+                    <button type="button" class="btn-corp btn-corp-primary" onclick="openMonthClosingModal()" title="Month Closing & Historical Archive Management" style="background: linear-gradient(135deg, #1e3a8a, #0284c7); border: none; box-shadow: 0 2px 8px rgba(30,58,138,0.25);">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <span>Month Closing & Archive</span>
+                    </button>
                     <button type="button" class="btn-corp btn-corp-outline" onclick="resetAllFilters()" title="Reset All Filters">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
                         <span>Reset Filters</span>
@@ -1192,9 +1544,208 @@
 
     <div class="toast-box" id="toastBox">Filter updated</div>
 
-    <!-- Master Database & Report Sidebar Scripts -->
+    <!-- Link Details / Cell Audit Modal -->
+    <div class="audit-modal-backdrop" id="linkDetailsModal" onclick="if(event.target === this) closeCellAuditModal()">
+        <div class="audit-modal-card">
+            <div class="audit-modal-header">
+                <h3>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span>Production Data Link &amp; Origin Audit</span>
+                </h3>
+                <button type="button" class="audit-modal-close-btn" onclick="closeCellAuditModal()" title="Close">&times;</button>
+            </div>
+            <div class="audit-modal-body">
+                <!-- Top Summary Cards -->
+                <div class="audit-info-grid">
+                    <div class="audit-info-box">
+                        <div class="box-label">Item Identification</div>
+                        <div class="box-val" id="auditItemCode" style="color:#0284c7;">-</div>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;" id="auditItemName">-</div>
+                    </div>
+                    <div class="audit-info-box">
+                        <div class="box-label">Audit Period</div>
+                        <div class="box-val" id="auditPeriodText">-</div>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Fiscal Scope (July–June)</div>
+                    </div>
+                    <div class="audit-info-box">
+                        <div class="box-label">Data Architecture Layer</div>
+                        <div id="auditLayerBadgeContainer" style="margin-top:4px;">-</div>
+                    </div>
+                    <div class="audit-info-box">
+                        <div class="box-label">Total Verified Qty</div>
+                        <div class="box-val" id="auditTotalQty" style="font-size:1.15rem; color:#059669;">0 Pcs</div>
+                    </div>
+                </div>
+
+                <!-- Origin & Link Traceability -->
+                <div class="audit-info-box" style="background:#f1f5f9; border-left:4px solid #0284c7;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <span style="font-weight:800; color:#0f2942; font-size:0.82rem;">Source of Truth:</span>
+                            <span style="color:#0284c7; font-weight:700; font-size:0.82rem;" id="auditSourceRef">assemble_summary.html ➔ PRODUCTION RECEIVE</span>
+                        </div>
+                        <div>
+                            <span style="font-weight:800; color:#0f2942; font-size:0.82rem;">Linking Rule:</span>
+                            <span style="color:#1e293b; font-size:0.82rem;">Triple-Key Matching [Item Code + Month + Year]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Line-Item Matched Records Table -->
+                <div>
+                    <div style="font-size:0.82rem; font-weight:800; color:#0f2942; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>Matched Source Production Records (<span id="auditRecordCount">0</span>)</span>
+                        <span style="font-size:0.72rem; color:#64748b; font-weight:600;">Multi-Entry Summation Enabled</span>
+                    </div>
+                    <div class="audit-table-wrap">
+                        <table class="audit-breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px; text-align:center;">#</th>
+                                    <th>Source Record ID</th>
+                                    <th>ERP Code</th>
+                                    <th>Source Item Code</th>
+                                    <th>Item Name</th>
+                                    <th style="text-align:right;">Production Receive</th>
+                                    <th>Source Interval / File</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditBreakdownTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Mathematical Formula -->
+                <div class="audit-formula-box" id="auditFormulaText">
+                    Summation Formula: Sum of all valid matching PRODUCTION RECEIVE records in assemble_summary.html for this Item Code, Month, and Year.
+                </div>
+
+                <!-- Snapshot Metadata (if closed) -->
+                <div id="auditSnapshotMetaBox" style="display:none; background:#f0f7ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; font-size:0.78rem; color:#1e3a8a;">
+                    <div style="font-weight:800; margin-bottom:4px;">🔒 Snapshot Audit Record:</div>
+                    <div id="auditSnapshotMetaContent"></div>
+                </div>
+            </div>
+            <div class="audit-modal-footer">
+                <a href="assemble_summary.html" target="_blank" class="btn-corp-sm btn-corp-subtle" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    <span>View in assemble_summary.html</span>
+                </a>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn-corp-sm btn-corp-subtle" onclick="closeCellAuditModal()">Close</button>
+                    <button type="button" class="btn-corp-sm btn-corp-accent" id="auditActionCloseMonthBtn" onclick="triggerCloseMonthFromAudit()">Lock &amp; Archive This Month</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Month Closing & Historical Snapshot Management Modal -->
+    <div class="audit-modal-backdrop" id="monthClosingModal" onclick="if(event.target === this) closeMonthClosingModal()">
+        <div class="audit-modal-card" style="max-width: 960px;">
+            <div class="audit-modal-header" style="background: linear-gradient(135deg, #0f2942 0%, #1e3a8a 100%);">
+                <h3>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <span>Monthly Production Closing &amp; Historical Archive</span>
+                </h3>
+                <button type="button" class="audit-modal-close-btn" onclick="closeMonthClosingModal()" title="Close">&times;</button>
+            </div>
+            <div class="audit-modal-body">
+                <!-- Modal Top Description & Controls -->
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; background:#f8fafc; padding:12px 16px; border-radius:8px; border:1px solid #e2e8f0;">
+                    <div>
+                        <div style="font-size:0.92rem; font-weight:800; color:#0f2942;">Dual-Layer Production Engine Management</div>
+                        <div style="font-size:0.75rem; color:#64748b;">Closed months are permanently frozen in immutable snapshots. Open months compute live from assemble_summary.html.</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:0.78rem; font-weight:700; color:#475569;">Target Fiscal Year:</span>
+                        <select id="modalClosingYearSelect" style="padding:6px 12px; border-radius:6px; border:1.5px solid #cbd5e1; font-weight:800; color:#0284c7; outline:none;" onchange="renderMonthClosingModal()">
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- KPI Summary Badges -->
+                <div class="audit-info-grid">
+                    <div class="audit-info-box">
+                        <div class="box-label">Archived Closed Months</div>
+                        <div class="box-val" id="kpiModalClosedCount" style="color:#1e3a8a;">0 / 12</div>
+                    </div>
+                    <div class="audit-info-box">
+                        <div class="box-label">Live Active Months</div>
+                        <div class="box-val" id="kpiModalLiveCount" style="color:#059669;">0 / 12</div>
+                    </div>
+                    <div class="audit-info-box">
+                        <div class="box-label">Total Archived Production</div>
+                        <div class="box-val" id="kpiModalArchivedQty" style="color:#0284c7;">0 Units</div>
+                    </div>
+                </div>
+
+                <!-- 12-Month Closing & Snapshot Table -->
+                <div class="audit-table-wrap">
+                    <table class="closing-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40px; text-align:center;">#</th>
+                                <th>Fiscal Month</th>
+                                <th>Archive Status</th>
+                                <th>Closing Date &amp; Verifier</th>
+                                <th style="text-align:right;">Total Production</th>
+                                <th style="text-align:center;">Active Items</th>
+                                <th style="text-align:center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="closingModalTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Disaster Recovery & Archive Backup -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <div style="font-weight:800; font-size:0.80rem; color:#0f2942;">Snapshot Archive Backup &amp; Recovery</div>
+                        <div style="font-size:0.72rem; color:#64748b;">Safely export full immutable historical snapshots or restore from JSON backup.</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn-corp-sm btn-corp-subtle" onclick="handleExportSnapshots()" title="Download JSON file of all snapshots">
+                            📥 Export Archive (JSON)
+                        </button>
+                        <button type="button" class="btn-corp-sm btn-corp-subtle" onclick="document.getElementById('importSnapshotInput').click()" title="Restore snapshots from JSON file">
+                            📤 Restore Archive
+                        </button>
+                        <input type="file" id="importSnapshotInput" accept=".json" style="display:none;" onchange="handleRestoreSnapshots(event)">
+                        <button type="button" class="btn-corp-sm btn-corp-subtle" onclick="handleResetFactoryBaseline()" style="color:#b91c1c;" title="Reset snapshots to verified baseline">
+                            🔄 Reset Baseline
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="audit-modal-footer">
+                <div style="font-size:0.75rem; color:#64748b;">
+                    🔐 Audit Guard Active: Only Authorized Supervisors can close and freeze monthly archives.
+                </div>
+                <button type="button" class="btn-corp-sm btn-corp-accent" onclick="closeMonthClosingModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master Database, ERP Engine & Monthly Archive Scripts -->
     <script src="master_database.js"></script>
     <script src="yearly_production_summary_erp_data.js"></script>
+    <script src="assemble_summary_data.js"></script>
+    <script src="fan_assemble_erp_data.js"></script>
+    <script src="erp_engine.js"></script>
+    <script src="monthly_production_archive_engine.js"></script>
     <script>
         const FISCAL_MONTHS = [
             "July", "August", "September", "October", "November", "December",
@@ -1469,9 +2020,26 @@
                 <th class="col-freeze-total">Total</th>
             `;
 
+            const primaryYr = filterState.selectedYears[0] || "2026";
+
             activeMonths.forEach(mIdx => {
                 const mName = FISCAL_MONTHS[mIdx];
-                headersHtml += `<th class="th-month-col">${mName}</th>`;
+                const isClosed = (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined')
+                    ? MONTHLY_ARCHIVE_ENGINE.isMonthClosed(primaryYr, mName)
+                    : false;
+
+                const badgeHtml = isClosed
+                    ? `<span class="month-status-pill closed" onclick="event.stopPropagation(); openMonthClosingModal('${mName}')" title="Historical Snapshot Locked (Click to manage)">🔒 Closed</span>`
+                    : `<span class="month-status-pill live" onclick="event.stopPropagation(); openMonthClosingModal('${mName}')" title="Live Dynamic Link with assemble_summary.html (Click to manage)">🟢 Live</span>`;
+
+                headersHtml += `
+                    <th class="th-month-col" title="${mName} ${primaryYr} - ${isClosed ? 'Historical Snapshot Locked' : 'Live Dynamic Link'}">
+                        <div class="month-header-wrap">
+                            <span class="month-header-name">${mName}</span>
+                            ${badgeHtml}
+                        </div>
+                    </th>
+                `;
             });
 
             theadTr.innerHTML = headersHtml;
@@ -1507,17 +2075,24 @@
                     totalRenderedItems++;
                     // Combine item quantities across selected years if multiple years selected
                     let itemMonthVals = new Array(activeMonths.length).fill(0);
+                    let itemResolvedStates = new Array(activeMonths.length);
                     let itemTotal = 0;
 
                     activeYears.forEach(yr => {
                         const yrCat = RAW_ERP_DATA[yr] ? RAW_ERP_DATA[yr].find(c => c.category === catData.category) : null;
                         const yrItem = yrCat ? yrCat.items.find(i => i.code === item.code) : null;
-                        if (yrItem) {
-                            activeMonths.forEach((mIdx, colIdx) => {
-                                const val = yrItem.months[mIdx] || 0;
-                                itemMonthVals[colIdx] += val;
-                            });
-                        }
+
+                        activeMonths.forEach((mIdx, colIdx) => {
+                            const mName = FISCAL_MONTHS[mIdx];
+                            const fallbackVal = (yrItem && yrItem.months && yrItem.months[mIdx] !== undefined) ? yrItem.months[mIdx] : 0;
+                            
+                            const resolved = (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined')
+                                ? MONTHLY_ARCHIVE_ENGINE.resolveMonthlyItemProduction(yr, mName, item.code, fallbackVal)
+                                : { qty: fallbackVal, isClosed: false, status: 'LIVE' };
+
+                            itemMonthVals[colIdx] += (resolved.qty || 0);
+                            itemResolvedStates[colIdx] = resolved;
+                        });
                     });
 
                     itemTotal = itemMonthVals.reduce((acc, v) => acc + v, 0);
@@ -1526,10 +2101,22 @@
                         catMonthTotals[colIdx] += v;
                     });
 
-                    // Build Month TD cells
-                    const monthTds = itemMonthVals.map(v => {
+                    // Build Month TD cells with interactive click-to-audit
+                    const monthTds = itemMonthVals.map((v, colIdx) => {
                         const isZero = (v === 0);
-                        return `<td class="td-qty-num ${isZero ? 'td-qty-zero' : ''}">${v.toLocaleString('en-US')}</td>`;
+                        const mIdx = activeMonths[colIdx];
+                        const mName = FISCAL_MONTHS[mIdx];
+                        const resState = itemResolvedStates[colIdx];
+                        const isClosed = resState ? resState.isClosed : false;
+
+                        return `
+                            <td class="td-qty-num td-clickable-audit ${isZero ? 'td-qty-zero' : ''}" 
+                                onclick="openCellAuditModal('${primaryYr}', '${mName}', '${escapeJS(item.code)}', '${escapeJS(item.name)}')"
+                                title="Click to view origin, source records, and audit formula (${mName} ${primaryYr})">
+                                ${v.toLocaleString('en-US')}
+                                ${isClosed && !isZero ? '<span class="cell-lock-icon" title="Historical Snapshot Locked">🔒</span>' : ''}
+                            </td>
+                        `;
                     }).join('');
 
                     catItemsHtml += `
@@ -1592,6 +2179,289 @@
             document.getElementById('kpiSelectedMonths').textContent = activeMonths.length;
         }
 
+        // Current Audit State
+        let currentAuditState = {
+            year: "2026",
+            month: "August",
+            code: "",
+            name: ""
+        };
+
+        function openCellAuditModal(year, monthName, itemCode, itemName) {
+            currentAuditState = { year, month: monthName, code: itemCode, name: itemName };
+
+            document.getElementById('auditItemCode').textContent = itemCode;
+            document.getElementById('auditItemName').textContent = itemName;
+            document.getElementById('auditPeriodText').textContent = `${monthName} ${year}`;
+
+            let fallback = 0;
+            const mIdx = FISCAL_MONTHS.indexOf(monthName);
+            if (RAW_ERP_DATA[year]) {
+                for (const cat of RAW_ERP_DATA[year]) {
+                    const it = cat.items.find(i => i.code === itemCode);
+                    if (it && it.months && mIdx !== -1) {
+                        fallback = it.months[mIdx];
+                        break;
+                    }
+                }
+            }
+
+            const resolved = (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined')
+                ? MONTHLY_ARCHIVE_ENGINE.resolveMonthlyItemProduction(year, monthName, itemCode, fallback)
+                : { qty: fallback, isClosed: false, status: 'LIVE', sourceRecords: [] };
+
+            const badgeContainer = document.getElementById('auditLayerBadgeContainer');
+            const closeBtn = document.getElementById('auditActionCloseMonthBtn');
+            const snapBox = document.getElementById('auditSnapshotMetaBox');
+
+            if (resolved.isClosed) {
+                badgeContainer.innerHTML = `<span class="audit-layer-badge closed">🔒 Historical Snapshot (Locked Archive)</span>`;
+                closeBtn.style.display = 'none';
+                snapBox.style.display = 'block';
+                const meta = resolved.snapshotMeta || {};
+                document.getElementById('auditSnapshotMetaContent').innerHTML = `
+                    <div><strong>Snapshot ID:</strong> ${meta.snapshotId || 'N/A'} (v${meta.version || '1.0'})</div>
+                    <div><strong>Closed On:</strong> ${meta.closedDateStr || meta.closedAt || 'N/A'}</div>
+                    <div><strong>Closed By:</strong> ${meta.closedBy || 'Supervisor'}</div>
+                    <div><strong>Status:</strong> Immutable Archive (Future edits in source data cannot alter this)</div>
+                `;
+            } else {
+                badgeContainer.innerHTML = `<span class="audit-layer-badge live">🟢 Live Dynamic Link (Assemble Summary)</span>`;
+                closeBtn.style.display = 'inline-flex';
+                closeBtn.textContent = `Lock & Archive Month (${monthName} ${year})`;
+                snapBox.style.display = 'none';
+            }
+
+            document.getElementById('auditTotalQty').textContent = `${(resolved.qty || 0).toLocaleString('en-US')} Pcs`;
+            document.getElementById('auditRecordCount').textContent = (resolved.sourceRecords || []).length;
+            document.getElementById('auditFormulaText').textContent = resolved.formula || 'Sum of matched records';
+
+            // Populate Breakdown Table
+            const tbody = document.getElementById('auditBreakdownTableBody');
+            if (!resolved.sourceRecords || resolved.sourceRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center; padding:18px; color:#94a3b8; font-style:italic;">
+                            No production receive records found in assemble_summary.html for this item in ${monthName} ${year} (Quantity: 0).
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = resolved.sourceRecords.map((r, idx) => `
+                    <tr>
+                        <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
+                        <td style="font-family:var(--font-mono); font-size:0.75rem; color:#0284c7;">${r.id || '-'}</td>
+                        <td style="font-family:var(--font-mono); font-size:0.75rem;">${r.erpCode || '-'}</td>
+                        <td style="font-weight:700;">${r.code || '-'}</td>
+                        <td>${r.name || itemName}</td>
+                        <td style="text-align:right; font-weight:800; color:#059669; font-family:var(--font-mono);">${(r.qty || 0).toLocaleString('en-US')}</td>
+                        <td style="font-size:0.72rem; color:#64748b;">${r.dateInterval || r.sourceFile || 'assemble_summary.html'}</td>
+                    </tr>
+                `).join('');
+            }
+
+            document.getElementById('linkDetailsModal').classList.add('active');
+        }
+
+        function closeCellAuditModal() {
+            document.getElementById('linkDetailsModal').classList.remove('active');
+        }
+
+        function triggerCloseMonthFromAudit() {
+            if (!currentAuditState.month || !currentAuditState.year) return;
+            closeCellAuditModal();
+            openMonthClosingModal(currentAuditState.month);
+        }
+
+        function openMonthClosingModal(preselectMonth) {
+            const yr = filterState.selectedYears[0] || "2026";
+            document.getElementById('modalClosingYearSelect').value = yr;
+            renderMonthClosingModal();
+            document.getElementById('monthClosingModal').classList.add('active');
+        }
+
+        function closeMonthClosingModal() {
+            document.getElementById('monthClosingModal').classList.remove('active');
+        }
+
+        function renderMonthClosingModal() {
+            const yr = document.getElementById('modalClosingYearSelect').value;
+            const tbody = document.getElementById('closingModalTableBody');
+            let closedCount = 0;
+            let totalArchivedQty = 0;
+
+            const rowsHtml = FISCAL_MONTHS.map((mName, mIdx) => {
+                const isClosed = (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined')
+                    ? MONTHLY_ARCHIVE_ENGINE.isMonthClosed(yr, mName)
+                    : false;
+                const snap = (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined')
+                    ? MONTHLY_ARCHIVE_ENGINE.getSnapshot(yr, mName)
+                    : null;
+
+                if (isClosed) {
+                    closedCount++;
+                    totalArchivedQty += (snap && snap.totalQty ? snap.totalQty : 0);
+                }
+
+                // Compute month production total for display
+                let monthProd = 0;
+                let activeItemsCount = 0;
+                if (isClosed && snap) {
+                    monthProd = snap.totalQty || 0;
+                    activeItemsCount = snap.activeItemsCount || 0;
+                } else {
+                    // Compute live total for open month
+                    if (RAW_ERP_DATA[yr]) {
+                        RAW_ERP_DATA[yr].forEach(cat => {
+                            cat.items.forEach(it => {
+                                const fallbackVal = it.months ? (it.months[mIdx] || 0) : 0;
+                                const res = (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined')
+                                    ? MONTHLY_ARCHIVE_ENGINE.resolveMonthlyItemProduction(yr, mName, it.code, fallbackVal)
+                                    : { qty: fallbackVal };
+                                const q = res.qty || 0;
+                                monthProd += q;
+                                if (q > 0) activeItemsCount++;
+                            });
+                        });
+                    }
+                }
+
+                const statusBadge = isClosed
+                    ? `<span class="month-status-pill closed">🔒 CLOSED</span>`
+                    : `<span class="month-status-pill live">🟢 LIVE (Open)</span>`;
+
+                const verifierInfo = isClosed && snap
+                    ? `<div style="font-size:0.75rem; font-weight:700; color:#0f2942;">${snap.closedDateStr || snap.closedAt}</div>
+                       <div style="font-size:0.70rem; color:#64748b;">By: ${snap.closedBy || 'Supervisor'}</div>`
+                    : `<span style="color:#94a3b8; font-size:0.75rem;">Live Source Sync (Unclosed)</span>`;
+
+                const actionBtns = isClosed
+                    ? `
+                        <button type="button" class="btn-action-inspect" onclick="inspectSnapshotDetail('${yr}', '${mName}')" title="Inspect snapshot details">👁️ View</button>
+                        <button type="button" class="btn-action-reopen" onclick="handleReopenMonthAction('${yr}', '${mName}')" title="Admin Reopen to Live mode">🔓 Reopen</button>
+                      `
+                    : `
+                        <button type="button" class="btn-action-lock" onclick="handleCloseMonthAction('${yr}', '${mName}')" title="Freeze and lock this month in immutable archive">
+                            🔒 Close &amp; Lock Month
+                        </button>
+                      `;
+
+                return `
+                    <tr>
+                        <td style="text-align:center; font-weight:700; color:#64748b;">${mIdx + 1}</td>
+                        <td style="font-weight:800; font-size:0.86rem; color:#0f2942;">${mName} ${yr}</td>
+                        <td>${statusBadge}</td>
+                        <td>${verifierInfo}</td>
+                        <td style="text-align:right; font-weight:800; font-family:var(--font-mono); font-size:0.85rem; color:${isClosed ? '#1e3a8a' : '#059669'};">
+                            ${monthProd.toLocaleString('en-US')} Units
+                        </td>
+                        <td style="text-align:center; font-weight:700;">${activeItemsCount}</td>
+                        <td style="text-align:center;">${actionBtns}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rowsHtml;
+
+            document.getElementById('kpiModalClosedCount').textContent = `${closedCount} / 12`;
+            document.getElementById('kpiModalLiveCount').textContent = `${12 - closedCount} / 12`;
+            document.getElementById('kpiModalArchivedQty').textContent = `${totalArchivedQty.toLocaleString('en-US')} Units`;
+        }
+
+        function handleCloseMonthAction(year, monthName) {
+            const confirmed = confirm(`Are you sure you want to CLOSE & ARCHIVE ${monthName} ${year}?\n\nThis will take an immutable snapshot of all production receive numbers from assemble_summary.html and lock the month permanently.`);
+            if (!confirmed) return;
+
+            if (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined') {
+                const user = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : "Sayful Islam (SENIOR SUPERVISOR)";
+                const res = MONTHLY_ARCHIVE_ENGINE.closeMonth(year, monthName, user, `Closed and locked via ERP Summary Portal`);
+                if (res && res.success) {
+                    renderMonthClosingModal();
+                    renderTable();
+                    showToast(`🔒 ${monthName} ${year} closed and locked in Historical Archive!`);
+                }
+            }
+        }
+
+        function handleReopenMonthAction(year, monthName) {
+            const confirmed = confirm(`ADMIN OVERRIDE: Are you sure you want to REOPEN ${monthName} ${year} back to Live Dynamic mode?\n\nHistorical lock will be removed and live changes in source data will reflect.`);
+            if (!confirmed) return;
+
+            if (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined') {
+                const res = MONTHLY_ARCHIVE_ENGINE.reopenMonth(year, monthName);
+                if (res && res.success) {
+                    renderMonthClosingModal();
+                    renderTable();
+                    showToast(`🔓 ${monthName} ${year} reopened to Live Dynamic mode.`);
+                }
+            }
+        }
+
+        function inspectSnapshotDetail(year, monthName) {
+            if (typeof MONTHLY_ARCHIVE_ENGINE === 'undefined') return;
+            const snap = MONTHLY_ARCHIVE_ENGINE.getSnapshot(year, monthName);
+            if (!snap) {
+                alert("Snapshot details not found.");
+                return;
+            }
+            alert(`🔒 SNAPSHOT AUDIT DETAILS:
+Snapshot ID: ${snap.snapshotId}
+Period: ${snap.month} ${snap.year}
+Status: ${snap.status}
+Closed At: ${snap.closedDateStr || snap.closedAt}
+Closed By: ${snap.closedBy}
+Total Production: ${(snap.totalQty || 0).toLocaleString()} Units
+Active Catalog Items: ${snap.activeItemsCount || 0}
+Source: ${snap.sourceRef}`);
+        }
+
+        function handleExportSnapshots() {
+            if (typeof MONTHLY_ARCHIVE_ENGINE === 'undefined') return;
+            const jsonStr = MONTHLY_ARCHIVE_ENGINE.exportSnapshotsJSON();
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `MEP_Monthly_Production_Snapshots_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("📥 Snapshots archive exported to JSON!");
+        }
+
+        function handleRestoreSnapshots(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                if (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined') {
+                    const res = MONTHLY_ARCHIVE_ENGINE.restoreSnapshotsJSON(content);
+                    if (res && res.success) {
+                        renderMonthClosingModal();
+                        renderTable();
+                        showToast(`✅ Successfully restored ${res.count} monthly snapshots!`);
+                    } else {
+                        alert("Failed to restore snapshots: " + (res.message || "Invalid file format"));
+                    }
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function handleResetFactoryBaseline() {
+            const confirmed = confirm("WARNING: Resetting to Factory Baseline will restore default verified snapshots (July & August 2026, Full 2025) and clear custom closures. Proceed?");
+            if (!confirmed) return;
+
+            if (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined') {
+                MONTHLY_ARCHIVE_ENGINE.resetToFactoryBaseline();
+                renderMonthClosingModal();
+                renderTable();
+                showToast("🔄 Reset to default verified baseline snapshots.");
+            }
+        }
+
         // Export to CSV
         function exportToCSV() {
             const table = document.getElementById('yearlyErpMatrixTable');
@@ -1650,6 +2520,12 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // Helper to safely escape strings inside inline JS
+        function escapeJS(str) {
+            if (!str) return '';
+            return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
         // Initialize Page & Verify Authentication
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof window.validateCurrentSession === 'function') {
@@ -1667,19 +2543,45 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
-            // Real-time synchronization when All Section SFG saves a monthly snapshot
+            // Real-time synchronization when All Section SFG, Assemble Summary or Archive snapshots change
             window.addEventListener('storage', (e) => {
-                if (e.key === 'mep_yearly_erp_production_data' || e.key === 'mep_monthly_sfg_snapshots') {
+                if (e.key === 'mep_yearly_erp_production_data' ||
+                    e.key === 'mep_monthly_production_snapshots' ||
+                    e.key === 'mep_assemble_custom_data' ||
+                    e.key === 'mep_fan_assemble_erp_data' ||
+                    e.key === 'smart_cloud_sync_time') {
                     reloadERPData();
                     renderTable();
-                    showToast("🔄 Yearly ERP Data updated from All Section SFG snapshot!");
+                    showToast("🔄 Data synchronized with latest ERP changes!");
                 }
+            });
+
+            window.addEventListener('mep_monthly_production_snapshot_updated', () => {
+                renderTable();
+                if (document.getElementById('monthClosingModal').classList.contains('active')) {
+                    renderMonthClosingModal();
+                }
+            });
+
+            window.addEventListener('mep_assemble_summary_updated', () => {
+                renderTable();
+                showToast("🟢 Live Assemble Summary update received!");
             });
 
             window.addEventListener('focus', () => {
                 reloadERPData();
                 renderTable();
             });
+
+            // Auto open modal query check for testing or direct navigation
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoOpenAudit') === '1') {
+                setTimeout(() => openCellAuditModal('2026', 'August', 'CF5601/CF5601IV', '56 Inch Premium Ceiling Fan - Ivory'), 300);
+            } else if (urlParams.get('autoOpenLiveAudit') === '1') {
+                setTimeout(() => openCellAuditModal('2026', 'September', 'CF5601/CF5601IV', '56 Inch Premium Ceiling Fan - Ivory'), 300);
+            } else if (urlParams.get('autoOpenClosing') === '1') {
+                setTimeout(() => openMonthClosingModal(), 300);
+            }
         });
     </script>
     <script src="report_sidebar.js"></script>

@@ -60,6 +60,7 @@
             'FG Summary': 'fg_summary.html',
             'BOM': 'bom.html',
             'BOM (Bill of Materials)': 'bom.html',
+            'RM Requirement Summary (BOM)': 'rm_requirement_summary_bom.html',
             'BOM With SFG': 'bom_with_sfg.html',
             'Daily FG Production Entry': 'daily_fg_production_entry.html',
             'Daily Production Received Assemble (All)': 'daily_production_received_assemble.html',

@@ -378,92 +378,190 @@ body.dark-theme .smart-page-title {
     height: 100% !important;
 }
 
+/* ==========================================================================
+   GLOBAL LIVE SYSTEM CLOCK COMPONENT - FIXED WIDTH, ZERO JITTER & TABULAR DIGITS
+   Layout Architecture: [ Date ]   |   [ Live ] [ 07:25:36 PM ]
+   ========================================================================== */
+
 .portal-nav .live-clock-badge,
 .live-clock-badge {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 9px !important;
-    padding: 0 !important;
+    gap: 10px !important;
+    padding: 0 4px !important;
     margin: 0 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     line-height: 1 !important;
-    width: auto !important;
-    min-width: unset !important;
-    max-width: unset !important;
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
     flex-shrink: 0 !important;
     user-select: none !important;
+    box-sizing: border-box !important;
+    contain: layout paint size !important; /* STRICT: Zero layout shift across all pages */
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
 }
 
+/* 1. LIVE Pill Badge (Mark 1) */
+.portal-nav .smart-cloud-status-badge,
+.smart-cloud-status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 3px 8px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    background: #ecfdf5 !important;
+    border: 1.5px solid #a7f3d0 !important;
+    border-radius: 6px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    color: #059669 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    user-select: none !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+.portal-nav .smart-cloud-status-badge .cloud-pulse-dot,
+.smart-cloud-status-badge .cloud-pulse-dot {
+    width: 6px !important;
+    height: 6px !important;
+    min-width: 6px !important;
+    min-height: 6px !important;
+    border-radius: 50% !important;
+    background: #10b981 !important;
+    box-shadow: none !important;
+    animation: none !important;
+    transform: none !important;
+    flex-shrink: 0 !important;
+}
+
+/* 2. Date & Time Container (Mark 2) */
 .portal-nav .live-clock-info,
 .live-clock-info {
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-end !important;
     justify-content: center !important;
-    gap: 2px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    gap: 1.5px !important;
     line-height: 1.15 !important;
-    text-align: right !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
 }
 
+/* Day, Month, Date */
 .portal-nav .live-day-text,
 .live-day-text {
     font-family: 'Times New Roman', Times, 'Playfair Display', serif !important;
-    font-size: 0.86rem !important;
+    font-size: 0.80rem !important;
     font-weight: 700 !important;
-    color: #334e68 !important; /* Soft Pastel Slate-Navy */
-    line-height: 1.15 !important;
+    color: #334e68 !important; /* Soft Slate-Navy */
+    line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
     letter-spacing: 0.1px !important;
     white-space: nowrap !important;
     text-align: right !important;
     display: block !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
 }
 
-.portal-nav .live-time-row,
-.live-time-row {
+/* Live Time (Tabular Monospace Digits) */
+.portal-nav .live-time-text,
+.live-time-text {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    line-height: 1.15 !important;
-    white-space: nowrap !important;
-}
-
-.portal-nav .live-time-text,
-.live-time-text {
+    font-variant-numeric: tabular-nums lining-nums !important;
+    font-feature-settings: "tnum" 1, "lnum" 1 !important;
     font-family: 'Times New Roman', Times, 'Playfair Display', serif !important;
-    font-variant-numeric: tabular-nums !important;
-    font-feature-settings: "tnum" 1, "zero" 1 !important;
-    font-size: 0.98rem !important;
-    font-weight: 700 !important;
-    color: #334e68 !important; /* Soft Pastel Slate-Navy */
-    line-height: 1.15 !important;
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    color: #0f2942 !important; /* Deep Navy */
+    line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
     white-space: nowrap !important;
-    display: inline-block !important;
-    width: 96px !important;
-    min-width: 96px !important;
-    max-width: 96px !important;
-    text-align: left !important;
-    letter-spacing: 0.3px !important;
+    text-align: right !important;
+    letter-spacing: 0.2px !important;
     flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
 }
 
-.portal-nav .live-time-text .t-num-slot,
-.live-time-text .t-num-slot {
+/* Tabular number slot cells for absolute zero-jitter digit rendering */
+.portal-nav .live-time-text .t-digit,
+.live-time-text .t-digit {
     display: inline-block !important;
-    width: 7.8px !important;
+    width: 8.5px !important;
+    min-width: 8.5px !important;
+    max-width: 8.5px !important;
     text-align: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
 }
 
-.portal-nav .live-time-text .t-ampm-slot,
-.live-time-text .t-ampm-slot {
+.portal-nav .live-time-text .t-colon,
+.live-time-text .t-colon {
     display: inline-block !important;
-    margin-left: 2px !important;
+    width: 4px !important;
+    min-width: 4px !important;
+    max-width: 4px !important;
+    text-align: center !important;
+    margin: 0 1px !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+.portal-nav .live-time-text .t-ampm,
+.live-time-text .t-ampm {
+    display: inline-block !important;
+    width: 25px !important;
+    min-width: 25px !important;
+    max-width: 25px !important;
+    text-align: left !important;
+    margin-left: 3px !important;
+    font-size: 0.80rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
 }
 
 [data-theme="dark"] .live-day-text,
@@ -2584,21 +2682,25 @@ header.portal-nav .notif-bell-btn,
 }
 
 /* Hide text permanently from normal view */
-.header-action-group button span,
-.header-actions button span,
-.damage-actions-group button span,
-.btn-action span,
-.btn-plan span {
+.header-action-group button span:not(.erp-tooltip),
+.header-actions button span:not(.erp-tooltip),
+.damage-actions-group button span:not(.erp-tooltip),
+.btn-action span:not(.erp-tooltip),
+.btn-plan span:not(.erp-tooltip) {
     display: none !important;
 }
 
 .header-action-group button:hover,
 .header-actions button:hover,
-.damage-actions-group button:hover,
 .btn-action:hover,
 .btn-plan:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 4px 12px rgba(15, 41, 66, 0.15) !important;
+}
+
+.damage-actions-group button:hover,
+.damage-actions-group .btn-action-icon:hover {
+    transform: none !important;
 }
 
 /* Premium Floating Tooltip Box (Appears on Hover) */
@@ -2981,4 +3083,250 @@ body.portal-view-only #inputQuantity {
     background: #ffffff !important;
     color: #4338ca !important;
     border: 1.2px solid #c7d2fe !important;
+}
+
+/* ==========================================================================
+   UNIVERSAL PAGE LOCK SYSTEM - ROOT-LEVEL EDIT PROTECTION & UI BADGE
+   ========================================================================== */
+
+/* Universal Page Lock Button - Compact Icon-Only Action Button inside Header Action Container */
+.smart-page-lock-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    line-height: 1 !important;
+    position: relative !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+    transform: none !important; /* STRICT: No transform, scale, translate, jump, or jitter */
+}
+
+.smart-page-lock-btn svg {
+    flex-shrink: 0 !important;
+    display: block !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Tooltip on hover */
+.smart-page-lock-btn[data-tooltip] {
+    position: relative !important;
+}
+
+.smart-page-lock-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f2942;
+    color: #ffffff;
+    font-size: 0.74rem;
+    font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 5px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(15, 41, 66, 0.25);
+}
+
+.smart-page-lock-btn[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Locked Theme: Elegant Crimson/Rose Icon Button */
+.smart-page-lock-btn.locked {
+    background: #fef2f2 !important;
+    border: 1.5px solid #fecaca !important;
+    color: #dc2626 !important;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.08) !important;
+}
+
+.smart-page-lock-btn.locked:hover {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15) !important;
+    transform: none !important;
+}
+
+.smart-page-lock-btn.locked svg {
+    color: #dc2626 !important;
+    stroke: #dc2626 !important;
+}
+
+/* Unlocked Theme: Vibrant Emerald Icon Button */
+.smart-page-lock-btn.unlocked {
+    background: #f0fdf4 !important;
+    border: 1.5px solid #bbf7d0 !important;
+    color: #16a34a !important;
+    box-shadow: 0 1px 3px rgba(22, 163, 74, 0.10) !important;
+}
+
+.smart-page-lock-btn.unlocked:hover {
+    background: #dcfce7 !important;
+    border-color: #86efac !important;
+    color: #15803d !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.18) !important;
+    transform: none !important;
+}
+
+.smart-page-lock-btn.unlocked svg {
+    color: #16a34a !important;
+    stroke: #16a34a !important;
+}
+
+/* View-Only Mode Permanent Disabled */
+.smart-page-lock-btn.view-only {
+    background: #f1f5f9 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.8 !important;
+    transform: none !important;
+}
+
+.smart-page-lock-btn.view-only svg {
+    color: #94a3b8 !important;
+    stroke: #94a3b8 !important;
+}
+
+/* Ensure Lock Button is NEVER dimmed when page is locked */
+body.page-locked .smart-page-lock-btn {
+    opacity: 1 !important;
+    filter: none !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* --------------------------------------------------------------------------
+   Deep CSS Edit Protection when body.page-locked is active
+   -------------------------------------------------------------------------- */
+
+/* Block and style editable data inputs/cells */
+body.page-locked .excel-table tbody td input,
+body.page-locked .data-table tbody td input,
+body.page-locked .excel-cell-input,
+body.page-locked .excel-cell-text,
+body.page-locked td input:not(.search-box input):not(#searchInput):not(.filter-date-input):not(#filterDate),
+body.page-locked td select:not(#monthFilter):not(.filter-select):not(.period-select),
+body.page-locked td textarea,
+body.page-locked [contenteditable="true"] {
+    pointer-events: none !important;
+    user-select: none !important;
+    cursor: not-allowed !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-user-modify: read-only !important;
+}
+
+/* Prevent accidental hover styling on locked table cells */
+body.page-locked .excel-cell-input:focus,
+body.page-locked .excel-cell-text:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Visually dim data-modifying action buttons */
+body.page-locked .btn-save,
+body.page-locked .btn-save-plan,
+body.page-locked .btn-add,
+body.page-locked .btn-add-item,
+body.page-locked .btn-action-paste,
+body.page-locked .btn-action-import,
+body.page-locked .btn-del-row,
+body.page-locked .btn-table-del,
+body.page-locked .btn-row-del,
+body.page-locked .btn-action-delete,
+body.page-locked .btn-action-edit,
+body.page-locked .damage-actions-group .btn-action-icon.btn-add,
+body.page-locked .damage-actions-group .btn-action-icon.btn-save,
+body.page-locked .damage-actions-group .btn-action-icon.btn-paste,
+body.page-locked .header-actions button.btn-action-primary,
+body.page-locked .header-actions button.btn-action-paste,
+body.page-locked .header-actions button.btn-action-import {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(0.55) !important;
+    transition: opacity 0.2s ease, filter 0.2s ease !important;
+}
+
+/* Ensure Search, Filters, Paging, and Export/Print are always accessible */
+body.page-locked #searchInput,
+body.page-locked .search-box input,
+body.page-locked #monthFilter,
+body.page-locked .filter-select,
+body.page-locked .period-select,
+body.page-locked .filter-date-input,
+body.page-locked .date-mode-pill,
+body.page-locked .btn-page,
+body.page-locked .btn-action-light,
+body.page-locked .btn-action-link,
+body.page-locked .btn-export,
+body.page-locked .btn-action-export {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/* Page Lock Notification Toast */
+.smart-page-lock-toast {
+    position: fixed !important;
+    top: 68px !important;
+    right: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 18px !important;
+    background: #0f2942 !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 24px rgba(15, 41, 66, 0.25) !important;
+    z-index: 99999 !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    transform: translateY(-12px) !important;
+    transition: opacity 0.25s ease, transform 0.25s ease !important;
+}
+
+.smart-page-lock-toast.show {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+.smart-page-lock-toast.toast-locked {
+    border-left: 4px solid #ef4444 !important;
+}
+
+.smart-page-lock-toast.toast-unlocked {
+    border-left: 4px solid #10b981 !important;
+}
+
+.smart-page-lock-toast.toast-warn {
+    border-left: 4px solid #f59e0b !important;
 }

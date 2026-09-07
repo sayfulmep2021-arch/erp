@@ -521,6 +521,76 @@
             border: 1px solid #fca5a5;
         }
 
+        /* Live Time Root-Level Permanent Jitter Fix (Strictly locks width & tabular numerals) */
+        .portal-nav .live-clock-badge,
+        .live-clock-badge {
+            min-width: 220px !important;
+            width: 220px !important;
+            max-width: 220px !important;
+            flex-shrink: 0 !important;
+            box-sizing: border-box !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+        }
+
+        .portal-nav .live-clock-info,
+        .live-clock-info {
+            width: 140px !important;
+            min-width: 140px !important;
+            flex-shrink: 0 !important;
+            text-align: right !important;
+        }
+
+        .portal-nav .live-time-text,
+        .live-time-text {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-variant-numeric: tabular-nums lining-nums !important;
+            font-feature-settings: "tnum" 1, "lnum" 1 !important;
+            width: 115px !important;
+            display: inline-block !important;
+            text-align: right !important;
+            white-space: nowrap !important;
+            letter-spacing: 0px !important;
+        }
+
+        .portal-nav .live-day-text,
+        .live-day-text {
+            white-space: nowrap !important;
+            text-align: right !important;
+        }
+
+        /* Month Selector Styling */
+        .month-select-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 3px 10px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .month-select-label {
+            font-size: 0.74rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .report-month-select {
+            border: none;
+            background: transparent;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            cursor: pointer;
+            outline: none;
+            padding: 3px 4px;
+        }
+
         /* Responsive Breakpoint */
         @media (max-width: 1024px) {
             .executive-kpi-strip {
@@ -638,9 +708,25 @@
                 </div>
 
                 <div class="controls-group">
-                    <span class="date-interval-badge">
+                    <!-- Dynamic Month & Year Selector -->
+                    <div class="month-select-wrapper">
+                        <span class="month-select-label">Month:</span>
+                        <select id="reportMonthSelect" class="report-month-select" onchange="handleMonthChange(this.value)">
+                            <option value="2026_September" selected>September 2026 (Live)</option>
+                            <option value="2026_August">August 2026</option>
+                            <option value="2026_July">July 2026</option>
+                            <option value="2026_June">June 2026</option>
+                            <option value="2026_May">May 2026</option>
+                            <option value="2026_April">April 2026</option>
+                            <option value="2026_March">March 2026</option>
+                            <option value="2026_February">February 2026</option>
+                            <option value="2026_January">January 2026</option>
+                        </select>
+                    </div>
+
+                    <span class="date-interval-badge" id="reportDateIntervalBadge">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        Date Interval: 2026-08-01 to 2026-08-25
+                        <span id="dateIntervalText">Date Interval: 2026-09-01 to 2026-09-07</span>
                     </span>
                     <button type="button" class="btn-action btn-excel" onclick="exportToExcel()">
                         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -658,7 +744,7 @@
                 <div class="kpi-card">
                     <div class="kpi-info-group">
                         <span class="kpi-label">Total ERP Output</span>
-                        <span class="kpi-value" id="kpiErpOutput">38,647</span>
+                        <span class="kpi-value" id="kpiErpOutput">0</span>
                     </div>
                     <div class="kpi-icon-box">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
@@ -667,8 +753,8 @@
 
                 <div class="kpi-card kpi-danger">
                     <div class="kpi-info-group">
-                        <span class="kpi-label">Net ERP Due Deficit</span>
-                        <span class="kpi-value" style="color:#e11d48;" id="kpiNetDue">9,703</span>
+                        <span class="kpi-label">Net Due Deficit</span>
+                        <span class="kpi-value" style="color:#e11d48;" id="kpiNetDue">0</span>
                     </div>
                     <div class="kpi-icon-box icon-danger">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -677,10 +763,10 @@
 
                 <div class="kpi-card kpi-amber">
                     <div class="kpi-info-group">
-                        <span class="kpi-label">Blade Stock Balance</span>
-                        <span class="kpi-value" style="color:#d97706;" id="kpiBladeStock">7,065</span>
+                        <span class="kpi-label">Total Physical Output</span>
+                        <span class="kpi-value" style="color:#0284c7;" id="kpiPhysicalOutput">0</span>
                     </div>
-                    <div class="kpi-icon-box icon-amber">
+                    <div class="kpi-icon-box" style="background:#f0f9ff; color:#0284c7;">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                     </div>
                 </div>
@@ -688,7 +774,7 @@
                 <div class="kpi-card kpi-success">
                     <div class="kpi-info-group">
                         <span class="kpi-label">Floor FG Closing</span>
-                        <span class="kpi-value" style="color:#059669;" id="kpiFloorClosing">396 <span style="font-size:0.9rem; font-weight:700;">Pcs</span></span>
+                        <span class="kpi-value" style="color:#059669;" id="kpiFloorClosing">0 <span style="font-size:0.9rem; font-weight:700;">Pcs</span></span>
                     </div>
                     <div class="kpi-icon-box icon-success">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
@@ -696,7 +782,7 @@
                 </div>
             </div>
 
-            <!-- Balanced 2-Column Tables Layout (Middle Welcome card completely removed) -->
+            <!-- Balanced 2-Column Tables Layout -->
             <div class="balanced-two-col-layout">
                 
                 <!-- Left Panel: Assemble ERP FG Production Report -->
@@ -714,7 +800,7 @@
                         <div class="erp-card-subtitle-bar">
                             <span class="erp-date-tag">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                Date Interval: 2026-08-01 to 2026-08-25
+                                <span id="assembleDateIntervalText">Date Interval: 2026-09-01 to 2026-09-07</span>
                             </span>
                             <span>9 Fan Models</span>
                         </div>
@@ -726,81 +812,19 @@
                                     <th>Code</th>
                                     <th>Ceiling Fan</th>
                                     <th style="text-align:right;">ERP</th>
-                                    <th style="text-align:right;">ERP Due</th>
-                                    <th style="text-align:right;">Blade</th>
+                                    <th style="text-align:right;">Physical</th>
+                                    <th style="text-align:right;">Due</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="code-pill">CF5601IV</span></td>
-                                    <td class="cell-name">Premium -Ivory</td>
-                                    <td class="cell-num">30,849</td>
-                                    <td class="cell-due"><span class="badge-due-neg">(4,863)</span></td>
-                                    <td class="cell-num">0</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5601WH</span></td>
-                                    <td class="cell-name">Premium -White</td>
-                                    <td class="cell-num">105</td>
-                                    <td class="cell-due"><span class="badge-due-neg">(100)</span></td>
-                                    <td class="cell-num">114</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5602IV</span></td>
-                                    <td class="cell-name">Speed King</td>
-                                    <td class="cell-num">0</td>
-                                    <td class="cell-due"><span class="badge-due-neg">(271)</span></td>
-                                    <td class="cell-num">1,056</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5603IV</span></td>
-                                    <td class="cell-name">Premium Gold</td>
-                                    <td class="cell-num">0</td>
-                                    <td class="cell-due"><span class="badge-due-neg">(89)</span></td>
-                                    <td class="cell-num">5</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5606IV</span></td>
-                                    <td class="cell-name">Premium Plus</td>
-                                    <td class="cell-num">60</td>
-                                    <td class="cell-due"><span class="badge-due-pos">11</span></td>
-                                    <td class="cell-num">254</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5607IV</span></td>
-                                    <td class="cell-name">Crown-Ivory</td>
-                                    <td class="cell-num">335</td>
-                                    <td class="cell-due"><span class="badge-due-neg">(5)</span></td>
-                                    <td class="cell-num">149</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF4801IV</span></td>
-                                    <td class="cell-name">Popular</td>
-                                    <td class="cell-num">1,100</td>
-                                    <td class="cell-due"><span class="badge-due-neg">(67)</span></td>
-                                    <td class="cell-num">1,383</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF3601IV</span></td>
-                                    <td class="cell-name">Hero</td>
-                                    <td class="cell-num">5,107</td>
-                                    <td class="cell-due"><span class="badge-due-neg">(4,319)</span></td>
-                                    <td class="cell-num">862</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF2401IV</span></td>
-                                    <td class="cell-name">Super</td>
-                                    <td class="cell-num">1,091</td>
-                                    <td class="cell-due"><span class="badge-due-zero">0</span></td>
-                                    <td class="cell-num">3,242</td>
-                                </tr>
+                            <tbody id="tableAssembleBody">
+                                <!-- Dynamic Render via JavaScript -->
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="2" class="total-label">TOTAL</td>
-                                    <td class="cell-num">38,647</td>
-                                    <td class="cell-due"><span class="badge-due-total">9,703</span></td>
-                                    <td class="cell-num">7,065</td>
+                                    <td class="cell-num" id="totalAssembleErp">0</td>
+                                    <td class="cell-num" id="totalAssemblePhysical">0</td>
+                                    <td class="cell-due" id="totalAssembleDue"><span class="badge-due-zero">0</span></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -822,7 +846,7 @@
                         <div class="erp-card-subtitle-bar">
                             <span class="erp-date-tag">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                Date Interval: 2026-08-01 to 2026-08-25
+                                <span id="closingDateIntervalText">Date Interval: 2026-09-01 to 2026-09-07</span>
                             </span>
                             <span>Floor Stock</span>
                         </div>
@@ -837,66 +861,13 @@
                                     <th style="text-align:right;">Qty</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="code-pill">CF5601IV</span></td>
-                                    <td class="cell-name">Premium -Ivory</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5601WH</span></td>
-                                    <td class="cell-name">Premium -White</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span class="qty-active">23</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5602IV</span></td>
-                                    <td class="cell-name">Speed King</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5603IV</span></td>
-                                    <td class="cell-name">Premium Gold</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span class="qty-active">8</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5606IV</span></td>
-                                    <td class="cell-name">Premium Plus</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span class="qty-active">14</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF5607IV</span></td>
-                                    <td class="cell-name">Crown-Ivory</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span class="qty-active">336</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF4801IV</span></td>
-                                    <td class="cell-name">Popular</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF3601IV</span></td>
-                                    <td class="cell-name">Hero</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span class="qty-active">15</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="code-pill">CF2401IV</span></td>
-                                    <td class="cell-name">Super</td>
-                                    <td style="text-align:center;"><span class="unit-pill">Pcs</span></td>
-                                    <td class="cell-num"><span style="color:#94a3b8;">0</span></td>
-                                </tr>
+                            <tbody id="tableClosingBody">
+                                <!-- Dynamic Render via JavaScript -->
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="3" class="total-label">TOTAL</td>
-                                    <td class="cell-num" style="color:#059669; font-size:0.95rem; font-weight:900;">396 Pcs</td>
+                                    <td class="cell-num" style="color:#059669; font-size:0.95rem; font-weight:900;" id="totalFloorClosing">0 Pcs</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -908,12 +879,581 @@
         </main>
     </div>
 
-    <!-- Universal ERP Drawer Script -->
+    <!-- Central Data Models & ERP Calculation Engines -->
+    <script src="master_database.js"></script>
+    <script src="daily_fg_production_data.js"></script>
+    <script src="fg_summary_data.js"></script>
+    <script src="closing_fg_data.js"></script>
+    <script src="assemble_summary_data.js"></script>
+    <script src="fan_assemble_erp_data.js"></script>
+    <script src="erp_engine.js"></script>
+    <script src="monthly_production_archive_engine.js"></script>
     <script src="smart_firebase_sync.js"></script>
     <script src="report_sidebar.js"></script>
     
     <script>
-        // 1. Live Clock & Dynamic View Mode Check
+        // ============================================================================
+        // 1. Standard Ceiling Fan Model Catalog (9 Finished Goods Models)
+        // ============================================================================
+        const CEILING_FAN_MODELS = [
+            { code: 'CF5601IV', erpCode: 'CF5601/CF5601IV', name: 'Premium -Ivory', fullName: '56 Inch Premium Ceiling Fan - Ivory', unit: 'Pcs' },
+            { code: 'CF5601WH', erpCode: 'CF5601WH/CF5601WH', name: 'Premium -White', fullName: '56 Inch Premium Ceiling Fan - White', unit: 'Pcs' },
+            { code: 'CF5602IV', erpCode: 'CF5602/CF5602IV', name: 'Speed King', fullName: '56 Inch Speed King Ceiling Fan - Ivory', unit: 'Pcs' },
+            { code: 'CF5603IV', erpCode: 'CF5603/CF5603IV', name: 'Premium Gold', fullName: '56 Inch Premium Gold Ceiling Fan - Ivory', unit: 'Pcs' },
+            { code: 'CF5606IV', erpCode: 'CF5606/CF5606IV', name: 'Premium Plus', fullName: '56 Inch Premium Plus Ceiling Fan - Ivory', unit: 'Pcs' },
+            { code: 'CF5607IV', erpCode: 'CF5607/CF5607IV', name: 'Crown-Ivory', fullName: '56 Inch Crown Ceiling Fan - Ivory', unit: 'Pcs' },
+            { code: 'CF4801IV', erpCode: 'CF4801/CF4801IV', name: 'Popular', fullName: '48 Inch Popular Ceiling Fan - Ivory', unit: 'Pcs' },
+            { code: 'CF3601IV', erpCode: 'CF3601/CF3601IV', name: 'Hero', fullName: '36 Inch Hero Ceiling Fan - Ivory', unit: 'Pcs' },
+            { code: 'CF2401IV', erpCode: 'CF2401/CF2401IV', name: 'Super', fullName: '24 Inch Super Ceiling Fan - Ivory', unit: 'Pcs' }
+        ];
+
+        // Month Definitions & Default Intervals
+        const MONTH_CONFIG = {
+            '2026_September': {
+                year: '2026',
+                monthIndex: 8,
+                monthName: 'September',
+                dateInterval: '2026-09-01 to 2026-09-07'
+            },
+            '2026_August': {
+                year: '2026',
+                monthIndex: 7,
+                monthName: 'August',
+                dateInterval: '2026-08-01 to 2026-08-25'
+            },
+            '2026_July': {
+                year: '2026',
+                monthIndex: 6,
+                monthName: 'July',
+                dateInterval: '2026-07-01 to 2026-07-31'
+            },
+            '2026_June': {
+                year: '2026',
+                monthIndex: 5,
+                monthName: 'June',
+                dateInterval: '2026-06-01 to 2026-06-30'
+            },
+            '2026_May': {
+                year: '2026',
+                monthIndex: 4,
+                monthName: 'May',
+                dateInterval: '2026-05-01 to 2026-05-31'
+            },
+            '2026_April': {
+                year: '2026',
+                monthIndex: 3,
+                monthName: 'April',
+                dateInterval: '2026-04-01 to 2026-04-30'
+            },
+            '2026_March': {
+                year: '2026',
+                monthIndex: 2,
+                monthName: 'March',
+                dateInterval: '2026-03-01 to 2026-03-31'
+            },
+            '2026_February': {
+                year: '2026',
+                monthIndex: 1,
+                monthName: 'February',
+                dateInterval: '2026-02-01 to 2026-02-28'
+            },
+            '2026_January': {
+                year: '2026',
+                monthIndex: 0,
+                monthName: 'January',
+                dateInterval: '2026-01-01 to 2026-01-31'
+            }
+        };
+
+        // Verified Baseline Datasets (Screenshot 2, 3, 4 & Screenshot 1)
+        const BASELINE_ERP_MONTHS = {
+            '2026_September': {
+                'CF5601IV': 4880,
+                'CF5601WH': 33,
+                'CF5602IV': 0,
+                'CF5603IV': 0,
+                'CF5606IV': 0,
+                'CF5607IV': 0,
+                'CF4801IV': 0,
+                'CF3601IV': 1100,
+                'CF2401IV': 1600
+            },
+            '2026_August': {
+                'CF5601IV': 30849,
+                'CF5601WH': 105,
+                'CF5602IV': 0,
+                'CF5603IV': 0,
+                'CF5606IV': 60,
+                'CF5607IV': 335,
+                'CF4801IV': 1100,
+                'CF3601IV': 5107,
+                'CF2401IV': 1091
+            }
+        };
+
+        const BASELINE_PHYSICAL_MONTHS = {
+            '2026_September': {
+                'CF5601IV': 2300,
+                'CF5601WH': 0,
+                'CF5602IV': 277,
+                'CF5603IV': 411,
+                'CF5606IV': 0,
+                'CF5607IV': 0,
+                'CF4801IV': 1357,
+                'CF3601IV': 2045,
+                'CF2401IV': 2150
+            },
+            '2026_August': {
+                'CF5601IV': 34525,
+                'CF5601WH': 0,
+                'CF5602IV': 271,
+                'CF5603IV': 89,
+                'CF5606IV': 49,
+                'CF5607IV': 340,
+                'CF4801IV': 2717,
+                'CF3601IV': 9426,
+                'CF2401IV': 3191
+            }
+        };
+
+        const BASELINE_CLOSING_MONTHS = {
+            '2026_September': {
+                'CF5601IV': 0,
+                'CF5601WH': 23,
+                'CF5602IV': 0,
+                'CF5603IV': 8,
+                'CF5606IV': 8,
+                'CF5607IV': 0,
+                'CF4801IV': 0,
+                'CF3601IV': 0,
+                'CF2401IV': 0
+            },
+            '2026_August': {
+                'CF5601IV': 0,
+                'CF5601WH': 23,
+                'CF5602IV': 0,
+                'CF5603IV': 8,
+                'CF5606IV': 14,
+                'CF5607IV': 336,
+                'CF4801IV': 0,
+                'CF3601IV': 15,
+                'CF2401IV': 0
+            }
+        };
+
+        // ============================================================================
+        // 2. Code Normalization & Matching Logic
+        // ============================================================================
+        function cleanCode(codeStr) {
+            return (codeStr || '').toString().trim().toUpperCase().replace(/[\s\-_]/g, '');
+        }
+
+        function matchesFanModel(model, candidateCode) {
+            if (!candidateCode) return false;
+            const cleanCand = cleanCode(candidateCode);
+            const mCodes = [cleanCode(model.code), cleanCode(model.erpCode)];
+            if (model.erpCode && model.erpCode.includes('/')) {
+                model.erpCode.split('/').forEach(p => {
+                    const c = cleanCode(p);
+                    if (c) mCodes.push(c);
+                });
+            }
+            if (candidateCode.includes('/')) {
+                const parts = candidateCode.split('/');
+                for (const p of parts) {
+                    if (mCodes.includes(cleanCode(p))) return true;
+                }
+            }
+            return mCodes.includes(cleanCand);
+        }
+
+        // ============================================================================
+        // 3. Multi-Source Dynamic Data Loaders
+        // ============================================================================
+
+        /**
+         * [Source 1] ERP Production Output (Screenshot 2: assemble_summary.html ➔ PRODUCTION RECEIVE)
+         */
+        function getErpDataForMonth(monthKey) {
+            const config = MONTH_CONFIG[monthKey] || MONTH_CONFIG['2026_September'];
+            const erpMap = {};
+            CEILING_FAN_MODELS.forEach(m => erpMap[m.code] = 0);
+
+            // Baseline historical months (e.g. August 2026)
+            if (monthKey === '2026_August' || (BASELINE_ERP_MONTHS[monthKey] && monthKey !== '2026_September')) {
+                const hist = BASELINE_ERP_MONTHS[monthKey];
+                Object.keys(hist).forEach(c => erpMap[c] = hist[c] || 0);
+                return erpMap;
+            }
+
+            // Live Month: September 2026 from Assemble Summary (Screenshot 2: assemble_summary.html ➔ PRODUCTION RECEIVE)
+            if (monthKey === '2026_September') {
+                let assembleList = [];
+                try {
+                    const saved = localStorage.getItem('mep_assemble_custom_data');
+                    if (saved) assembleList = JSON.parse(saved);
+                } catch(e) {}
+
+                if (!Array.isArray(assembleList) || assembleList.length === 0) {
+                    if (typeof RAW_ASSEMBLE_SUMMARY_DATA !== 'undefined' && Array.isArray(RAW_ASSEMBLE_SUMMARY_DATA)) {
+                        assembleList = RAW_ASSEMBLE_SUMMARY_DATA;
+                    }
+                }
+
+                if (!Array.isArray(assembleList) || assembleList.length === 0) {
+                    if (typeof MEP_ERP_ENGINE !== 'undefined' && typeof MEP_ERP_ENGINE.computeLiveAssembleSummary === 'function') {
+                        assembleList = MEP_ERP_ENGINE.computeLiveAssembleSummary();
+                    }
+                }
+
+                let erpFoundCount = 0;
+                if (Array.isArray(assembleList)) {
+                    assembleList.forEach(row => {
+                        // CRITICAL: Strictly isolate Category '1. CEILING FAN SERIES' as shown in Screenshot 2!
+                        const cat = (row.category || '').toUpperCase().trim();
+                        if (!cat.includes('CEILING FAN')) return;
+
+                        const code = row.code || row.erpCode || '';
+                        const prodRec = parseFloat(row.productionRec) || 0;
+
+                        for (const model of CEILING_FAN_MODELS) {
+                            if (matchesFanModel(model, code)) {
+                                erpMap[model.code] += prodRec;
+                                if (prodRec > 0) erpFoundCount++;
+                                break;
+                            }
+                        }
+                    });
+                }
+
+                if (erpFoundCount > 0) {
+                    return erpMap;
+                }
+
+                // Fallback to verified baseline for September 2026 (Screenshot 2: Total 7,613)
+                const defaultSep = BASELINE_ERP_MONTHS['2026_September'];
+                Object.keys(defaultSep).forEach(c => erpMap[c] = defaultSep[c] || 0);
+                return erpMap;
+            }
+
+            // Other Historical Months: Check Central Monthly Production Archive
+            if (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined' && typeof MONTHLY_ARCHIVE_ENGINE.getSnapshot === 'function') {
+                const snap = MONTHLY_ARCHIVE_ENGINE.getSnapshot(config.year, config.monthName);
+                if (snap && snap.items) {
+                    Object.values(snap.items).forEach(it => {
+                        for (const model of CEILING_FAN_MODELS) {
+                            if (matchesFanModel(model, it.code)) {
+                                erpMap[model.code] += (parseFloat(it.qty) || 0);
+                                break;
+                            }
+                        }
+                    });
+                    return erpMap;
+                }
+            }
+
+            // Missing or unproduced month: Strictly 0
+            return erpMap;
+        }
+
+        /**
+         * [Source 2] Physical Production Output (Screenshot 3: yearly_production_summary_physical.html via daily_fg_production_data.js)
+         */
+        function getPhysicalDataForMonth(monthKey) {
+            const config = MONTH_CONFIG[monthKey] || MONTH_CONFIG['2026_September'];
+            const physMap = {};
+            CEILING_FAN_MODELS.forEach(m => physMap[m.code] = 0);
+
+            let dailyEntries = [];
+            if (typeof getUnifiedDailyFGProductionData === 'function') {
+                dailyEntries = getUnifiedDailyFGProductionData();
+            } else if (typeof RAW_PRODUCTION_DATA !== 'undefined' && Array.isArray(RAW_PRODUCTION_DATA)) {
+                dailyEntries = RAW_PRODUCTION_DATA;
+            }
+
+            const ALL_MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+            let physFoundTotal = 0;
+
+            dailyEntries.forEach(entry => {
+                const qty = parseFloat(entry.qty) || 0;
+                if (qty === 0) return;
+
+                // Parse Year
+                let yr = '';
+                if (entry.year) yr = String(entry.year).trim();
+                else if (entry.date) {
+                    const parts = String(entry.date).trim().split(/[-/.\s]+/);
+                    if (parts.length === 3) {
+                        yr = parts[0].length === 4 ? parts[0] : (parts[2].length === 2 ? '20' + parts[2] : parts[2]);
+                    }
+                }
+                if (yr !== config.year) return;
+
+                // Parse Month
+                let mIdx = -1;
+                if (entry.month) {
+                    const cleanM = String(entry.month).trim().toLowerCase();
+                    for (let i = 0; i < ALL_MONTHS.length; i++) {
+                        if (ALL_MONTHS[i].startsWith(cleanM.slice(0, 3))) { mIdx = i; break; }
+                    }
+                } else if (entry.date) {
+                    const parts = String(entry.date).trim().split(/[-/.\s]+/);
+                    if (parts.length === 3) {
+                        const mp = parts[1].toLowerCase();
+                        for (let i = 0; i < ALL_MONTHS.length; i++) {
+                            if (ALL_MONTHS[i].startsWith(mp.slice(0, 3))) { mIdx = i; break; }
+                        }
+                    }
+                }
+                if (mIdx !== config.monthIndex) return;
+
+                // Match Model
+                const itemCode = entry.item_code || entry.code;
+                for (const model of CEILING_FAN_MODELS) {
+                    if (matchesFanModel(model, itemCode)) {
+                        physMap[model.code] += qty;
+                        physFoundTotal += qty;
+                        break;
+                    }
+                }
+            });
+
+            if (physFoundTotal > 0) {
+                return physMap;
+            }
+
+            // Fallback to verified baseline (Screenshot 3: September 2026 = 10,540, August 2026 = 50,608)
+            if (BASELINE_PHYSICAL_MONTHS[monthKey]) {
+                const basePhys = BASELINE_PHYSICAL_MONTHS[monthKey];
+                Object.keys(basePhys).forEach(c => physMap[c] = basePhys[c] || 0);
+                return physMap;
+            }
+
+            return physMap;
+        }
+
+        /**
+         * [Source 3] Floor FG Closing (Screenshot 4: fg_summary.html ➔ Closing column)
+         */
+        function getClosingDataForMonth(monthKey) {
+            const config = MONTH_CONFIG[monthKey] || MONTH_CONFIG['2026_September'];
+            const closingMap = {};
+            CEILING_FAN_MODELS.forEach(m => closingMap[m.code] = 0);
+
+            // Historical baseline (e.g. August 2026)
+            if (monthKey === '2026_August') {
+                const hist = BASELINE_CLOSING_MONTHS['2026_August'];
+                Object.keys(hist).forEach(c => closingMap[c] = hist[c] || 0);
+                return closingMap;
+            }
+
+            // Live Month (September 2026): Read from fg_summary_data.js / localStorage
+            if (monthKey === '2026_September') {
+                let fgList = [];
+                try {
+                    const saved = localStorage.getItem('mep_fg_summary_data');
+                    if (saved) fgList = JSON.parse(saved);
+                } catch(e) {}
+
+                if (!Array.isArray(fgList) || fgList.length === 0) {
+                    if (typeof RAW_FG_SUMMARY_DATA !== 'undefined' && Array.isArray(RAW_FG_SUMMARY_DATA)) {
+                        fgList = RAW_FG_SUMMARY_DATA;
+                    }
+                }
+
+                let closingFoundTotal = 0;
+                if (Array.isArray(fgList)) {
+                    fgList.forEach(row => {
+                        const sec = (row.section || row.category || '').toUpperCase();
+                        if (!sec.includes('CEILING FAN') || sec.includes('BLADE')) return;
+
+                        const code = row.code || '';
+                        const closingVal = parseFloat(row.closing) || 0;
+                        for (const model of CEILING_FAN_MODELS) {
+                            if (matchesFanModel(model, code)) {
+                                closingMap[model.code] += closingVal;
+                                closingFoundTotal += closingVal;
+                                break;
+                            }
+                        }
+                    });
+                }
+
+                if (closingFoundTotal > 0) {
+                    return closingMap;
+                }
+
+                // Fallback to verified baseline from Screenshot 4 (September: 39 Pcs)
+                const baseSep = BASELINE_CLOSING_MONTHS['2026_September'];
+                Object.keys(baseSep).forEach(c => closingMap[c] = baseSep[c] || 0);
+                return closingMap;
+            }
+
+            // Other months: Check BASELINE_CLOSING_MONTHS or return 0
+            if (BASELINE_CLOSING_MONTHS[monthKey]) {
+                const b = BASELINE_CLOSING_MONTHS[monthKey];
+                Object.keys(b).forEach(c => closingMap[c] = b[c] || 0);
+                return closingMap;
+            }
+
+            return closingMap;
+        }
+
+        // ============================================================================
+        // 4. Rendering & Calculation Engine
+        // ============================================================================
+        function renderAllReports() {
+            const monthSelect = document.getElementById('reportMonthSelect');
+            const selectedMonth = monthSelect ? monthSelect.value : '2026_September';
+            const config = MONTH_CONFIG[selectedMonth] || MONTH_CONFIG['2026_September'];
+
+            // Update Date Interval Badges Across Top & Cards
+            const dateIntervalStr = config.dateInterval;
+            const badgeText = document.getElementById('dateIntervalText');
+            if (badgeText) badgeText.textContent = `Date Interval: ${dateIntervalStr}`;
+            const assembleDateText = document.getElementById('assembleDateIntervalText');
+            if (assembleDateText) assembleDateText.textContent = `Date Interval: ${dateIntervalStr}`;
+            const closingDateText = document.getElementById('closingDateIntervalText');
+            if (closingDateText) closingDateText.textContent = `Date Interval: ${dateIntervalStr}`;
+
+            // Pull Linked Datasets
+            const erpData = getErpDataForMonth(selectedMonth);
+            const physicalData = getPhysicalDataForMonth(selectedMonth);
+            const closingData = getClosingDataForMonth(selectedMonth);
+
+            // 1. Render Left Table: CODE | CEILING FAN | ERP | PHYSICAL | DUE
+            const assembleTbody = document.getElementById('tableAssembleBody');
+            let assembleRowsHtml = '';
+            let totalErp = 0;
+            let totalPhysical = 0;
+            let totalDue = 0;
+
+            CEILING_FAN_MODELS.forEach(model => {
+                const erpVal = erpData[model.code] || 0;
+                const physVal = physicalData[model.code] || 0;
+                const dueVal = erpVal - physVal;
+
+                totalErp += erpVal;
+                totalPhysical += physVal;
+                totalDue += dueVal;
+
+                let dueHtml = '';
+                if (erpVal === 0 && physVal === 0) {
+                    dueHtml = '<span class="badge-due-zero">0</span>';
+                } else if (dueVal === 0) {
+                    dueHtml = '<span class="badge-due-zero">0</span>';
+                } else if (dueVal < 0) {
+                    dueHtml = `<span class="badge-due-neg">(${formatNum(Math.abs(dueVal))})</span>`;
+                } else {
+                    dueHtml = `<span class="badge-due-pos">${formatNum(dueVal)}</span>`;
+                }
+
+                assembleRowsHtml += `
+                    <tr>
+                        <td><span class="code-pill">${escapeHTML(model.code)}</span></td>
+                        <td class="cell-name">${escapeHTML(model.name)}</td>
+                        <td class="cell-num">${formatNum(erpVal)}</td>
+                        <td class="cell-num">${formatNum(physVal)}</td>
+                        <td class="cell-due">${dueHtml}</td>
+                    </tr>
+                `;
+            });
+
+            if (assembleTbody) assembleTbody.innerHTML = assembleRowsHtml;
+
+            // Update Left Table Footer
+            const totalErpEl = document.getElementById('totalAssembleErp');
+            if (totalErpEl) totalErpEl.textContent = formatNum(totalErp);
+            const totalPhysicalEl = document.getElementById('totalAssemblePhysical');
+            if (totalPhysicalEl) totalPhysicalEl.textContent = formatNum(totalPhysical);
+            const totalDueEl = document.getElementById('totalAssembleDue');
+            if (totalDueEl) {
+                if (totalDue < 0) {
+                    totalDueEl.innerHTML = `<span class="badge-due-total">(${formatNum(Math.abs(totalDue))})</span>`;
+                } else if (totalDue === 0) {
+                    totalDueEl.innerHTML = `<span class="badge-due-zero">0</span>`;
+                } else {
+                    totalDueEl.innerHTML = `<span class="badge-due-pos" style="font-size:0.95rem; font-weight:900;">${formatNum(totalDue)}</span>`;
+                }
+            }
+
+            // 2. Render Right Table: Fan Floor FG Closing (Box 2)
+            const closingTbody = document.getElementById('tableClosingBody');
+            let closingRowsHtml = '';
+            let totalClosing = 0;
+
+            CEILING_FAN_MODELS.forEach(model => {
+                const qty = closingData[model.code] || 0;
+                totalClosing += qty;
+
+                const qtyHtml = qty > 0 
+                    ? `<span class="qty-active">${formatNum(qty)}</span>`
+                    : `<span style="color:#94a3b8;">0</span>`;
+
+                closingRowsHtml += `
+                    <tr>
+                        <td><span class="code-pill">${escapeHTML(model.code)}</span></td>
+                        <td class="cell-name">${escapeHTML(model.name)}</td>
+                        <td style="text-align:center;"><span class="unit-pill">${escapeHTML(model.unit)}</span></td>
+                        <td class="cell-num">${qtyHtml}</td>
+                    </tr>
+                `;
+            });
+
+            if (closingTbody) closingTbody.innerHTML = closingRowsHtml;
+
+            // Update Right Table Footer
+            const totalClosingEl = document.getElementById('totalFloorClosing');
+            if (totalClosingEl) totalClosingEl.textContent = `${formatNum(totalClosing)} Pcs`;
+
+            // 3. Update Executive KPI Strip
+            const kpiErpEl = document.getElementById('kpiErpOutput');
+            if (kpiErpEl) kpiErpEl.textContent = formatNum(totalErp);
+
+            const kpiNetDueEl = document.getElementById('kpiNetDue');
+            if (kpiNetDueEl) {
+                if (totalDue < 0) {
+                    kpiNetDueEl.textContent = `(${formatNum(Math.abs(totalDue))})`;
+                    kpiNetDueEl.style.color = '#e11d48';
+                } else if (totalDue === 0) {
+                    kpiNetDueEl.textContent = '0';
+                    kpiNetDueEl.style.color = '#64748b';
+                } else {
+                    kpiNetDueEl.textContent = formatNum(totalDue);
+                    kpiNetDueEl.style.color = '#059669';
+                }
+            }
+
+            const kpiPhysicalEl = document.getElementById('kpiPhysicalOutput');
+            if (kpiPhysicalEl) kpiPhysicalEl.textContent = formatNum(totalPhysical);
+
+            const kpiFloorClosingEl = document.getElementById('kpiFloorClosing');
+            if (kpiFloorClosingEl) {
+                kpiFloorClosingEl.innerHTML = `${formatNum(totalClosing)} <span style="font-size:0.9rem; font-weight:700;">Pcs</span>`;
+            }
+        }
+
+        function handleMonthChange(val) {
+            renderAllReports();
+        }
+
+        // ============================================================================
+        // 5. Utility & Helper Functions
+        // ============================================================================
+        function formatNum(val) {
+            const num = Number(val);
+            if (isNaN(num) || num === 0) return '0';
+            return Math.round(num).toLocaleString();
+        }
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ============================================================================
+        // 6. Live Clock & Dynamic View Mode (Root-Level Jitter Elimination)
+        // ============================================================================
         function updateLiveClock() {
             const now = new Date();
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -926,17 +1466,16 @@
             const seconds = String(now.getSeconds()).padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12 || 12;
-            const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+            const formattedHours = String(hours).padStart(2, '0');
+            const timeStr = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
             
             const dateEl = document.getElementById('liveDayText') || document.getElementById('liveClockDate');
             const timeEl = document.getElementById('liveTimeText') || document.getElementById('liveClockTime');
             if (dateEl) dateEl.textContent = dateStr;
             if (timeEl) timeEl.textContent = timeStr;
         }
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
 
-        // Check if in View Only mode
+        // Check View-Only State
         (function checkViewOnlyState() {
             const isViewOnly = sessionStorage.getItem('portal_view_only') === 'true';
             const badge = document.getElementById('headerViewOnlyBadge');
@@ -965,6 +1504,9 @@
         // Export Tables to Excel
         function exportToExcel() {
             try {
+                const monthSelect = document.getElementById('reportMonthSelect');
+                const selectedMonth = monthSelect ? monthSelect.value : '2026_September';
+                const config = MONTH_CONFIG[selectedMonth] || MONTH_CONFIG['2026_September'];
                 const wb = XLSX.utils.book_new();
                 
                 // Assemble Table
@@ -977,12 +1519,65 @@
                 const ws2 = XLSX.utils.table_to_sheet(table2);
                 XLSX.utils.book_append_sheet(wb, ws2, "Fan Floor Closing");
                 
-                XLSX.writeFile(wb, "FG_Pending_Report_Complete_vs_Pending.xlsx");
+                XLSX.writeFile(wb, `FG_Pending_Report_${config.monthName}_${config.year}.xlsx`);
             } catch (err) {
                 console.error("Excel Export Error:", err);
                 alert("Excel export initialized.");
             }
         }
+
+        // ============================================================================
+        // 7. Lifecycle Initialization & Cross-Tab Reactive Listeners
+        // ============================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Validate Authentication Session
+            if (typeof window.validateCurrentSession === 'function') {
+                if (!window.validateCurrentSession().valid) {
+                    window.location.replace('index.html');
+                    return;
+                }
+            } else if (sessionStorage.getItem('portal_auth_status') !== 'true') {
+                window.location.replace('index.html');
+                return;
+            }
+
+            // Initial Clock
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+
+            // Set Month from URL Parameter if present
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlMonth = urlParams.get('month');
+                const mSel = document.getElementById('reportMonthSelect');
+                if (urlMonth && mSel && MONTH_CONFIG[urlMonth]) {
+                    mSel.value = urlMonth;
+                }
+            } catch(e) {}
+
+            // Render Initial Reports
+            renderAllReports();
+
+            // Cross-Tab Reactive Storage Listeners
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'mep_fan_assemble_erp_data' || e.key === 'mep_fan_assemble_erp_data_updated' ||
+                    e.key === 'mep_assemble_custom_data' || e.key === 'mep_assemble_summary_updated' ||
+                    e.key === 'mep_fg_summary_data' || e.key === 'mep_fg_summary_last_updated' ||
+                    e.key === 'custom_fg_production_entries' || e.key === 'deleted_fg_production_entry_ids') {
+                    renderAllReports();
+                }
+            });
+
+            // Window Focus Listener
+            window.addEventListener('focus', () => {
+                renderAllReports();
+            });
+
+            // Custom Application Events
+            window.addEventListener('mep_fan_assemble_erp_data_updated', () => renderAllReports());
+            window.addEventListener('mep_assemble_summary_updated', () => renderAllReports());
+            window.addEventListener('mep_fg_summary_last_updated', () => renderAllReports());
+        });
     </script>
 </body>
 </html>

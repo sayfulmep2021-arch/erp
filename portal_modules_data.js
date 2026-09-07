@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MEP Portal - Central Report Modules Master Data
  * Auto-extracted from index.html during Phase 2 modularization
  */
@@ -15,7 +15,8 @@
                     { title: 'Assemble Summary', url: 'assemble_summary.html' },
                     { title: 'Armature Summary', url: 'armature_summary.html' },
                     { title: 'FG Summary', url: 'fg_summary.html' },
-                    { title: 'BOM', url: 'bom.html' }
+                    { title: 'BOM', url: 'bom.html' },
+                    { title: 'RM Requirement Summary (BOM)', url: 'rm_requirement_summary_bom.html' }
                 ]
             },
             'mod-02': {

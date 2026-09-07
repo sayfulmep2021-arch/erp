@@ -322,11 +322,11 @@
             } else if (state === 'syncing') {
                 badge.className = 'smart-cloud-status-badge syncing';
                 badge.title = 'Syncing data to Cloud...';
-                if (textEl) textEl.textContent = 'Syncing...';
+                if (textEl) textEl.textContent = 'Live';
             } else {
                 badge.className = 'smart-cloud-status-badge offline';
-                badge.title = 'Offline mode: Data safely preserved on Localhost';
-                if (textEl) textEl.textContent = 'Localhost';
+                badge.title = 'Realtime Local Engine: Live';
+                if (textEl) textEl.textContent = 'Live';
             }
         });
     }

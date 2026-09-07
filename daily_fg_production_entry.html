@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Global Permanent Authentication Guard -->
@@ -818,6 +818,32 @@
             color: #64748b;
         }
 
+        .btn-table-action {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .btn-table-action:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+        }
+
+        .btn-table-action.btn-delete:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
         /* Sticky Footer Total Row */
         .data-table tfoot {
             position: sticky;
@@ -1373,6 +1399,7 @@
                             <th class="th-right">Prd. Qty</th>
                             <th>Month</th>
                             <th class="th-center">Year</th>
+                            <th class="th-center" style="width: 80px;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -1382,7 +1409,7 @@
                         <tr>
                             <td colspan="5" style="text-align: right; letter-spacing: 0.5px;">TOTAL FILTERED QUANTITY:</td>
                             <td style="text-align: right;"><span class="total-qty-badge" id="footerTotalQty">0</span></td>
-                            <td colspan="2" id="footerSummaryNote" style="font-size: 0.8rem; opacity: 0.85;">Total Sum</td>
+                            <td colspan="3" id="footerSummaryNote" style="font-size: 0.8rem; opacity: 0.85;">Total Sum</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -1534,6 +1561,66 @@
                 <button type="button" class="btn-reset-filter" onclick="closePasteModal()">Cancel</button>
                 <button type="button" class="btn-action-import" onclick="processBulkPaste()">⚡ Process &amp; Import All</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Edit Production Entry -->
+    <div class="modal-backdrop" id="editEntryModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">✏️ Edit Production Entry</div>
+                <button type="button" class="btn-modal-close" onclick="closeEditEntryModal()">&times;</button>
+            </div>
+            <form id="editEntryForm" onsubmit="handleSaveEditedEntry(event)">
+                <input type="hidden" id="editEntryIndex">
+                <div class="modal-body">
+                    <div class="form-field">
+                        <label for="editItemCode">Item Code *</label>
+                        <input type="text" id="editItemCode" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="editItemName">FG Item Name *</label>
+                        <input type="text" id="editItemName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="editDate">Date (e.g. 4-Sep-26) *</label>
+                            <input type="text" id="editDate" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="editQty">Production Qty *</label>
+                            <input type="number" id="editQty" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="editMonth">Month *</label>
+                            <select id="editMonth" required>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="editYear">Year *</label>
+                            <input type="text" id="editYear" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-reset-filter" onclick="closeEditEntryModal()">Cancel</button>
+                    <button type="submit" class="btn-action-primary">Update Entry</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1753,7 +1840,7 @@
         function sortProductionData() {
             allProductionData.forEach((item, idx) => {
                 if (item._entryIndex === undefined) {
-                    item._entryIndex = idx;
+                    item._entryIndex = 'gen_' + idx;
                 }
             });
 
@@ -1777,7 +1864,7 @@
                 }
 
                 // Priority 3 sub-rule: Newest entry first
-                return (b._entryIndex || 0) - (a._entryIndex || 0);
+                return String(b._entryIndex || '').localeCompare(String(a._entryIndex || ''));
             });
         }
 
@@ -1810,21 +1897,20 @@
         }
 
         function loadInitialData() {
-            if (typeof RAW_PRODUCTION_DATA !== 'undefined' && Array.isArray(RAW_PRODUCTION_DATA)) {
-                allProductionData = [...RAW_PRODUCTION_DATA];
+            if (typeof getUnifiedDailyFGProductionData === 'function') {
+                allProductionData = getUnifiedDailyFGProductionData();
             } else {
-                allProductionData = [];
-            }
-
-            const customSaved = localStorage.getItem('custom_fg_production_entries');
-            if (customSaved) {
-                try {
-                    const parsed = JSON.parse(customSaved);
-                    if (Array.isArray(parsed)) {
-                        allProductionData = [...parsed, ...allProductionData];
+                allProductionData = (typeof RAW_PRODUCTION_DATA !== 'undefined' && Array.isArray(RAW_PRODUCTION_DATA)) ? [...RAW_PRODUCTION_DATA] : [];
+                const customSaved = localStorage.getItem('custom_fg_production_entries');
+                if (customSaved) {
+                    try {
+                        const parsed = JSON.parse(customSaved);
+                        if (Array.isArray(parsed)) {
+                            allProductionData = [...parsed, ...allProductionData];
+                        }
+                    } catch(e) {
+                        console.error("Failed to parse custom entries:", e);
                     }
-                } catch(e) {
-                    console.error("Failed to parse custom entries:", e);
                 }
             }
 
@@ -1920,7 +2006,7 @@
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8; font-weight: 600;">
+                        <td colspan="9" style="text-align: center; padding: 40px; color: #94a3b8; font-weight: 600;">
                             No production entries match the selected filters.
                         </td>
                     </tr>
@@ -1946,6 +2032,7 @@
                 const serial = startIndex + idx + 1;
                 const qtyVal = Number(row.qty) || 0;
                 const qtyClass = qtyVal === 0 ? 'qty-badge zero' : 'qty-badge';
+                const safeEntryIndex = JSON.stringify(String(row._entryIndex));
 
                 tr.innerHTML = `
                     <td class="cell-serial">${serial}</td>
@@ -1956,6 +2043,10 @@
                     <td><span class="${qtyClass}">${qtyVal.toLocaleString()}</span></td>
                     <td><span class="month-pill">${escapeHTML(row.month || '')}</span></td>
                     <td class="cell-serial"><span class="year-tag">${escapeHTML(String(row.year || ''))}</span></td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <button type="button" class="btn-table-action" onclick='openEditEntryModal(${safeEntryIndex})' title="Edit Entry">✏️</button>
+                        <button type="button" class="btn-table-action btn-delete" onclick='deleteEntry(${safeEntryIndex})' title="Delete Entry">🗑️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2107,7 +2198,7 @@
             };
 
             // Save to state with current timestamp as _entryIndex so latest entry has top priority
-            newRecord._entryIndex = Date.now();
+            newRecord._entryIndex = 'cust_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
             allProductionData.unshift(newRecord);
             sortProductionData();
 
@@ -2115,14 +2206,15 @@
             const existingSaved = JSON.parse(localStorage.getItem('custom_fg_production_entries') || '[]');
             existingSaved.unshift(newRecord);
             localStorage.setItem('custom_fg_production_entries', JSON.stringify(existingSaved));
+            notifySync();
 
             if (typeof window.logSystemChange === 'function') {
                 window.logSystemChange({
                     page: "Daily FG Production Entry",
                     module: "Daily Check Report",
                     type: "নতুন Data Added",
-                    title: `New Production Record: ${itemCode} (${prdQty} Pcs)`,
-                    description: `Added ${itemName} with Quantity ${prdQty} for date ${dateStr}.`,
+                    title: `New Production Record: ${itemCode} (${qty} Pcs)`,
+                    description: `Added ${itemName} with Quantity ${qty} for date ${date}.`,
                     timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                 });
             }
@@ -2195,7 +2287,7 @@
                         qty: qty,
                         month: month,
                         year: year,
-                        _entryIndex: Date.now() + lineIdx
+                        _entryIndex: 'cust_' + (Date.now() + lineIdx) + '_' + Math.random().toString(36).substr(2, 5)
                     });
                     importedCount++;
                 }
@@ -2214,6 +2306,7 @@
             const existingSaved = JSON.parse(localStorage.getItem('custom_fg_production_entries') || '[]');
             const updatedSaved = [...newEntries, ...existingSaved];
             localStorage.setItem('custom_fg_production_entries', JSON.stringify(updatedSaved));
+            notifySync();
 
             if (typeof window.logSystemChange === 'function') {
                 window.logSystemChange({
@@ -2271,8 +2364,6 @@
                   xmlns:x="urn:schemas-microsoft-com:office:excel"
                   xmlns="http://www.w3.org/TR/REC-html40">
             <head>
-    <!-- Global Permanent Authentication Guard -->
-    <script src="portal_guard.js"></script>
                 <meta http-equiv="Content-Type" content="application/vnd.ms-excel; charset=UTF-8">
                 <!--[if gte mso 9]>
                 <xml>
@@ -2518,11 +2609,190 @@
                 .replace(/"/g, '&quot;');
         }
 
+        // Broadcast Data Change for Live Sync across tabs and reports
+        function notifySync() {
+            try {
+                localStorage.setItem('fg_production_last_updated', String(Date.now()));
+            } catch(e) {}
+            window.dispatchEvent(new CustomEvent('smart_cloud_sync', {
+                detail: { key: 'custom_fg_production_entries', timestamp: Date.now() }
+            }));
+        }
+
+        // Action Handlers: Edit Entry
+        function openEditEntryModal(entryIndex) {
+            const strId = String(entryIndex);
+            const entry = allProductionData.find(r => String(r._entryIndex) === strId);
+            if (!entry) {
+                alert("Production entry record not found.");
+                return;
+            }
+
+            document.getElementById('editEntryIndex').value = strId;
+            document.getElementById('editItemCode').value = entry.item_code || '';
+            document.getElementById('editItemName').value = entry.item_name || '';
+            document.getElementById('editDate').value = entry.date || '';
+            document.getElementById('editQty').value = entry.qty !== undefined ? entry.qty : '';
+
+            const mSel = document.getElementById('editMonth');
+            if (entry.month) {
+                for (let i = 0; i < mSel.options.length; i++) {
+                    if (mSel.options[i].value.toLowerCase() === String(entry.month).toLowerCase()) {
+                        mSel.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            document.getElementById('editYear').value = entry.year || '';
+
+            document.getElementById('editEntryModal').classList.add('active');
+        }
+
+        function closeEditEntryModal() {
+            document.getElementById('editEntryModal').classList.remove('active');
+        }
+
+        function handleSaveEditedEntry(event) {
+            event.preventDefault();
+            const entryIndex = document.getElementById('editEntryIndex').value;
+            const itemCode = document.getElementById('editItemCode').value.trim();
+            const itemName = document.getElementById('editItemName').value.trim();
+            const date = document.getElementById('editDate').value.trim();
+            const qty = parseInt(document.getElementById('editQty').value, 10) || 0;
+            const month = document.getElementById('editMonth').value;
+            const year = document.getElementById('editYear').value.trim();
+
+            if (!itemCode || !itemName) {
+                alert("Please fill in both Item Code and FG Item Name.");
+                return;
+            }
+
+            const strId = String(entryIndex);
+            const target = allProductionData.find(r => String(r._entryIndex) === strId);
+            if (!target) {
+                alert("Original record not found.");
+                return;
+            }
+
+            // Update record fields
+            const newCode = `${itemCode}${date.replace(/[^a-zA-Z0-9]/g, '')}`;
+            target.code = newCode;
+            target.item_code = itemCode;
+            target.item_name = itemName;
+            target.date = date;
+            target.qty = qty;
+            target.month = month;
+            target.year = year;
+
+            // Persist to custom_fg_production_entries in localStorage
+            let customEntries = [];
+            try {
+                customEntries = JSON.parse(localStorage.getItem('custom_fg_production_entries') || '[]');
+            } catch(e) {}
+
+            const existingIdx = customEntries.findIndex(r => String(r._entryIndex) === strId);
+            if (existingIdx !== -1) {
+                customEntries[existingIdx] = { ...target };
+            } else {
+                // Was originally a static raw record: record in deleted_fg_production_entry_ids and add modified version to customEntries
+                let deletedIds = [];
+                try {
+                    deletedIds = JSON.parse(localStorage.getItem('deleted_fg_production_entry_ids') || '[]');
+                } catch(e) {}
+                if (!deletedIds.includes(strId)) {
+                    deletedIds.push(strId);
+                    localStorage.setItem('deleted_fg_production_entry_ids', JSON.stringify(deletedIds));
+                }
+                customEntries.unshift({ ...target });
+            }
+            localStorage.setItem('custom_fg_production_entries', JSON.stringify(customEntries));
+
+            if (typeof window.logSystemChange === 'function') {
+                window.logSystemChange({
+                    page: "Daily FG Production Entry",
+                    module: "Daily Check Report",
+                    type: "Data Edited",
+                    title: `Updated Production Record: ${itemCode} (${qty} Pcs)`,
+                    description: `Updated ${itemName} with Quantity ${qty} for date ${date}.`,
+                    timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                });
+            }
+
+            // Notify cross-tab and cloud listeners
+            notifySync();
+
+            closeEditEntryModal();
+            sortProductionData();
+            buildMonthFilterOptions();
+            applyFilters();
+            showToast(`✅ Updated ${itemName} (${qty} Pcs) successfully!`);
+        }
+
+        // Action Handlers: Delete Entry
+        function deleteEntry(entryIndex) {
+            if (!confirm("Are you sure you want to delete this production entry?")) {
+                return;
+            }
+
+            const strId = String(entryIndex);
+
+            // 1. Remove from custom_fg_production_entries if present
+            let customEntries = [];
+            try {
+                customEntries = JSON.parse(localStorage.getItem('custom_fg_production_entries') || '[]');
+            } catch(e) {}
+
+            const remainingCustom = customEntries.filter(r => String(r._entryIndex) !== strId);
+            localStorage.setItem('custom_fg_production_entries', JSON.stringify(remainingCustom));
+
+            // 2. Add to deleted_fg_production_entry_ids so raw entries are suppressed
+            let deletedIds = [];
+            try {
+                deletedIds = JSON.parse(localStorage.getItem('deleted_fg_production_entry_ids') || '[]');
+            } catch(e) {}
+            if (!deletedIds.includes(strId)) {
+                deletedIds.push(strId);
+                localStorage.setItem('deleted_fg_production_entry_ids', JSON.stringify(deletedIds));
+            }
+
+            // 3. Remove from in-memory allProductionData
+            allProductionData = allProductionData.filter(r => String(r._entryIndex) !== strId);
+
+            if (typeof window.logSystemChange === 'function') {
+                window.logSystemChange({
+                    page: "Daily FG Production Entry",
+                    module: "Daily Check Report",
+                    type: "Data Deleted",
+                    title: `Deleted Production Record: ${strId}`,
+                    description: `Deleted production entry from Daily FG Production Entry.`,
+                    timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                });
+            }
+
+            // 4. Notify cross-tab and cloud listeners
+            notifySync();
+
+            // 5. Update UI
+            applyFilters();
+            buildMonthFilterOptions();
+            showToast("🗑️ Entry deleted successfully!");
+        }
+
+        // Cross-tab storage change listener
+        window.addEventListener('storage', function(e) {
+            if (!e.key || e.key === 'custom_fg_production_entries' || e.key === 'deleted_fg_production_entry_ids' || e.key === 'fg_production_last_updated') {
+                loadInitialData();
+                buildMonthFilterOptions();
+                applyFilters();
+            }
+        });
+
         // Realtime Firebase Live Sync Handler
         window.addEventListener('smart_cloud_sync', function(e) {
-            if (e.detail && e.detail.key === 'custom_fg_production_entries') {
+            if (!e.detail || e.detail.key === 'custom_fg_production_entries') {
                 console.log("⚡ [Realtime Sync] Received live FG production entries from Cloud, re-rendering table...");
                 loadInitialData();
+                buildMonthFilterOptions();
                 applyFilters();
             }
         });

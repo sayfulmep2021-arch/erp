@@ -74,7 +74,8 @@
                 { name: "Assemble Summary", url: "assemble_summary.html" },
                 { name: "Armature Summary", url: "armature_summary.html" },
                 { name: "FG Summary", url: "fg_summary.html" },
-                { name: "BOM", url: "bom.html" }
+                { name: "BOM", url: "bom.html" },
+                { name: "RM Requirement Summary (BOM)", url: "rm_requirement_summary_bom.html" }
             ]
         },
         {
@@ -208,6 +209,397 @@
         return page || "index.html";
     }
 
+    // =========================================================================
+    // UNIVERSAL PAGE LOCK SYSTEM - CONFIGURATION & CORE ENGINE
+    // =========================================================================
+    const EDITABLE_PAGES_REGISTRY = [
+        'production_plan.html',
+        'daily_fg_production_entry.html',
+        'fan_damage_calculation_entry.html',
+        'fan_assemble_erp.html',
+        'armature_winding_erp.html',
+        'closing_finish_good_fg.html',
+        'closing_all_sfg.html',
+        'store_position_report.html',
+        'bom_with_sfg.html',
+        'bom.html',
+        'daily_production_plan.html',
+        'daily_production_received_assemble.html',
+        'check_floor_stock.html',
+        'master.html'
+    ];
+
+    function isPageEditable(page) {
+        const p = (page || getCurrentPage() || '').toLowerCase().split('?')[0].split('#')[0];
+        return EDITABLE_PAGES_REGISTRY.includes(p);
+    }
+
+    let isPageLocked = true; // Default state is ALWAYS LOCKED on page load/refresh
+
+    function showPageLockToast(msg, type) {
+        type = type || 'warn';
+        let toast = document.getElementById('smartPageLockToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'smartPageLockToast';
+            toast.className = 'smart-page-lock-toast';
+            document.body.appendChild(toast);
+        }
+        toast.className = 'smart-page-lock-toast toast-' + type;
+        var iconSvg = '';
+        if (type === 'locked') {
+            iconSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+        } else if (type === 'unlocked') {
+            iconSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>';
+        } else {
+            iconSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+        }
+        toast.innerHTML = iconSvg + '<span>' + msg + '</span>';
+        toast.classList.add('show');
+        clearTimeout(window._smartPageLockToastTimer);
+        window._smartPageLockToastTimer = setTimeout(function() {
+            toast.classList.remove('show');
+        }, 3200);
+    }
+
+    function findPageActionContainer() {
+        const candidates = [
+            '.header-action-group',
+            '.header-actions',
+            '.damage-actions-group',
+            '.bom-actions-group',
+            '.stock-actions-group',
+            '.report-action-buttons',
+            '.header-controls',
+            '.action-btn-group'
+        ];
+        for (let sel of candidates) {
+            const el = document.querySelector(sel);
+            if (el) return el;
+        }
+        return null;
+    }
+
+    function injectPageLockBtn() {
+        const curPage = getCurrentPage();
+        // If not an editable page, ensure any lock button is removed
+        if (!isPageEditable(curPage)) {
+            document.querySelectorAll('.smart-page-lock-btn').forEach(b => b.remove());
+            return;
+        }
+
+        // Always ensure no lock button is present in the top navbar
+        document.querySelectorAll('.portal-nav .smart-page-lock-btn').forEach(b => b.remove());
+
+        const container = findPageActionContainer();
+        if (!container) return;
+
+        let lockBtn = container.querySelector('#smartPageLockBtn');
+        if (!lockBtn) {
+            lockBtn = document.getElementById('smartPageLockBtn');
+            if (lockBtn && lockBtn.parentElement !== container) {
+                lockBtn.remove();
+                lockBtn = null;
+            }
+        }
+
+        if (!lockBtn) {
+            lockBtn = document.createElement('button');
+            lockBtn.type = 'button';
+            lockBtn.className = 'smart-page-lock-btn locked';
+            lockBtn.id = 'smartPageLockBtn';
+
+            // Insert before the first button in the container (e.g. before Save or Add button)
+            const firstBtn = container.querySelector('button, .btn, a.btn');
+            if (firstBtn) {
+                container.insertBefore(lockBtn, firstBtn);
+            } else {
+                container.appendChild(lockBtn);
+            }
+
+            lockBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                togglePageLock();
+            };
+        }
+
+        updateLockBtnUI();
+    }
+
+    function updateLockBtnUI() {
+        const lockBtn = document.getElementById('smartPageLockBtn');
+        if (!lockBtn) return;
+
+        if (isViewOnlyUser) {
+            lockBtn.className = 'smart-page-lock-btn view-only';
+            lockBtn.title = 'View-Only Mode: Page editing is permanently locked';
+            lockBtn.setAttribute('data-tooltip', 'View-Only Locked');
+            lockBtn.setAttribute('aria-label', 'View-Only Locked');
+            lockBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            `;
+            if (document.body) {
+                document.body.classList.add('page-locked');
+                document.body.classList.remove('page-unlocked');
+            }
+            return;
+        }
+
+        if (isPageLocked) {
+            lockBtn.className = 'smart-page-lock-btn locked';
+            lockBtn.title = 'Page Locked — Click to Unlock';
+            lockBtn.setAttribute('data-tooltip', 'Page Locked — Click to Unlock');
+            lockBtn.setAttribute('aria-label', 'Page Locked — Click to Unlock');
+            lockBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            `;
+            if (document.body) {
+                document.body.classList.add('page-locked');
+                document.body.classList.remove('page-unlocked');
+            }
+        } else {
+            lockBtn.className = 'smart-page-lock-btn unlocked';
+            lockBtn.title = 'Page Unlocked — Click to Lock';
+            lockBtn.setAttribute('data-tooltip', 'Page Unlocked — Click to Lock');
+            lockBtn.setAttribute('aria-label', 'Page Unlocked — Click to Lock');
+            lockBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+            `;
+            if (document.body) {
+                document.body.classList.remove('page-locked');
+                document.body.classList.add('page-unlocked');
+            }
+        }
+    }
+
+    function togglePageLock() {
+        if (isViewOnlyUser) {
+            showPageLockToast('Access Denied: View-Only accounts cannot unlock or edit pages.', 'warn');
+            return;
+        }
+
+        isPageLocked = !isPageLocked;
+        updateLockBtnUI();
+
+        const page = getCurrentPage();
+        const pageTitle = document.title || page;
+        const now = new Date();
+        const timeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + now.toLocaleTimeString();
+
+        if (isPageLocked) {
+            if (document.activeElement && document.activeElement.tagName && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                document.activeElement.blur();
+            }
+            logPageLockAudit('LOCKED', page, pageTitle, timeStr);
+            showPageLockToast('🔒 Page Locked: Editing disabled to protect data.', 'locked');
+        } else {
+            logPageLockAudit('UNLOCKED', page, pageTitle, timeStr);
+            showPageLockToast('🔓 Page Unlocked: Editing is now enabled for this session.', 'unlocked');
+        }
+    }
+
+    function logPageLockAudit(action, page, pageTitle, timeStr) {
+        try {
+            const raw = localStorage.getItem('mep_page_lock_audit_log');
+            let logs = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(logs)) logs = [];
+            logs.unshift({
+                id: 'lock-' + Date.now(),
+                page: page,
+                pageTitle: pageTitle,
+                action: action,
+                user: 'Sayful Islam',
+                role: isViewOnlyUser ? 'VIEW' : 'ADMIN',
+                timestamp: new Date().toISOString(),
+                formattedTime: timeStr
+            });
+            if (logs.length > 50) logs = logs.slice(0, 50);
+            localStorage.setItem('mep_page_lock_audit_log', JSON.stringify(logs));
+        } catch(e) {}
+    }
+
+    function isSearchOrFilterControl(el) {
+        if (!el) return false;
+        return !!(
+            el.closest('#searchInput') ||
+            el.closest('.search-box') ||
+            el.closest('#monthFilter') ||
+            el.closest('.filter-select') ||
+            el.closest('.period-select') ||
+            el.closest('.filter-date-input') ||
+            el.closest('#filterDate') ||
+            el.closest('.date-mode-pills') ||
+            el.closest('.pagination-bar') ||
+            el.closest('.btn-page') ||
+            el.closest('.btn-action-light') ||
+            el.closest('.btn-action-link') ||
+            el.closest('.btn-export') ||
+            el.closest('.btn-action-export') ||
+            el.closest('#smartPageLockBtn') ||
+            el.closest('.btn-nav-notif') ||
+            el.closest('.header-logout-btn') ||
+            el.closest('.btn-nav-tab') ||
+            el.closest('.btn-header-pill') ||
+            el.closest('.frozen-sidebar-wrapper') ||
+            el.closest('.portal-nav')
+        );
+    }
+
+    function isEditableDataTarget(el) {
+        if (!el) return false;
+        if (isSearchOrFilterControl(el)) return false;
+
+        if (el.closest('.excel-table tbody, .data-table tbody, table tbody, .data-row, tr.data-row')) return true;
+        if (el.matches('.excel-cell-input, .excel-cell-text, .cell-input, [contenteditable="true"]')) return true;
+
+        if (el.closest('.modal-backdrop, .entry-modal, #newEntryModal, #pasteModal, #componentModal')) {
+            if (el.closest('.modal-close-btn, .btn-modal-cancel, .btn-close')) return false;
+            return true;
+        }
+        return false;
+    }
+
+    function isEditActionButton(el) {
+        if (!el) return false;
+        if (isSearchOrFilterControl(el)) return false;
+
+        const btn = el.closest('button, .btn, a.btn, [role="button"], input[type="button"], input[type="submit"]');
+        if (!btn) return false;
+
+        if (btn.matches('.btn-action-link, .btn-action-light, .btn-action-export, .btn-export, .btn-page, .smart-page-lock-btn, .btn-nav-notif, .header-logout-btn, .btn-nav-tab, .btn-header-pill, .modal-close-btn, .btn-close, .btn-modal-cancel')) {
+            return false;
+        }
+
+        const text = (btn.textContent || '').trim().toLowerCase();
+        if (text.includes('export') || text.includes('print') || text.includes('download') || text.includes('csv')) {
+            return false;
+        }
+
+        if (btn.matches('.btn-save, .btn-save-plan, .btn-add, .btn-add-item, .btn-paste, .btn-action-paste, .btn-action-import, .btn-del-row, .btn-table-del, .btn-row-del, .btn-action-delete, .btn-action-edit, .btn-action-primary, .btn-action-add')) {
+            return true;
+        }
+
+        const oc = btn.getAttribute('onclick') || '';
+        if (/(openNewEntryModal|openPasteModal|openAddItemModal|openDamageModal|openAddComponentModal|save|Save|del|delete|Delete|addRow|removeRow|editRow|clearAll|updateRow)/i.test(oc)) {
+            if (!/export/i.test(oc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function initPageLockProtection() {
+        const curPage = getCurrentPage();
+        if (!isPageEditable(curPage)) {
+            document.querySelectorAll('.smart-page-lock-btn').forEach(b => b.remove());
+            return;
+        }
+
+        // Enforce default locked state immediately
+        isPageLocked = true;
+        if (document.body) {
+            document.body.classList.add('page-locked');
+            document.body.classList.remove('page-unlocked');
+        } else if (document.documentElement) {
+            document.documentElement.classList.add('page-locked');
+        }
+
+        // Inject Lock icon button into the page action box
+        injectPageLockBtn();
+
+        // Global Event Interceptors (Capture Phase)
+        document.addEventListener('click', function(e) {
+            if (!isPageEditable(getCurrentPage()) || !isPageLocked) return;
+            if (isSearchOrFilterControl(e.target)) return;
+
+            if (isEditActionButton(e.target)) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                showPageLockToast('🔒 Page is Locked. Click the Lock icon button to enable editing.', 'warn');
+                return false;
+            }
+
+            if (isEditableDataTarget(e.target)) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    e.target.blur();
+                    showPageLockToast('🔒 Editing Disabled. Click the Lock icon button to edit.', 'warn');
+                    return false;
+                }
+            }
+        }, true);
+
+        document.addEventListener('dblclick', function(e) {
+            if (!isPageEditable(getCurrentPage()) || !isPageLocked) return;
+            if (isSearchOrFilterControl(e.target)) return;
+
+            if (isEditableDataTarget(e.target) || e.target.closest('td, th, tr')) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                showPageLockToast('🔒 Double-click Editing Disabled. Unlock the page first.', 'warn');
+                return false;
+            }
+        }, true);
+
+        document.addEventListener('keydown', function(e) {
+            if (!isPageEditable(getCurrentPage()) || !isPageLocked) return;
+            if (isSearchOrFilterControl(e.target)) return;
+
+            const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Escape', 'PageUp', 'PageDown', 'Home', 'End', 'Shift', 'Control', 'Alt', 'Meta'];
+            if (navKeys.includes(e.key)) return;
+
+            if (e.ctrlKey || e.metaKey) {
+                if (['c', 'C', 'p', 'P', 'f', 'F'].includes(e.key)) return;
+            }
+
+            if (isEditableDataTarget(e.target) || e.target.closest('td, th, tr')) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                showPageLockToast('🔒 Keyboard Editing Disabled. Click the Lock icon button to edit.', 'warn');
+                return false;
+            }
+        }, true);
+
+        document.addEventListener('paste', function(e) {
+            if (!isPageEditable(getCurrentPage()) || !isPageLocked) return;
+            if (isSearchOrFilterControl(e.target)) return;
+
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            showPageLockToast('🔒 Clipboard Paste Disabled. Click the Lock icon button to unlock.', 'warn');
+            return false;
+        }, true);
+
+        document.addEventListener('drop', function(e) {
+            if (!isPageEditable(getCurrentPage()) || !isPageLocked) return;
+            if (isSearchOrFilterControl(e.target)) return;
+
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false;
+        }, true);
+    }
+
+    // Expose Global mepPageLock API unconditionally
+    window.mepPageLock = {
+        isLocked: function() { return isPageEditable(getCurrentPage()) ? isPageLocked : false; },
+        lock: function() { if (isPageEditable(getCurrentPage()) && !isPageLocked) togglePageLock(); },
+        unlock: function() { if (isPageEditable(getCurrentPage()) && isPageLocked && !isViewOnlyUser) togglePageLock(); },
+        toggle: function() { if (isPageEditable(getCurrentPage())) togglePageLock(); },
+        showToast: showPageLockToast
+    };
+
     // Helper to resolve closing date
     function resolveClosingReportDate(repKey, fallbackDefault) {
         const today = new Date();
@@ -306,8 +698,8 @@
         // 2. Identify top navbar and clean it up (Insert Home, Dashboard and [S] Sayful Islam)
         const nav = document.querySelector('.portal-nav') || document.querySelector('header');
         if (nav) {
-            // Remove old buttons
-            const btnsToRemove = nav.querySelectorAll('.btn-nav-group, .btn-nav-action, .btn-back-portal, .btn-toggle-frozen-sidebar, .btn-portal-back');
+            // Remove old buttons and legacy clocks
+            const btnsToRemove = nav.querySelectorAll('.btn-nav-group, .btn-nav-action, .btn-back-portal, .btn-toggle-frozen-sidebar, .btn-portal-back, .nav-live-clock, #liveClock');
             btnsToRemove.forEach(el => el.remove());
 
             let navLeft = nav.querySelector('.nav-left');
@@ -358,14 +750,15 @@
                     const txt = btn.textContent.trim();
                     if (!btn.getAttribute('data-tooltip')) {
                         if (txt.includes('Link')) btn.setAttribute('data-tooltip', 'Link');
-                        else if (txt.includes('Plan') || txt.includes('Save')) btn.setAttribute('data-tooltip', 'Plan');
+                        else if (txt.includes('Save')) btn.setAttribute('data-tooltip', 'Save Changes');
+                        else if (txt.includes('Plan')) btn.setAttribute('data-tooltip', 'Production Plan');
                         else if (txt.includes('Add')) btn.setAttribute('data-tooltip', 'Add Item');
                         else if (txt.includes('Export') || txt.includes('CSV')) btn.setAttribute('data-tooltip', 'Export CSV');
                         else if (txt.includes('Print')) btn.setAttribute('data-tooltip', 'Print');
                         else if (txt.includes('Paste') || txt.includes('Import')) btn.setAttribute('data-tooltip', 'Paste / Import');
                         else if (txt.length > 0) btn.setAttribute('data-tooltip', txt);
                     }
-                    btn.querySelectorAll('span').forEach(s => s.style.display = 'none');
+                    btn.querySelectorAll('span:not(.erp-tooltip)').forEach(s => s.style.display = 'none');
                 });
             });
 
@@ -383,6 +776,16 @@
             }
 
             if (navRight) {
+                // Remove legacy static text / clocks in navRight
+                navRight.querySelectorAll('.nav-live-clock, #liveClock').forEach(el => el.remove());
+                Array.from(navRight.childNodes).forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                        node.remove();
+                    } else if (node.nodeType === Node.ELEMENT_NODE && node.textContent.includes('MEP FAN LTD.') && !node.classList.contains('smart-cloud-status-badge') && !node.classList.contains('user-brand-card')) {
+                        node.remove();
+                    }
+                });
+
                 // Remove any old notification bell if present
                 const oldBell = navRight.querySelector('.notif-btn-wrapper, .notif-bell-btn');
                 if (oldBell) oldBell.remove();
@@ -407,40 +810,39 @@
                     viewBadge.remove();
                 }
 
+                // Always remove any lock button from navbar (Heading/Navbar must have NO lock button)
+                const strayNavLock = navRight.querySelector('.smart-page-lock-btn');
+                if (strayNavLock) strayNavLock.remove();
+
+                // Inject Lock Icon Button into the page action container below the heading
+                injectPageLockBtn();
+
                 // Ensure Live Clock Badge exists with integrated Realtime Cloud Status
+                // Unified Layout: Date   |   Live  07:25:36 PM
                 let clockBadge = navRight.querySelector('.live-clock-badge');
                 if (!clockBadge) {
                     clockBadge = document.createElement('div');
                     clockBadge.className = 'live-clock-badge';
                     clockBadge.id = 'liveClockBadge';
-                    clockBadge.title = 'Live System Day & Time';
-                    clockBadge.innerHTML = `
-                        <span class="smart-cloud-status-badge" id="smartCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
-                            <span class="cloud-pulse-dot"></span>
-                            <span class="cloud-status-text">Live</span>
-                        </span>
-                        <div class="live-clock-info">
-                            <span class="live-day-text" id="liveDayText">Loading date...</span>
-                            <span class="live-time-text" id="liveTimeText">--:--:-- --</span>
-                        </div>
-                    `;
                     navRight.insertBefore(clockBadge, navRight.querySelector('.user-brand-card') || null);
-                } else {
-                    let cloudBadge = navRight.querySelector('.smart-cloud-status-badge');
-                    if (!cloudBadge) {
-                        cloudBadge = document.createElement('span');
-                        cloudBadge.className = 'smart-cloud-status-badge';
-                        cloudBadge.id = 'smartCloudStatusBadge';
-                        cloudBadge.title = 'Realtime Cloud: Connected (Live Sync)';
-                        cloudBadge.innerHTML = `
-                            <span class="cloud-pulse-dot"></span>
-                            <span class="cloud-status-text">Live</span>
-                        `;
-                    }
-                    if (cloudBadge.parentNode !== clockBadge) {
-                        clockBadge.insertBefore(cloudBadge, clockBadge.firstChild);
-                    }
                 }
+
+                // Preserve any existing cloud status class (e.g. online, offline, syncing)
+                const existingCloudBadge = navRight.querySelector('.smart-cloud-status-badge');
+                const cloudClass = existingCloudBadge ? existingCloudBadge.className : 'smart-cloud-status-badge';
+                const cloudText = (existingCloudBadge && existingCloudBadge.querySelector('.cloud-status-text')) ? existingCloudBadge.querySelector('.cloud-status-text').textContent : 'Live';
+
+                clockBadge.title = 'Live System Day & Time';
+                clockBadge.innerHTML = `
+                    <div class="${cloudClass}" id="smartCloudStatusBadge" title="Realtime System: Live">
+                        <span class="cloud-pulse-dot"></span>
+                        <span class="cloud-status-text">LIVE</span>
+                    </div>
+                    <div class="live-clock-info" id="liveClockInfo">
+                        <span class="live-day-text" id="liveDayText">Loading date...</span>
+                        <span class="live-time-text" id="liveTimeText">--:--:-- --</span>
+                    </div>
+                `;
 
                 let userBrand = navRight.querySelector('.user-brand-card');
                 if (!userBrand) {
@@ -740,13 +1142,19 @@
             const formattedHours = String(hours).padStart(2, '0');
 
             const dateStr = `${dayName}, ${dateNum} ${monthName} ${yearNum}`;
-            const slottedTime = `<span class="t-num-slot">${formattedHours[0]}</span><span class="t-num-slot">${formattedHours[1]}</span>:<span class="t-num-slot">${minutes[0]}</span><span class="t-num-slot">${minutes[1]}</span>:<span class="t-num-slot">${seconds[0]}</span><span class="t-num-slot">${seconds[1]}</span> <span class="t-ampm-slot">${ampm}</span>`;
+            const slottedTime = `<span class="t-digit">${formattedHours[0]}</span><span class="t-digit">${formattedHours[1]}</span><span class="t-colon">:</span><span class="t-digit">${minutes[0]}</span><span class="t-digit">${minutes[1]}</span><span class="t-colon">:</span><span class="t-digit">${seconds[0]}</span><span class="t-digit">${seconds[1]}</span> <span class="t-ampm">${ampm}</span>`;
 
             document.querySelectorAll('.live-day-text').forEach(function(el) { el.innerText = dateStr; });
             document.querySelectorAll('.live-time-text').forEach(function(el) { el.innerHTML = slottedTime; });
         }
         window.runSubReportLiveClock = runSubReportLiveClock;
-        window.updateLiveClock = runSubReportLiveClock;
+        window.updateLiveClock = function() {
+            if (typeof updateUniversalLiveClock === 'function') {
+                updateUniversalLiveClock();
+            } else {
+                runSubReportLiveClock();
+            }
+        };
 
         // Global slot protection: if any inline script on any page assigns innerText/textContent, wrap it in slots
         try {
@@ -1674,8 +2082,9 @@
         });
     }
 
-    // Run enforceViewOnlyRestrictions immediately on script evaluation
+    // Run enforceViewOnlyRestrictions and initPageLockProtection immediately on script evaluation
     enforceViewOnlyRestrictions();
+    initPageLockProtection();
 
     function showViewOnlyToast() {
         let toast = document.getElementById('viewOnlyToastAlert');
@@ -1696,9 +2105,14 @@
         }, 3000);
     }
 
-    // Universal Live Clock Engine for Report Pages
+    // Universal Live Clock Engine for Report Pages - Tabular Monospace Zero Jitter Engine
+    let _lastClockSecond = -1;
     function updateUniversalLiveClock() {
         const now = new Date();
+        const curSecond = now.getSeconds();
+        if (_lastClockSecond === curSecond) return;
+        _lastClockSecond = curSecond;
+
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
@@ -1708,23 +2122,68 @@
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12 || 12;
         const formattedHours = String(hours).padStart(2, '0');
-        const slottedTime = `<span class="t-num-slot">${formattedHours[0]}</span><span class="t-num-slot">${formattedHours[1]}</span>:<span class="t-num-slot">${minutes[0]}</span><span class="t-num-slot">${minutes[1]}</span>:<span class="t-num-slot">${seconds[0]}</span><span class="t-num-slot">${seconds[1]}</span> <span class="t-ampm-slot">${ampm}</span>`;
 
-        document.querySelectorAll('#liveDayText, .live-day-text').forEach(el => { el.textContent = dateStr; });
-        document.querySelectorAll('#liveTimeText, .live-time-text').forEach(el => { el.innerHTML = slottedTime; });
+        const slottedTime = `<span class="t-digit">${formattedHours[0]}</span><span class="t-digit">${formattedHours[1]}</span><span class="t-colon">:</span><span class="t-digit">${minutes[0]}</span><span class="t-digit">${minutes[1]}</span><span class="t-colon">:</span><span class="t-digit">${seconds[0]}</span><span class="t-digit">${seconds[1]}</span> <span class="t-ampm">${ampm}</span>`;
+
+        document.querySelectorAll('#liveDayText, .live-day-text').forEach(el => {
+            if (el.textContent !== dateStr) el.textContent = dateStr;
+        });
+        document.querySelectorAll('#liveTimeText, .live-time-text').forEach(el => {
+            el.innerHTML = slottedTime;
+        });
+    }
+
+    // Tamper-proof setter protection against legacy scripts setting raw innerText
+    function guardLiveTimeElements() {
+        document.querySelectorAll('#liveTimeText, .live-time-text').forEach(el => {
+            if (!el._timeGuarded) {
+                el._timeGuarded = true;
+                Object.defineProperty(el, 'innerText', {
+                    configurable: true,
+                    enumerable: true,
+                    get: function() { return this.textContent; },
+                    set: function(val) {
+                        if (typeof val === 'string' && val.includes(':')) {
+                            const parts = val.trim().split(/[:\s]+/);
+                            if (parts.length >= 3) {
+                                const hh = parts[0].padStart(2, '0');
+                                const mm = parts[1].padStart(2, '0');
+                                const ss = parts[2].padStart(2, '0');
+                                const ap = parts[3] || 'AM';
+                                this.innerHTML = `<span class="t-digit">${hh[0]}</span><span class="t-digit">${hh[1]}</span><span class="t-colon">:</span><span class="t-digit">${mm[0]}</span><span class="t-digit">${mm[1]}</span><span class="t-colon">:</span><span class="t-digit">${ss[0]}</span><span class="t-digit">${ss[1]}</span> <span class="t-ampm">${ap}</span>`;
+                                return;
+                            }
+                        }
+                        this.innerHTML = val;
+                    }
+                });
+            }
+        });
+    }
+
+    // Global neutralization of page-level competing timers
+    window.updateUniversalLiveClock = updateUniversalLiveClock;
+    window.updateLiveClock = updateUniversalLiveClock;
+    window.updateClock = updateUniversalLiveClock;
+
+    function bootAllServices() {
+        initFrozenSidebar();
+        enforceViewOnlyRestrictions();
+        injectPageLockBtn();
+        updateLockBtnUI();
+        guardLiveTimeElements();
+        if (!window._universalLiveClockInterval) {
+            window._universalLiveClockInterval = setInterval(updateUniversalLiveClock, 1000);
+        }
+        updateUniversalLiveClock();
+        setTimeout(injectPageLockBtn, 120);
+        setTimeout(injectPageLockBtn, 450);
+        setTimeout(guardLiveTimeElements, 500);
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            initFrozenSidebar();
-            enforceViewOnlyRestrictions();
-            setInterval(updateUniversalLiveClock, 1000);
-            updateUniversalLiveClock();
-        });
+        document.addEventListener('DOMContentLoaded', bootAllServices);
     } else {
-        initFrozenSidebar();
-        enforceViewOnlyRestrictions();
-        setInterval(updateUniversalLiveClock, 1000);
-        updateUniversalLiveClock();
+        bootAllServices();
     }
 })();
