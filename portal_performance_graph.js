@@ -1,228 +1,260 @@
-﻿/**
+/**
  * MEP Portal - Production Performance Dashboard Dynamic Engine
- * Real-time Target vs Achievement, Branch Progress, Yearly SVG Graph, and Semi-Circle Gauge
- * Auto-extracted from index.html during Phase 2 modularization
+ * Real-time Production Target, Achievement, Pending, Day-wise Gap & 3-Color Donut Chart
+ * Synchronized live to Production Plan & Yearly Production Summary ERP
  */
-        window.PRODUCTION_DASHBOARD_DATA = null;
+window.PRODUCTION_DASHBOARD_DATA = null;
 
-        function renderProductionPerformanceDashboard(customData) {
-            // 1. Determine Current Live Date
-            const now = new Date();
-            const liveYear = now.getFullYear();
-            const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const liveMonthIdx = now.getMonth();
-            const liveMonthName = MONTH_NAMES[liveMonthIdx];
-            const liveMonthShort = MONTH_SHORT[liveMonthIdx];
-            const liveMonthShortYear = `${liveMonthShort}-${String(liveYear).slice(-2)}`;
+function renderProductionPerformanceDashboard(customData) {
+    // 1. Determine Current Live Date
+    const now = new Date();
+    const liveYear = now.getFullYear();
+    const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const liveMonthIdx = now.getMonth();
+    const liveMonthName = MONTH_NAMES[liveMonthIdx];
+    const liveMonthShort = MONTH_SHORT[liveMonthIdx];
+    const liveMonthShortYear = `${liveMonthShort}-${String(liveYear).slice(-2)}`;
 
-            // 2. Dynamic Production Target from Production Plan
-            let planData = null;
-            if (typeof getProductionPlanTargetForPeriod === 'function') {
-                planData = getProductionPlanTargetForPeriod(liveYear, liveMonthName);
-            }
-
-            // 3. Dynamic Production Achievement from Yearly Production Summary ERP
-            let erpData = null;
-            if (typeof getYearlyERPDataForPeriod === 'function') {
-                erpData = getYearlyERPDataForPeriod(liveYear, liveMonthName);
-            }
-
-            // 4. Resolve Target & Achievement values
-            let target = (customData && customData.monthlyTarget !== undefined) ? Number(customData.monthlyTarget) :
-                         (planData ? planData.totalTarget : 40000);
-
-            let achieve = (customData && customData.monthlyAchievement !== undefined) ? Number(customData.monthlyAchievement) :
-                          (erpData ? erpData.totalAchievement : 25000);
-
-            // Default branch values
-            let branchT = (planData && planData.branchBreakdown) ? { ...planData.branchBreakdown } : { fanAssemble: 20000, bladeDimmer: 10000, armatureWinding: 10000 };
-            let branchA = (erpData && erpData.branchBreakdown) ? { ...erpData.branchBreakdown } : { fanAssemble: 15000, bladeDimmer: 5000, armatureWinding: 6500 };
-
-            if (customData && customData.branches) {
-                if (customData.branches.fanAssemble) {
-                    if (customData.branches.fanAssemble.target !== undefined) branchT.fanAssemble = customData.branches.fanAssemble.target;
-                    if (customData.branches.fanAssemble.achievement !== undefined) branchA.fanAssemble = customData.branches.fanAssemble.achievement;
-                }
-                if (customData.branches.bladeDimmer) {
-                    if (customData.branches.bladeDimmer.target !== undefined) branchT.bladeDimmer = customData.branches.bladeDimmer.target;
-                    if (customData.branches.bladeDimmer.achievement !== undefined) branchA.bladeDimmer = customData.branches.bladeDimmer.achievement;
-                }
-                if (customData.branches.armatureWinding) {
-                    if (customData.branches.armatureWinding.target !== undefined) branchT.armatureWinding = customData.branches.armatureWinding.target;
-                    if (customData.branches.armatureWinding.achievement !== undefined) branchA.armatureWinding = customData.branches.armatureWinding.achievement;
-                }
-            }
-
-            // Calculate overall percentages
-            const pending = Math.max(0, target - achieve);
-            const achievePct = target > 0 ? ((achieve / target) * 100).toFixed(1) : "0.0";
-            const pendingPct = target > 0 ? ((pending / target) * 100).toFixed(1) : "0.0";
-
-            // ① Card 1: Production Target (Dynamic)
-            const elTarget = document.getElementById('valProdTarget');
-            if (elTarget) {
-                elTarget.innerHTML = `${target.toLocaleString()} <span style="font-size:0.52em; font-weight:800; letter-spacing:0;">PCS</span>`;
-            }
-            const elTargetSub = document.getElementById('lblProdTargetSub');
-            if (elTargetSub) {
-                elTargetSub.innerText = `Monthly Production Target (${liveMonthShortYear})`;
-            }
-
-            // ② Card 2: Production Achievement (Dynamic)
-            const elAchieve = document.getElementById('valProdAchieve');
-            if (elAchieve) {
-                elAchieve.innerHTML = `${achieve.toLocaleString()} <span style="font-size:0.52em; font-weight:800; color:#334155; letter-spacing:0;">PCS</span>`;
-            }
-            const elAchieveSub = document.getElementById('lblProdAchieveSub');
-            if (elAchieveSub) {
-                elAchieveSub.innerText = `Completed Production (${liveMonthShortYear})`;
-            }
-
-            // ③ Card 3: Three Branch Achievement Bar
-            const fanT = branchT.fanAssemble || 20000;
-            const fanA = branchA.fanAssemble || 15000;
-            const fanP = fanT > 0 ? Math.round((fanA / fanT) * 100) : 75;
-
-            const bladeT = branchT.bladeDimmer || 10000;
-            const bladeA = branchA.bladeDimmer || 5000;
-            const bladeP = bladeT > 0 ? Math.round((bladeA / bladeT) * 100) : 50;
-
-            const armT = branchT.armatureWinding || 10000;
-            const armA = branchA.armatureWinding || 6500;
-            const armP = armT > 0 ? Math.round((armA / armT) * 100) : 65;
-
-            const elFanPct = document.getElementById('pctFanAssemble');
-            const elFanBar = document.getElementById('barFanAssemble');
-            if (elFanPct) elFanPct.innerText = `${fanP}%`;
-            if (elFanBar) {
-                elFanBar.style.width = `${Math.min(100, fanP)}%`;
-                elFanBar.title = `Fan Assemble: ${fanP}% (${fanA.toLocaleString()} / ${fanT.toLocaleString()} PCS)`;
-            }
-
-            const elBladePct = document.getElementById('pctBladeDimmer');
-            const elBladeBar = document.getElementById('barBladeDimmer');
-            if (elBladePct) elBladePct.innerText = `${bladeP}%`;
-            if (elBladeBar) {
-                elBladeBar.style.width = `${Math.min(100, bladeP)}%`;
-                elBladeBar.title = `Blade & Dimmer: ${bladeP}% (${bladeA.toLocaleString()} / ${bladeT.toLocaleString()} PCS)`;
-            }
-
-            const elArmPct = document.getElementById('pctArmatureWinding');
-            const elArmBar = document.getElementById('barArmatureWinding');
-            if (elArmPct) elArmPct.innerText = `${armP}%`;
-            if (elArmBar) {
-                elArmBar.style.width = `${Math.min(100, armP)}%`;
-                elArmBar.title = `Armature & Winding: ${armP}% (${armA.toLocaleString()} / ${armT.toLocaleString()} PCS)`;
-            }
-
-            // ④ Zone 4: Yearly Graph Dynamic Active Month Marker
-            const activeColIdx = planData ? planData.columnIndex : 2;
-            const activeX = 75 + (activeColIdx * 60);
-
-            const elActiveLine = document.getElementById('graphActiveGuideLine');
-            const elActiveRect = document.getElementById('graphActiveBadgeRect');
-            const elActiveText = document.getElementById('graphActiveBadgeText');
-            if (elActiveLine) {
-                elActiveLine.setAttribute('x1', activeX);
-                elActiveLine.setAttribute('x2', activeX);
-            }
-            if (elActiveRect) {
-                elActiveRect.setAttribute('x', activeX - 25);
-            }
-            if (elActiveText) {
-                elActiveText.setAttribute('x', activeX);
-            }
-
-            for (let i = 0; i < 12; i++) {
-                const elM = document.getElementById(`lblGraphMonth${i}`);
-                if (elM) {
-                    if (i === activeColIdx) {
-                        elM.setAttribute('fill', '#0284c7');
-                        elM.setAttribute('font-weight', '900');
-                        elM.setAttribute('font-size', '9.5');
-                    } else {
-                        elM.setAttribute('fill', '#64748b');
-                        elM.setAttribute('font-weight', '800');
-                        elM.setAttribute('font-size', '9');
-                    }
-                }
-            }
-
-            const elGraphActiveMonth = document.getElementById('graphActiveMonthPill');
-            if (elGraphActiveMonth) {
-                elGraphActiveMonth.innerHTML = `Active Output: <strong style="color:#0284c7;">${achieve.toLocaleString()} PCS (${liveMonthShortYear})</strong>`;
-            }
-
-            // ⑤ Zone 5: Branch Summary Table
-            const elTblFanT = document.getElementById('tblTargetFan');
-            const elTblFanA = document.getElementById('tblAchieveFan');
-            const elTblFanP = document.getElementById('tblPendingFan');
-            if (elTblFanT) elTblFanT.innerText = fanT.toLocaleString();
-            if (elTblFanA) elTblFanA.innerText = fanA.toLocaleString();
-            if (elTblFanP) elTblFanP.innerText = Math.max(0, fanT - fanA).toLocaleString();
-
-            const elTblBladeT = document.getElementById('tblTargetBlade');
-            const elTblBladeA = document.getElementById('tblAchieveBlade');
-            const elTblBladeP = document.getElementById('tblPendingBlade');
-            if (elTblBladeT) elTblBladeT.innerText = bladeT.toLocaleString();
-            if (elTblBladeA) elTblBladeA.innerText = bladeA.toLocaleString();
-            if (elTblBladeP) elTblBladeP.innerText = Math.max(0, bladeT - bladeA).toLocaleString();
-
-            const elTblArmT = document.getElementById('tblTargetArm');
-            const elTblArmA = document.getElementById('tblAchieveArm');
-            const elTblArmP = document.getElementById('tblPendingArm');
-            if (elTblArmT) elTblArmT.innerText = armT.toLocaleString();
-            if (elTblArmA) elTblArmA.innerText = armA.toLocaleString();
-            if (elTblArmP) elTblArmP.innerText = Math.max(0, armT - armA).toLocaleString();
-
-            const sumTarget = fanT + bladeT + armT;
-            const sumAchieve = fanA + bladeA + armA;
-            const sumPending = Math.max(0, sumTarget - sumAchieve);
-
-            const elTblTotT = document.getElementById('tblTargetTotal');
-            const elTblTotA = document.getElementById('tblAchieveTotal');
-            const elTblTotP = document.getElementById('tblPendingTotal');
-            if (elTblTotT) elTblTotT.innerText = sumTarget.toLocaleString();
-            if (elTblTotA) elTblTotA.innerText = sumAchieve.toLocaleString();
-            if (elTblTotP) elTblTotP.innerText = sumPending.toLocaleString();
-
-            // ⑥ Zone 6: Gauge Display & Mathematics
-            const elGaugeAchPct = document.getElementById('valGaugeAchievePct');
-            const elGaugePendPct = document.getElementById('valGaugePendingPct');
-            const elGaugePendPcs = document.getElementById('valGaugePendingPcs');
-            const elGaugeTgtPcs = document.getElementById('valGaugeTargetPcs');
-            const elGaugeArc = document.getElementById('gaugeAchieveArc');
-            const elGaugeFormula = document.getElementById('valGaugeFormulaFootnote');
-
-            if (elGaugeAchPct) elGaugeAchPct.innerText = `${achievePct}%`;
-            if (elGaugePendPct) elGaugePendPct.innerText = `${pendingPct}%`;
-            if (elGaugePendPcs) elGaugePendPcs.innerText = `${pending.toLocaleString()} PCS`;
-            if (elGaugeTgtPcs) elGaugeTgtPcs.innerText = `${target.toLocaleString()} PCS`;
-
-            if (elGaugeArc) {
-                const arcLength = 267.0;
-                const dashVal = Math.max(0, Math.min(arcLength, (parseFloat(achievePct) / 100) * arcLength));
-                elGaugeArc.setAttribute('stroke-dasharray', `${dashVal.toFixed(1)} ${arcLength}`);
-            }
-
-            if (elGaugeFormula) {
-                elGaugeFormula.innerHTML = `Completed (${achieve.toLocaleString()}) ÷ Target (${target.toLocaleString()}) × 100 = <strong>${achievePct}%</strong> | Pending = <strong>${pendingPct}%</strong>`;
-            }
+    // 2. Dynamic Production Target from Production Plan (STRICT: Ceiling Fan Series Total Target)
+    let planData = null;
+    if (typeof getProductionPlanTargetForPeriod === 'function') {
+        try {
+            planData = getProductionPlanTargetForPeriod(liveYear, liveMonthName);
+        } catch(e) {
+            console.warn("[Dashboard Engine] getProductionPlanTargetForPeriod error:", e);
         }
+    }
 
-        window.updateProductionDashboard = function(newData) {
-            renderProductionPerformanceDashboard(newData);
-        };
+    // 3. Dynamic Production Achievement from Yearly Production Summary ERP (STRICT: Ceiling Fan Series ONLY)
+    let erpData = null;
+    if (typeof getYearlyERPDataForPeriod === 'function') {
+        try {
+            erpData = getYearlyERPDataForPeriod(liveYear, liveMonthName);
+        } catch(e) {
+            console.warn("[Dashboard Engine] getYearlyERPDataForPeriod error:", e);
+        }
+    }
 
-        // Real-time synchronization across browser tabs (when Production Plan or ERP Summary updates)
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'mep_yearly_production_plans_all' || e.key === 'mep_yearly_erp_production_data') {
-                renderProductionPerformanceDashboard();
-            }
-        });
+    // 4. Resolve Production Target & Achievement (Defaults for Sep 2026: 40,000 & 7,613)
+    let target = (customData && customData.monthlyTarget !== undefined) ? Number(customData.monthlyTarget) :
+                 (planData && planData.ceilingFanTarget !== undefined ? Number(planData.ceilingFanTarget) :
+                 (planData && planData.totalTarget !== undefined ? Number(planData.totalTarget) : 40000));
 
-        // Re-calculate on window focus in case date or localStorage changed
-        window.addEventListener('focus', () => {
-            renderProductionPerformanceDashboard();
-        });
+    let achieve = (customData && customData.monthlyAchievement !== undefined) ? Number(customData.monthlyAchievement) :
+                  (erpData && erpData.ceilingFanAchievement !== undefined ? Number(erpData.ceilingFanAchievement) :
+                  (erpData && erpData.totalAchievement !== undefined ? Number(erpData.totalAchievement) : 7613));
+
+    target = Math.max(0, target);
+    achieve = Math.max(0, achieve);
+
+    // 5. Calculate Pending (Strictly non-negative)
+    const pending = Math.max(0, target - achieve);
+    const achievePct = target > 0 ? ((achieve / target) * 100).toFixed(1) : "0.0";
+    const pendingPct = target > 0 ? ((pending / target) * 100).toFixed(1) : "0.0";
+
+    // 6. Day-wise Target & Production Gap (26 Working Days Standard)
+    const STANDARD_WORKING_DAYS = 26;
+    const dailyTarget = Math.round(target / STANDARD_WORKING_DAYS);
+
+    // Completed working days: based on day of month, capped at 26
+    const curDay = now.getDate();
+    const totalDaysInMonth = new Date(liveYear, liveMonthIdx + 1, 0).getDate();
+    const completedWorkingDays = Math.min(STANDARD_WORKING_DAYS, Math.max(1, Math.round((curDay / totalDaysInMonth) * STANDARD_WORKING_DAYS)));
+
+    const expectedProduction = Math.round(dailyTarget * completedWorkingDays);
+    const productionGap = Math.max(0, expectedProduction - achieve);
+    const isBehind = achieve < expectedProduction;
+    const dayWisePct = expectedProduction > 0 ? Math.min(100, Math.round((achieve / expectedProduction) * 100)) : 100;
+
+    // Cache state
+    window.PRODUCTION_DASHBOARD_DATA = {
+        year: liveYear,
+        month: liveMonthName,
+        target,
+        achieve,
+        pending,
+        achievePct,
+        pendingPct,
+        dailyTarget,
+        completedWorkingDays,
+        expectedProduction,
+        productionGap,
+        isBehind,
+        dayWisePct
+    };
+
+    // =========================================================================
+    // UPDATE DOM ELEMENTS IN MAIN INTERFACE VIEW
+    // =========================================================================
+
+    // ① CARD 1: PRODUCTION TARGET
+    const elSalesVal = document.getElementById('kpiSalesVal');
+    if (elSalesVal) {
+        elSalesVal.innerHTML = `${target.toLocaleString()} <span style="font-size:0.55em; font-weight:800; color:#64748b;">PCS</span>`;
+    }
+    const elTargetSubVal = document.getElementById('kpiTargetSubVal');
+    if (elTargetSubVal) {
+        elTargetSubVal.innerText = `${target.toLocaleString()} PCS`;
+    }
+    const elTargetScope = document.getElementById('kpiTargetScope');
+    if (elTargetScope) {
+        elTargetScope.innerText = `Ceiling Fan (${liveMonthShortYear})`;
+    }
+    const elTargetProgressBar = document.getElementById('kpiTargetProgressBar');
+    if (elTargetProgressBar) {
+        elTargetProgressBar.style.width = '100%';
+    }
+
+    // ② CARD 2: ACHIEVEMENT
+    const elPurchaseVal = document.getElementById('kpiPurchaseVal');
+    if (elPurchaseVal) {
+        elPurchaseVal.innerHTML = `${achieve.toLocaleString()} <span style="font-size:0.55em; font-weight:800; color:#64748b;">PCS</span>`;
+    }
+    const elAchieveSubVal = document.getElementById('kpiAchieveSubVal');
+    if (elAchieveSubVal) {
+        elAchieveSubVal.innerText = `${achieve.toLocaleString()} PCS`;
+    }
+    const elAchievePct = document.getElementById('kpiAchievePct');
+    if (elAchievePct) {
+        elAchievePct.innerText = `${achievePct}%`;
+    }
+    const elAchieveProgressBar = document.getElementById('kpiAchieveProgressBar');
+    if (elAchieveProgressBar) {
+        elAchieveProgressBar.style.width = `${Math.min(100, parseFloat(achievePct))}%`;
+    }
+
+    // ③ CARD 3: PENDING
+    const elCashFlowVal = document.getElementById('kpiCashFlowVal');
+    if (elCashFlowVal) {
+        elCashFlowVal.innerHTML = `${pending.toLocaleString()} <span style="font-size:0.55em; font-weight:800; color:#64748b;">PCS</span>`;
+    }
+    const elPendingSubVal = document.getElementById('kpiPendingSubVal');
+    if (elPendingSubVal) {
+        elPendingSubVal.innerText = `${pending.toLocaleString()} PCS`;
+    }
+    const elPendingPct = document.getElementById('kpiPendingPct');
+    if (elPendingPct) {
+        elPendingPct.innerText = `${pendingPct}%`;
+    }
+    const elPendingProgressBar = document.getElementById('kpiPendingProgressBar');
+    if (elPendingProgressBar) {
+        elPendingProgressBar.style.width = `${Math.min(100, parseFloat(pendingPct))}%`;
+    }
+
+    // ④ CARD 4: DAY WISE TARGET & PRODUCTION GAP
+    const elAccountVal = document.getElementById('kpiAccountVal');
+    if (elAccountVal) {
+        elAccountVal.innerHTML = `${dailyTarget.toLocaleString()} <span style="font-size:0.55em; font-weight:800; color:#64748b;">PCS / Day</span>`;
+    }
+    const elDayWiseExpected = document.getElementById('kpiDayWiseExpected');
+    if (elDayWiseExpected) {
+        elDayWiseExpected.innerText = `${expectedProduction.toLocaleString()} PCS`;
+    }
+    const elDayWiseGap = document.getElementById('kpiDayWiseGap');
+    if (elDayWiseGap) {
+        if (isBehind) {
+            elDayWiseGap.innerHTML = `<span style="color:#ef4444;">${productionGap.toLocaleString()} PCS Behind</span>`;
+        } else {
+            const ahead = achieve - expectedProduction;
+            elDayWiseGap.innerHTML = `<span style="color:#10b981;">On Track (+${ahead.toLocaleString()} PCS)</span>`;
+        }
+    }
+    const elDayStatusBadge = document.getElementById('kpiDayStatusBadge');
+    if (elDayStatusBadge) {
+        if (isBehind) {
+            elDayStatusBadge.innerText = 'BEHIND';
+            elDayStatusBadge.style.background = '#fee2e2';
+            elDayStatusBadge.style.color = '#dc2626';
+        } else {
+            elDayStatusBadge.innerText = 'ON TRACK';
+            elDayStatusBadge.style.background = '#dcfce7';
+            elDayStatusBadge.style.color = '#15803d';
+        }
+    }
+    const elDayWiseProgressBar = document.getElementById('kpiDayWiseProgressBar');
+    if (elDayWiseProgressBar) {
+        elDayWiseProgressBar.style.width = `${dayWisePct}%`;
+        elDayWiseProgressBar.style.background = isBehind ? '#ef4444' : '#10b981';
+    }
+    const elDayWiseLabel = document.getElementById('kpiDayWiseLabel');
+    if (elDayWiseLabel) {
+        elDayWiseLabel.innerText = `Day ${completedWorkingDays} of ${STANDARD_WORKING_DAYS} Working Days`;
+    }
+
+    // ⑤ SECTION 5: PREMIUM DONUT / PIE CHART
+    // Circumference for r = 38 is 2 * PI * 38 = 238.761
+    const C = 2 * Math.PI * 38;
+    const ratioAchieve = target > 0 ? (achieve / target) : 0;
+    const ratioPending = target > 0 ? (pending / target) : 1;
+
+    const strokeAchieve = Math.max(0, Math.min(C, ratioAchieve * C));
+    const strokePending = Math.max(0, Math.min(C, ratioPending * C));
+
+    const elArcAchieve = document.getElementById('donutArcAchieve');
+    if (elArcAchieve) {
+        elArcAchieve.setAttribute('stroke-dasharray', `${strokeAchieve.toFixed(2)} ${C.toFixed(2)}`);
+        elArcAchieve.setAttribute('stroke-dashoffset', '0');
+    }
+
+    const elArcPending = document.getElementById('donutArcPending');
+    if (elArcPending) {
+        elArcPending.setAttribute('stroke-dasharray', `${strokePending.toFixed(2)} ${C.toFixed(2)}`);
+        elArcPending.setAttribute('stroke-dashoffset', `-${strokeAchieve.toFixed(2)}`);
+    }
+
+    const elCenterPct = document.getElementById('donutCenterPct');
+    if (elCenterPct) {
+        elCenterPct.innerText = `${achievePct}%`;
+    }
+    const elCenterTarget = document.getElementById('donutCenterTarget');
+    if (elCenterTarget) {
+        elCenterTarget.innerText = `Target: ${target.toLocaleString()} PCS`;
+    }
+
+    // Donut Legend
+    const elLegendTarget = document.getElementById('legendTargetVal');
+    if (elLegendTarget) {
+        elLegendTarget.innerText = `${target.toLocaleString()} PCS`;
+    }
+    const elLegendAchieve = document.getElementById('legendAchieveVal');
+    if (elLegendAchieve) {
+        elLegendAchieve.innerText = `${achieve.toLocaleString()} PCS - ${achievePct}%`;
+    }
+    const elLegendPending = document.getElementById('legendPendingVal');
+    if (elLegendPending) {
+        elLegendPending.innerText = `${pending.toLocaleString()} PCS - ${pendingPct}%`;
+    }
+
+    // Right Card: Last 30 Days Trend Stat Boxes
+    const elTrendTarget = document.getElementById('trendTargetVal');
+    if (elTrendTarget) elTrendTarget.innerText = `${target.toLocaleString()} PCS`;
+
+    const elTrendAchieve = document.getElementById('trendAchieveVal');
+    if (elTrendAchieve) elTrendAchieve.innerText = `${achieve.toLocaleString()} PCS`;
+
+    const elTrendPending = document.getElementById('trendPendingVal');
+    if (elTrendPending) elTrendPending.innerText = `${pending.toLocaleString()} PCS`;
+
+    // ⑥ LEGACY / OPTIONAL COMPATIBILITY (if older elements exist)
+    const elTargetOld = document.getElementById('valProdTarget');
+    if (elTargetOld) elTargetOld.innerHTML = `${target.toLocaleString()} <span style="font-size:0.52em; font-weight:800;">PCS</span>`;
+    const elAchieveOld = document.getElementById('valProdAchieve');
+    if (elAchieveOld) elAchieveOld.innerHTML = `${achieve.toLocaleString()} <span style="font-size:0.52em; font-weight:800;">PCS</span>`;
+}
+
+window.updateProductionDashboard = function(newData) {
+    renderProductionPerformanceDashboard(newData);
+};
+
+// Real-time synchronization across browser tabs (when Production Plan or ERP Summary updates in localStorage)
+window.addEventListener('storage', (e) => {
+    if (e.key === 'mep_yearly_production_plans_all' || e.key === 'mep_yearly_erp_production_data' || e.key === 'mep_monthly_production_snapshots') {
+        renderProductionPerformanceDashboard();
+    }
+});
+
+// Re-calculate on window focus in case localStorage changed in another tab
+window.addEventListener('focus', () => {
+    renderProductionPerformanceDashboard();
+});

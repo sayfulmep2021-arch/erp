@@ -9,16 +9,16 @@ const DEFAULT_YEARLY_ERP_DATA = {
         {
             category: "Ceiling Fan",
             items: [
-                { sl: 1, code: "CF5601/CF5601IV", name: "56 Inch Premium Ceiling Fan - Ivory", unit: "Pcs", months: [5051, 30786, 15000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                { sl: 1, code: "CF5601/CF5601IV", name: "56 Inch Premium Ceiling Fan - Ivory", unit: "Pcs", months: [5051, 30786, 7613, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 2, code: "CF5601WH/CF5601WH", name: "56 Inch Premium Ceiling Fan - White", unit: "Pcs", months: [0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 3, code: "CF5602/CF5602IV", name: "56 Inch Speed King Ceiling Fan - Ivory", unit: "Pcs", months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 4, code: "CF5603/CF5603IV", name: "56 Inch Premium Gold Ceiling Fan - Ivory", unit: "Pcs", months: [1643, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 5, code: "CF5606/CF5606IV", name: "56 Inch Premium Plus Ceiling Fan - Ivory", unit: "Pcs", months: [2, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 6, code: "CF5607/CF5607IV", name: "56 Inch Crown Ceiling Fan - Ivory", unit: "Pcs", months: [265, 335, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                { sl: 7, code: "CF4801/CF4801IV", name: "48 Inch Popular Ceiling Fan - Ivory", unit: "Pcs", months: [0, 1100, 2000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                { sl: 8, code: "CF3601/CF3601IV", name: "36 Inch Hero Ceiling Fan - Ivory", unit: "Pcs", months: [0, 8000, 5000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                { sl: 7, code: "CF4801/CF4801IV", name: "48 Inch Popular Ceiling Fan - Ivory", unit: "Pcs", months: [0, 1100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                { sl: 8, code: "CF3601/CF3601IV", name: "36 Inch Hero Ceiling Fan - Ivory", unit: "Pcs", months: [0, 8000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 9, code: "CF2401/CF2401IV", name: "24 Inch Super Ceiling Fan - Ivory", unit: "Pcs", months: [0, 1091, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-                { sl: 10, code: "CR5601IV", name: "56 Inch Premium Ceiling Fan- Ivory (Without Regulator)", unit: "Pcs", months: [0, 2015, 3000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                { sl: 10, code: "CR5601IV", name: "56 Inch Premium Ceiling Fan- Ivory (Without Regulator)", unit: "Pcs", months: [0, 2015, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 11, code: "CR5601WH", name: "56 Inch Premium Ceiling Fan- White (Without Regulator)", unit: "Pcs", months: [88, 56, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 12, code: "CG5601/CG5601IV", name: "56 Inch Premium Ceiling Fan With Gang Regulator - Ivory", unit: "Pcs", months: [0, 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 13, code: "CR5603IV", name: "56 Inch Premium Gold Ceiling Fan- Ivory (Without Regulator)", unit: "Pcs", months: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -45,7 +45,7 @@ const DEFAULT_YEARLY_ERP_DATA = {
         {
             category: "Blade",
             items: [
-                { sl: 1, code: "SFG1010074", name: "5601 Premium Ceiling Fan Blade - Ivory", unit: "Set", months: [16530, 20980, 5000, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                { sl: 1, code: "SFG1010074", name: "5601 Premium Ceiling Fan Blade - Ivory", unit: "Set", months: [16530, 20980, 740, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 2, code: "SFG1010109", name: "5601 Premium Ceiling Fan Blade - White", unit: "Set", months: [88, 218, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 3, code: "SFG1010075", name: "5602 Speed King Ceiling Fan Blade - Ivory", unit: "Set", months: [0, 1056, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { sl: 4, code: "SFG1010096", name: "5603 Premium Gold Ceiling Fan Blade", unit: "Set", months: [1648, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -84,6 +84,7 @@ const ERP_FISCAL_MONTHS = [
 /**
  * Get dynamic ERP Production Achievement for a specific Year & Month
  * Reads from localStorage('mep_yearly_erp_production_data') or fallback to DEFAULT_YEARLY_ERP_DATA
+ * STRICT FILTER: Ceiling Fan Series ONLY (excludes Exhaust Fan, Rechargeable Table Fan, Blade, Armature)
  */
 function getYearlyERPDataForPeriod(year, monthName) {
     const yrStr = String(year || 2026);
@@ -108,63 +109,53 @@ function getYearlyERPDataForPeriod(year, monthName) {
     let bladeAchieve = 0;
     let armAchieve = 0;
 
-    // Monthly totals across 12 months for Yearly Graph
+    // Monthly totals across 12 months for Ceiling Fan Series
     const monthlyTotals = new Array(12).fill(0);
 
     yearData.forEach(cat => {
-        const isFan = cat.category.includes('Ceiling') || cat.category.includes('Fan');
-        const isBlade = cat.category.includes('Blade');
-        const isArm = cat.category.includes('Armature') || cat.category.includes('Winding');
+        // STRICT FILTER: Ceiling Fan Series ONLY (no Exhaust Fan, no Rechargeable, no Blade)
+        const isCeilingFan = cat.category && cat.category.toLowerCase().includes('ceiling') && !cat.category.toLowerCase().includes('blade');
+        const isBlade = cat.category && cat.category.toLowerCase().includes('blade');
+        const isArm = cat.category && (cat.category.toLowerCase().includes('armature') || cat.category.toLowerCase().includes('winding'));
 
         cat.items.forEach(item => {
             if (Array.isArray(item.months)) {
                 item.months.forEach((val, colIdx) => {
                     const num = parseFloat(val) || 0;
                     if (colIdx < 12) {
-                        if (isFan) monthlyTotals[colIdx] += num;
+                        if (isCeilingFan) monthlyTotals[colIdx] += num;
                     }
                 });
 
                 const curVal = parseFloat(item.months[mIdx]) || 0;
-                if (isFan) fanAchieve += curVal;
+                if (isCeilingFan) fanAchieve += curVal;
                 else if (isBlade) bladeAchieve += curVal;
                 else if (isArm) armAchieve += curVal;
             }
         });
     });
 
-    totalAchievement = fanAchieve;
-    // Fallbacks if data is missing
-    if (totalAchievement === 0 && mIdx === 2 && yrStr === "2026") {
-        totalAchievement = 25000;
-        fanAchieve = 25000;
-        bladeAchieve = 5000;
-        armAchieve = 6500;
-    } else if (bladeAchieve === 0) {
-        bladeAchieve = 5000;
+    // Fallback for September 2026 if exact data missing
+    if (fanAchieve === 0 && mIdx === 2 && yrStr === "2026") {
+        fanAchieve = 7613;
     }
-    if (armAchieve === 0) {
-        armAchieve = 6500;
-    }
+    totalAchievement = fanAchieve || 7613;
 
-    // Branch 1: Fan Assemble specifically (15,000 / 20,000 = 75%)
-    let branchFanAssemble = 15000;
-    const ceilingCat = yearData.find(c => c.category && c.category.toLowerCase().includes('ceiling'));
-    if (ceilingCat && ceilingCat.items) {
-        const cf5601 = ceilingCat.items.find(i => i.code && i.code.includes('CF5601'));
-        if (cf5601 && Array.isArray(cf5601.months) && cf5601.months[mIdx] !== undefined) {
-            branchFanAssemble = parseFloat(cf5601.months[mIdx]) || 15000;
-        }
-    }
+    if (bladeAchieve === 0) bladeAchieve = 740;
+    if (armAchieve === 0) armAchieve = 6500;
+
+    // Branch 1: Fan Assemble specifically (Ceiling Fan)
+    let branchFanAssemble = fanAchieve || 7613;
 
     return {
         year: yrStr,
         month: monthName,
         monthIndex: mIdx,
-        totalAchievement: totalAchievement || 25000,
+        totalAchievement: totalAchievement,
+        ceilingFanAchievement: totalAchievement,
         branchBreakdown: {
             fanAssemble: branchFanAssemble,
-            bladeDimmer: bladeAchieve || 5000,
+            bladeDimmer: bladeAchieve || 740,
             armatureWinding: armAchieve || 6500
         },
         monthlyTotals: monthlyTotals

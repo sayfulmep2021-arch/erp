@@ -226,19 +226,22 @@ function getProductionPlanTargetForPeriod(year, monthName) {
 
     if (grandTotalTarget === 0) {
         grandTotalTarget = 40000;
-        fanTarget = 20000;
+        fanTarget = 40000;
     }
 
-    const bladeTarget = Math.round((grandTotalTarget - fanTarget) * 0.5) || 10000;
-    const armTarget = Math.max(0, grandTotalTarget - fanTarget - bladeTarget) || 10000;
+    const ceilingFanTarget = fanTarget || 40000;
+    const bladeTarget = Math.round((grandTotalTarget - ceilingFanTarget) * 0.5) || 10000;
+    const armTarget = Math.max(0, grandTotalTarget - ceilingFanTarget - bladeTarget) || 10000;
 
     return {
         year: yrNum,
         month: monthName,
         columnIndex: targetColIdx,
-        totalTarget: grandTotalTarget || 40000,
+        totalTarget: ceilingFanTarget,
+        ceilingFanTarget: ceilingFanTarget,
+        grandTotalTarget: grandTotalTarget,
         branchBreakdown: {
-            fanAssemble: fanTarget || 20000,
+            fanAssemble: ceilingFanTarget,
             bladeDimmer: bladeTarget,
             armatureWinding: armTarget
         },

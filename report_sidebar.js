@@ -199,6 +199,16 @@
                 { name: "Check RM (Prd. Possible)", url: "check_rm_prd_possible.html" },
                 { name: "BOM With SFG", url: "bom_with_sfg.html" }
             ]
+        },
+        {
+            id: "mep-acc-master",
+            title: "MASTER Central DB",
+            iconBg: "#1e293b",
+            iconColor: "#38bdf8",
+            iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>`,
+            items: [
+                { name: "Central Item Master Database", url: "master.html" }
+            ]
         }
     ];
 
@@ -677,17 +687,9 @@
         }
 
         if (!activeModule) {
-            if (currentPage === 'master.html') {
-                activeModule = {
-                    id: "mep-acc-master",
-                    title: "MASTER Central DB",
-                    iconBg: "#334155",
-                    iconColor: "#38bdf8",
-                    iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>`,
-                    items: [
-                        { name: "Master Central DB", url: "master.html" }
-                    ]
-                };
+            const masterMod = MEP_NAV_MODULES.find(m => m.id === "mep-acc-master");
+            if (currentPage === 'master.html' && masterMod) {
+                activeModule = masterMod;
                 activeItemName = "Central Item Master Database";
             } else {
                 activeModule = MEP_NAV_MODULES[0];
@@ -1044,31 +1046,95 @@
         aside.id = 'mepFrozenSidebar';
         aside.className = 'mep-frozen-sidebar';
         aside.innerHTML = `
-            <div class="mep-sidebar-actions">
-                <!-- Button 1: Main Interface -->
-                <a href="index.html?view=main" class="mep-action-btn mep-btn-main" title="Main Interface - Realtime ERP Overview" aria-label="Main Interface">
-                    <svg class="mep-btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
-                        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
-                        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
-                        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
-                    </svg>
-                    <span class="mep-btn-text">Main Interface</span>
+            <div class="mep-sidebar-actions mep-sidebar-actions-dual">
+                <!-- Button 1: Dashboard (Premium 3D Icon with Hover Tooltip) -->
+                <a href="index.html?view=main" class="mep-nav-3d-btn mep-btn-3d-dash" title="Dashboard" aria-label="Dashboard">
+                    <span class="nav-3d-icon-wrap">
+                        <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="rsbDashTopGrad" x1="16" y1="3" x2="16" y2="15" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#38bdf8" />
+                                    <stop offset="100%" stop-color="#0284c7" />
+                                </linearGradient>
+                                <linearGradient id="rsbDashLeftGrad" x1="3" y1="9" x2="16" y2="29" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#0369a1" />
+                                    <stop offset="100%" stop-color="#075985" />
+                                </linearGradient>
+                                <linearGradient id="rsbDashRightGrad" x1="16" y1="15" x2="29" y2="29" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#0284c7" />
+                                    <stop offset="100%" stop-color="#1e40af" />
+                                </linearGradient>
+                                <radialGradient id="rsbDashShadow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35" />
+                                    <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+                                </radialGradient>
+                            </defs>
+                            <ellipse cx="16" cy="28.5" rx="12" ry="3.5" fill="url(#rsbDashShadow)" />
+                            <polygon points="3,9 16,16 16,26 3,19" fill="url(#rsbDashLeftGrad)" />
+                            <polygon points="16,16 29,9 29,19 16,26" fill="url(#rsbDashRightGrad)" />
+                            <polygon points="16,2.5 29,9 16,15.5 3,9" fill="url(#rsbDashTopGrad)" stroke="#7dd3fc" stroke-width="0.75" />
+                            <ellipse cx="16" cy="9" rx="5.5" ry="2.8" fill="#0c4a6e" stroke="#38bdf8" stroke-width="0.8" />
+                            <path d="M12.5 9 C12.5 7.5 19.5 7.5 19.5 9" stroke="#10b981" stroke-width="1.2" stroke-linecap="round" fill="none" />
+                            <circle cx="16" cy="9" r="1.2" fill="#38bdf8" />
+                            <line x1="20" y1="14.5" x2="20" y2="18.5" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" />
+                            <line x1="23.5" y1="12.5" x2="23.5" y2="19.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" />
+                            <line x1="27" y1="10.5" x2="27" y2="15.5" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round" />
+                            <line x1="6" y1="15" x2="13" y2="19" stroke="#38bdf8" stroke-opacity="0.8" stroke-width="1.2" stroke-linecap="round" />
+                            <line x1="6" y1="18" x2="13" y2="22" stroke="#38bdf8" stroke-opacity="0.4" stroke-width="1.2" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <span class="nav-3d-tooltip">Dashboard</span>
                 </a>
-                <!-- Button 2: Menu (Department Hub) -->
-                <a href="index.html?view=hub" class="mep-action-btn mep-btn-menu" title="Menu - Department Hub &amp; All Modules" aria-label="Menu">
-                    <svg class="mep-btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
-                        <circle cx="5" cy="5" r="2.2"></circle>
-                        <circle cx="12" cy="5" r="2.2"></circle>
-                        <circle cx="19" cy="5" r="2.2"></circle>
-                        <circle cx="5" cy="12" r="2.2"></circle>
-                        <circle cx="12" cy="12" r="2.2"></circle>
-                        <circle cx="19" cy="12" r="2.2"></circle>
-                        <circle cx="5" cy="19" r="2.2"></circle>
-                        <circle cx="12" cy="19" r="2.2"></circle>
-                        <circle cx="19" cy="19" r="2.2"></circle>
-                    </svg>
-                    <span class="mep-btn-text">Menu</span>
+                <!-- Button 2: Module (Premium 3D Icon with Hover Tooltip) -->
+                <a href="index.html?view=modules" class="mep-nav-3d-btn mep-btn-3d-mod" title="Module" aria-label="Module">
+                    <span class="nav-3d-icon-wrap">
+                        <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="rsbModTopGrad1" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#fb923c" />
+                                    <stop offset="100%" stop-color="#ea580c" />
+                                </linearGradient>
+                                <linearGradient id="rsbModLeftGrad1" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#c2410c" />
+                                    <stop offset="100%" stop-color="#9a3412" />
+                                </linearGradient>
+                                <linearGradient id="rsbModRightGrad1" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ea580c" />
+                                    <stop offset="100%" stop-color="#c2410c" />
+                                </linearGradient>
+                                <linearGradient id="rsbModTopGrad2" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#38bdf8" />
+                                    <stop offset="100%" stop-color="#0284c7" />
+                                </linearGradient>
+                                <linearGradient id="rsbModLeftGrad2" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#0369a1" />
+                                    <stop offset="100%" stop-color="#075985" />
+                                </linearGradient>
+                                <linearGradient id="rsbModRightGrad2" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#0284c7" />
+                                    <stop offset="100%" stop-color="#0369a1" />
+                                </linearGradient>
+                                <radialGradient id="rsbModShadow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#ea580c" stop-opacity="0.32" />
+                                    <stop offset="100%" stop-color="#ea580c" stop-opacity="0" />
+                                </radialGradient>
+                            </defs>
+                            <ellipse cx="16" cy="28.5" rx="12" ry="3.5" fill="url(#rsbModShadow)" />
+                            <polygon points="4,15.5 11,19.5 11,26 4,22" fill="url(#rsbModLeftGrad1)" />
+                            <polygon points="11,19.5 18,15.5 18,22 11,26" fill="url(#rsbModRightGrad1)" />
+                            <polygon points="11,13 18,15.5 11,19.5 4,15.5" fill="url(#rsbModTopGrad1)" stroke="#fdba74" stroke-width="0.6" />
+                            <polygon points="14,15.5 21,19.5 21,26 14,22" fill="url(#rsbModLeftGrad1)" />
+                            <polygon points="21,19.5 28,15.5 28,22 21,26" fill="url(#rsbModRightGrad1)" />
+                            <polygon points="21,13 28,15.5 21,19.5 14,15.5" fill="url(#rsbModTopGrad1)" stroke="#fdba74" stroke-width="0.6" />
+                            <polygon points="9,7.5 16,11.5 16,18 9,14" fill="url(#rsbModLeftGrad2)" />
+                            <polygon points="16,11.5 23,7.5 23,14 16,18" fill="url(#rsbModRightGrad2)" />
+                            <polygon points="16,2.5 23,7.5 16,11.5 9,7.5" fill="url(#rsbModTopGrad2)" stroke="#7dd3fc" stroke-width="0.75" />
+                            <circle cx="16" cy="7.5" r="1.3" fill="#ffffff" />
+                            <circle cx="11" cy="16.5" r="1" fill="#fed7aa" />
+                            <circle cx="21" cy="16.5" r="1" fill="#fed7aa" />
+                        </svg>
+                    </span>
+                    <span class="nav-3d-tooltip">Module</span>
                 </a>
             </div>
 

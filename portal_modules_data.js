@@ -144,7 +144,7 @@
                 badge: 'VIP DB',
                 iconBg: '#1e293b',
                 iconColor: '#38bdf8',
-                iconSvg: '<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path>',
+                iconSvg: '<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>',
                 reports: [
                     { title: 'Central Item Master Database', url: 'master.html', highlight: true, pill: 'VIP DB' }
                 ]

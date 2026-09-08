@@ -172,21 +172,33 @@
                 const currentView = sessionStorage.getItem('portal_current_view');
                 const targetMod = urlParams.get('mod') || sessionStorage.getItem('portal_hub_module');
 
-                if (viewParam === 'main') {
+                if (viewParam === 'main' || viewParam === 'production') {
                     sessionStorage.setItem('portal_current_view', 'main');
                     switchToMainInterfaceView();
                 } else if (viewParam === 'dashboard') {
-                    window.location.href = 'fg_pending_report.html';
+                    sessionStorage.setItem('portal_current_view', 'main');
+                    switchToMainInterfaceView();
                 } else if (viewParam === 'hub') {
                     sessionStorage.setItem('portal_current_view', 'hub');
                     switchToDepartmentHub(targetMod);
-                } else if (currentView === 'dashboard') {
-                    sessionStorage.setItem('portal_current_view', 'main');
+                } else if (viewParam === 'modules') {
+                    sessionStorage.setItem('portal_current_view', 'modules');
+                    switchToModuleSelectionView();
+                } else if (viewParam === 'hrm') {
+                    sessionStorage.setItem('portal_current_view', 'hrm');
+                    const sub = urlParams.get('sub') || (urlParams.get('page') === 'new_entry' ? 'new_entry' : 'dashboard');
+                    switchToHRMModuleView(sub);
+                } else if (currentView === 'main') {
                     switchToMainInterfaceView();
                 } else if (currentView === 'hub') {
                     switchToDepartmentHub(targetMod);
+                } else if (currentView === 'modules') {
+                    switchToModuleSelectionView();
+                } else if (currentView === 'hrm') {
+                    switchToHRMModuleView();
                 } else {
-                    switchToMainInterfaceView();
+                    // Default view upon successful entry is the 5-Module Selection Screen!
+                    switchToModuleSelectionView();
                 }
                 applyViewOnlyStateUI();
             } else {
@@ -208,22 +220,30 @@
             var hubView = document.getElementById('departmentHubView');
             var dashView = document.getElementById('dashboardView');
             var mainView = document.getElementById('mainInterfaceView');
+            var moduleView = document.getElementById('moduleSelectionView');
+            var hrmView = document.getElementById('hrmModuleView');
+            if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'none', 'important');
             if (dashView) dashView.style.setProperty('display', 'flex', 'important');
             if (mainView) mainView.style.setProperty('display', 'none', 'important');
+            if (moduleView) moduleView.style.setProperty('display', 'none', 'important');
         }
 
         function showLoginView() {
             var dashView = document.getElementById('dashboardView');
             var hubView = document.getElementById('departmentHubView');
             var mainView = document.getElementById('mainInterfaceView');
+            var moduleView = document.getElementById('moduleSelectionView');
+            var hrmView = document.getElementById('hrmModuleView');
+            if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
             var loginView = document.getElementById('loginView');
 
             if (dashView) dashView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'none', 'important');
             if (mainView) mainView.style.setProperty('display', 'none', 'important');
+            if (moduleView) moduleView.style.setProperty('display', 'none', 'important');
             if (loginView) loginView.style.setProperty('display', 'flex', 'important');
 
             // Default to ADMIN role
@@ -249,17 +269,22 @@
             const isMain = (activeView === 'main');
             const isHub = (activeView === 'hub');
             const isDash = (activeView === 'dashboard');
+            const isModules = (activeView === 'modules');
 
-            document.querySelectorAll('.btn-nav-main, .btn-rail-main').forEach(el => {
+            document.querySelectorAll('.btn-nav-main, .btn-rail-main, .mep-btn-main, .mep-btn-3d-dash').forEach(el => {
                 if (isMain) el.classList.add('active');
                 else el.classList.remove('active');
             });
-            document.querySelectorAll('.btn-nav-home, .btn-rail-home').forEach(el => {
+            document.querySelectorAll('.btn-nav-home, .btn-rail-home, .mep-btn-menu').forEach(el => {
                 if (isHub) el.classList.add('active');
                 else el.classList.remove('active');
             });
             document.querySelectorAll('.btn-nav-dash, .btn-rail-dash').forEach(el => {
                 if (isDash) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+            document.querySelectorAll('.btn-nav-modules, .mep-btn-portal, .mep-btn-3d-mod').forEach(el => {
+                if (isModules) el.classList.add('active');
                 else el.classList.remove('active');
             });
         }
@@ -272,11 +297,15 @@
             var hubView = document.getElementById('departmentHubView');
             var dashView = document.getElementById('dashboardView');
             var mainView = document.getElementById('mainInterfaceView');
+            var moduleView = document.getElementById('moduleSelectionView');
+            var hrmView = document.getElementById('hrmModuleView');
+            if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'none', 'important');
             if (dashView) dashView.style.setProperty('display', 'none', 'important');
             if (mainView) mainView.style.setProperty('display', 'flex', 'important');
+            if (moduleView) moduleView.style.setProperty('display', 'none', 'important');
 
             updateNavState('main');
 
@@ -306,11 +335,13 @@
             var dashView = document.getElementById('dashboardView');
             var mainView = document.getElementById('mainInterfaceView');
             var hubView = document.getElementById('departmentHubView');
+            var moduleView = document.getElementById('moduleSelectionView');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (dashView) dashView.style.setProperty('display', 'none', 'important');
             if (mainView) mainView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'flex', 'important');
+            if (moduleView) moduleView.style.setProperty('display', 'none', 'important');
 
             updateNavState('hub');
             applyViewOnlyStateUI();
@@ -336,6 +367,184 @@
             }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * Switch UI to 5-Module Department Selection Screen (Default Gateway View)
+         */
+        function switchToModuleSelectionView() {
+            resetInactivityTimer();
+            sessionStorage.setItem('portal_current_view', 'modules');
+            sessionStorage.removeItem('portal_hub_module');
+
+            var loginView = document.getElementById('loginView');
+            var hubView = document.getElementById('departmentHubView');
+            var dashView = document.getElementById('dashboardView');
+            var mainView = document.getElementById('mainInterfaceView');
+            var moduleView = document.getElementById('moduleSelectionView');
+            var hrmView = document.getElementById('hrmModuleView');
+            if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
+
+            if (loginView) loginView.style.setProperty('display', 'none', 'important');
+            if (hubView) hubView.style.setProperty('display', 'none', 'important');
+            if (dashView) dashView.style.setProperty('display', 'none', 'important');
+            if (mainView) mainView.style.setProperty('display', 'none', 'important');
+            if (moduleView) moduleView.style.setProperty('display', 'flex', 'important');
+
+            updateNavState('modules');
+            applyViewOnlyStateUI();
+            updateModuleHeaderState();
+
+            if (window.location.search && !window.location.search.includes('view=modules')) {
+                try {
+                    window.history.replaceState(null, '', window.location.pathname);
+                } catch(e) {}
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * Production Module Click Handler -> Opens the complete rearranged Dashboard
+         */
+        function switchToProductionModule(event) {
+            if (event) {
+                try { event.preventDefault(); event.stopPropagation(); } catch(e) {}
+            }
+            switchToMainInterfaceView();
+        }
+
+        function openModuleNotice(moduleName, moduleDesc) {
+            // Toast alert removed per user requirement
+        }
+
+        function openModuleWarehouseAction(event) {
+            if (event) {
+                try { event.preventDefault(); event.stopPropagation(); } catch(e) {}
+            }
+            switchToDepartmentHub('mod-01');
+        }
+
+        function switchToHRMModuleView(subPage) {
+            resetInactivityTimer();
+            sessionStorage.setItem('portal_current_view', 'hrm');
+            sessionStorage.removeItem('portal_hub_module');
+            var loginView = document.getElementById('loginView');
+            var hubView = document.getElementById('departmentHubView');
+            var dashView = document.getElementById('dashboardView');
+            var mainView = document.getElementById('mainInterfaceView');
+            var moduleView = document.getElementById('moduleSelectionView');
+            var hrmView = document.getElementById('hrmModuleView');
+
+            if (loginView) loginView.style.setProperty('display', 'none', 'important');
+            if (hubView) hubView.style.setProperty('display', 'none', 'important');
+            if (dashView) dashView.style.setProperty('display', 'none', 'important');
+            if (mainView) mainView.style.setProperty('display', 'none', 'important');
+            if (moduleView) moduleView.style.setProperty('display', 'none', 'important');
+            if (hrmView) hrmView.style.setProperty('display', 'flex', 'important');
+
+            updateNavState('hrm');
+            applyViewOnlyStateUI();
+
+            if (window.HRM_ENGINE) {
+                window.HRM_ENGINE.switchPage(subPage || 'dashboard');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openModuleHRMAction(event) {
+            if (event) {
+                try { event.preventDefault(); event.stopPropagation(); } catch(e) {}
+            }
+            switchToHRMModuleView();
+        }
+
+        function toggleModuleProfileDropdown(event) {
+            if (event) {
+                try { event.stopPropagation(); } catch(e) {}
+            }
+            if (typeof resetInactivityTimer === 'function') resetInactivityTimer();
+            if (typeof updateServiceDuration === 'function') updateServiceDuration();
+
+            const menu = document.getElementById('moduleProfileDropdownMenu');
+            const btn = document.getElementById('moduleUserProfileBtn');
+            if (!menu) return;
+
+            const isShown = menu.classList.contains('show');
+            if (typeof closeProfileDropdown === 'function') {
+                closeProfileDropdown();
+            } else {
+                document.querySelectorAll('.profile-dropdown-menu').forEach(function(m) {
+                    m.classList.remove('show');
+                });
+            }
+
+            if (!isShown) {
+                menu.classList.add('show');
+                if (btn) {
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-expanded', 'true');
+                }
+            }
+        }
+
+        function closeModuleProfileDropdown(event) {
+            if (event) {
+                try { event.stopPropagation(); } catch(e) {}
+            }
+            const menu = document.getElementById('moduleProfileDropdownMenu');
+            const btn = document.getElementById('moduleUserProfileBtn');
+            if (menu) menu.classList.remove('show');
+            if (btn) {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function openModuleUserAction(event) {
+            if (event) {
+                try { event.preventDefault(); event.stopPropagation(); } catch(e) {}
+            }
+            toggleModuleProfileDropdown(event);
+        }
+
+        function openModuleMISAction(event) {
+            if (event) {
+                try { event.preventDefault(); event.stopPropagation(); } catch(e) {}
+            }
+            if (typeof openSettingsModal === 'function') {
+                openSettingsModal();
+                if (typeof switchSettingsTab === 'function') {
+                    switchSettingsTab('access');
+                }
+            } else {
+                switchToDepartmentHub();
+            }
+        }
+
+        function updateModuleHeaderState() {
+            const role = (sessionStorage.getItem('portal_auth_role') || 'ADMIN').toUpperCase();
+            const isViewOnly = isCurrentUserViewOnly();
+            const nameEl = document.getElementById('moduleProfileName');
+            const roleEl = document.getElementById('moduleProfileRole');
+            const dropTitle = document.getElementById('moduleProfileDropdownTitle');
+            const dropRole = document.getElementById('moduleProfileDropdownRole');
+            const dropId = document.getElementById('moduleProfileDropdownId');
+
+            if (isViewOnly || role === 'VIEW') {
+                if (nameEl) nameEl.textContent = "View User";
+                if (roleEl) roleEl.textContent = "Restricted Access";
+                if (dropTitle) dropTitle.textContent = "View User";
+                if (dropRole) dropRole.textContent = "Restricted Access";
+                if (dropId) dropId.textContent = "VIEW-01";
+            } else {
+                if (nameEl) nameEl.textContent = "Sayful Islam";
+                if (roleEl) roleEl.textContent = "Senior Supervisor";
+                if (dropTitle) dropTitle.textContent = "Sayful Islam";
+                if (dropRole) dropRole.textContent = "Senior Supervisor";
+                if (dropId) dropId.textContent = "10676";
+            }
         }
 
         function initNotificationState() {
@@ -546,12 +755,15 @@
                 }
 
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('view') === 'hub') {
+                if (urlParams.get('view') === 'main' || urlParams.get('view') === 'production') {
+                    switchToMainInterfaceView();
+                } else if (urlParams.get('view') === 'hub') {
                     switchToDepartmentHub();
                 } else if (urlParams.get('view') === 'dashboard') {
                     switchToDashboardView();
                 } else {
-                    switchToMainInterfaceView();
+                    // NEW FLOW: Successful login routes to the 5-Module Department Selection Screen!
+                    switchToModuleSelectionView();
                 }
                 applyViewOnlyStateUI();
             } else {
@@ -772,3 +984,16 @@ window.applyViewOnlyStateUI = applyViewOnlyStateUI;
 window.handleLogout = handleLogout;
 window.resetInactivityTimer = resetInactivityTimer;
 window.showToast = showToast;
+window.switchToModuleSelectionView = switchToModuleSelectionView;
+window.switchToProductionModule = switchToProductionModule;
+window.openModuleWarehouseAction = openModuleWarehouseAction;
+window.openModuleHRMAction = openModuleHRMAction;
+window.switchToHRMModuleView = switchToHRMModuleView;
+window.toggleModuleProfileDropdown = toggleModuleProfileDropdown;
+window.closeModuleProfileDropdown = closeModuleProfileDropdown;
+window.openModuleNotice = openModuleNotice;
+window.openModuleUserAction = openModuleUserAction;
+window.openModuleMISAction = openModuleMISAction;
+window.updateModuleHeaderState = updateModuleHeaderState;
+
+
