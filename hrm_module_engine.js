@@ -14,6 +14,15 @@
      * Initialize HRM Module Engine
      */
     function initHrmModule() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const secParam = urlParams.get('sec') || urlParams.get('section');
+            if (secParam) {
+                currentFilterSection = secParam;
+                const select = document.getElementById('hrmSectionSelectFilter');
+                if (select) select.value = currentFilterSection;
+            }
+        } catch (e) {}
         renderHrmDashboard();
         renderHrmNewEntryTable();
     }
@@ -109,7 +118,10 @@
 
         // Filter list
         const filtered = allEmployees.filter(emp => {
-            const matchSection = currentFilterSection === 'ALL' || emp.section === currentFilterSection;
+            const empSec = String(emp.section || '').trim().toLowerCase();
+            const filterSec = String(currentFilterSection).trim().toLowerCase();
+            const matchSection = filterSec === 'all' || empSec === filterSec;
+            
             const matchDesignation = currentFilterDesignation === 'ALL' || emp.designation === currentFilterDesignation;
             
             const q = currentSearchTerm.toLowerCase().trim();
@@ -118,6 +130,7 @@
                 String(emp.name).toLowerCase().includes(q) ||
                 String(emp.designation).toLowerCase().includes(q) ||
                 String(emp.section).toLowerCase().includes(q) ||
+                String(emp.gender || '').toLowerCase().includes(q) ||
                 String(emp.doj).toLowerCase().includes(q);
 
             return matchSection && matchDesignation && matchSearch;
@@ -129,7 +142,7 @@
         if (filtered.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="hrm-empty-row">
+                    <td colspan="8" class="hrm-empty-row">
                         <div class="hrm-empty-state">
                             <span class="empty-icon">🔍</span>
                             <div class="empty-title">No matching employee records found</div>
@@ -148,6 +161,11 @@
             const replaceTag = isReplaced 
                 ? `<span class="replaced-badge" title="Replaced: ${escapeHtml(emp.replaced_from.name)} on ${escapeHtml(emp.replaced_from.date)}">🔁 Replaced</span>` 
                 : '';
+
+            const isFemale = String(emp.gender || '').toLowerCase() === 'female';
+            const genderBadge = isFemale 
+                ? `<span class="gender-badge gen-female">👩 Female</span>` 
+                : `<span class="gender-badge gen-male">👨 Male</span>`;
 
             html += `
                 <tr class="hrm-emp-row" data-sl="${emp.sl}" data-id="${emp.id}">
@@ -171,6 +189,9 @@
                     </td>
                     <td class="col-section">
                         <span class="section-badge ${secClass}">${escapeHtml(emp.section)}</span>
+                    </td>
+                    <td class="col-gender" style="text-align:center;">
+                        ${genderBadge}
                     </td>
                     <td class="col-actions">
                         <div class="hrm-row-actions">
@@ -245,6 +266,38 @@
         if (elArmature) elArmature.textContent = cArmature;
         if (elDimmar) elDimmar.textContent = cDimmar;
         if (elReplace) elReplace.textContent = cReplacement;
+
+        // Highlight active pill
+        const pillMap = [
+            { key: 'ALL', id: 'hrmPillTotal' },
+            { key: 'Assemble Line', id: 'hrmPillAssemble' },
+            { key: 'Armature Winding', id: 'hrmPillArmature' },
+            { key: 'Dimmar & Blade', id: 'hrmPillDimmar' },
+            { key: 'Replacement', id: 'hrmPillReplacement' }
+        ];
+        const curSec = (currentFilterSection || 'ALL').trim().toLowerCase();
+        pillMap.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (el) {
+                if (curSec === item.key.toLowerCase()) {
+                    el.classList.add('active-pill');
+                } else {
+                    el.classList.remove('active-pill');
+                }
+            }
+        });
+    }
+
+    /**
+     * Filter by Section (clickable from pills or dropdown)
+     */
+    function filterHrmBySection(sectionName) {
+        currentFilterSection = sectionName || 'ALL';
+        const select = document.getElementById('hrmSectionSelectFilter');
+        if (select) {
+            select.value = currentFilterSection;
+        }
+        renderHrmNewEntryTable();
     }
 
     /**
@@ -581,7 +634,8 @@
         resetDatabase: resetHrmDatabaseToDefault,
         exportCSV: exportHrmDatabaseCSV,
         print: printHrmDatabase,
-        toggleDatabaseMenu: toggleHrmDatabaseMenu
+        toggleDatabaseMenu: toggleHrmDatabaseMenu,
+        filterBySection: filterHrmBySection
     };
 
     if (document.readyState === 'loading') {
@@ -610,3 +664,7 @@ window.resetHrmDatabaseToDefault = function() { window.HRM_ENGINE.resetDatabase(
 window.exportHrmDatabaseCSV = function() { window.HRM_ENGINE.exportCSV(); };
 window.printHrmDatabase = function() { window.HRM_ENGINE.print(); };
 window.toggleHrmDatabaseMenu = function() { window.HRM_ENGINE.toggleDatabaseMenu(); };
+window.handleHrmSearch = function(v) { window.HRM_ENGINE.handleSearch(v); };
+window.handleHrmSectionFilter = function(v) { window.HRM_ENGINE.handleSectionFilter(v); };
+window.handleHrmDesignationFilter = function(v) { window.HRM_ENGINE.handleDesignationFilter(v); };
+window.filterHrmBySection = function(v) { window.HRM_ENGINE.filterBySection(v); };

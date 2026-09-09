@@ -130,31 +130,75 @@
     }
 
     function updateAllDots() {
-        const unread = isUnread();
-        document.querySelectorAll('.notif-red-dot, .notif-badge-dot').forEach(el => {
-            el.style.display = unread ? 'block' : 'none';
+        const list = getHistory();
+        const unreadCount = list.filter(item => item.isUnread === true).length;
+        const hasUnread = unreadCount > 0;
+
+        // Update pulse dots across header and MIS corner bell
+        document.querySelectorAll('.notif-red-dot, .notif-badge-dot, #misBellPulseDot').forEach(el => {
+            el.style.display = hasUnread ? 'block' : 'none';
+        });
+
+        // Update bell number badge counter
+        document.querySelectorAll('#misBellBadge, .mis-bell-badge').forEach(badge => {
+            if (hasUnread) {
+                badge.style.display = 'inline-block';
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            } else {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
         });
     }
 
-    window.logSystemChange = function(changeObj) {
+    window.logSystemAudit = function(changeObj) {
         const list = getHistory();
+        const now = new Date();
+        const formattedTime = changeObj.timestamp || (
+            now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
+            ' ' + 
+            now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+        );
+
         const newEntry = {
-            id: 'notif_' + Date.now(),
-            page: changeObj.page || "Portal",
-            module: changeObj.module || "General",
-            type: changeObj.type || "Data Edited",
+            id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            page: changeObj.page || "Portal System",
+            module: changeObj.module || "System Control",
+            type: changeObj.type || changeObj.action || "Data Modified",
+            action: changeObj.action || changeObj.type || "Update",
             badgeColor: changeObj.badgeColor || "#0284c7",
             badgeBg: changeObj.badgeBg || "#e0f2fe",
-            title: changeObj.title || "System Updated",
+            title: changeObj.title || `${changeObj.page || 'Page'}: ${changeObj.action || 'Updated'}`,
+            user: changeObj.user || "Sayful Islam (Senior Supervisor)",
+            item: changeObj.item || null,
+            field: changeObj.field || null,
+            prevVal: (changeObj.prevVal !== undefined && changeObj.prevVal !== null) ? String(changeObj.prevVal) : null,
+            newVal: (changeObj.newVal !== undefined && changeObj.newVal !== null) ? String(changeObj.newVal) : null,
             linkDetails: changeObj.linkDetails || null,
             description: changeObj.description || "",
-            timestamp: changeObj.timestamp || new Date().toLocaleString(),
+            timestamp: formattedTime,
             isUnread: true
         };
+
         list.unshift(newEntry);
+        if (list.length > 100) list.length = 100;
         saveHistory(list);
         setUnreadState(true);
         renderNotificationContent();
+    };
+
+    window.logSystemChange = window.logSystemAudit;
+
+    window.deleteNotificationItem = function(id) {
+        if (sessionStorage.getItem('portal_view_only') === 'true') {
+            alert("Security Alert: View-Only accounts cannot delete notification history.");
+            return;
+        }
+        let list = getHistory();
+        list = list.filter(item => item.id !== id);
+        saveHistory(list);
+        renderNotificationContent();
+        updateAllDots();
     };
 
     function escapeHtml(str) {
@@ -241,19 +285,59 @@
             `;
         }
 
-        return `
-            <div class="notif-card ${isUnread ? 'is-unread-card' : ''}">
-                <div class="notif-card-meta">
-                    <span class="notif-module-badge">${escapeHtml(item.module)}</span>
-                    <span class="notif-time-badge">${escapeHtml(item.timestamp)}</span>
+        // Detailed Diff Box (Previous Value -> New Value)
+        let diffBoxHtml = '';
+        if (item.item || item.field || item.prevVal !== null || item.newVal !== null) {
+            diffBoxHtml = `
+                <div class="notif-diff-container">
+                    <div class="notif-diff-meta-row">
+                        ${item.item ? `<span class="diff-meta-chip">📦 <strong>Target:</strong> ${escapeHtml(item.item)}</span>` : ''}
+                        ${item.field ? `<span class="diff-meta-chip">⚙️ <strong>Field:</strong> ${escapeHtml(item.field)}</span>` : ''}
+                    </div>
+                    ${(item.prevVal !== null || item.newVal !== null) ? `
+                        <div class="notif-diff-values-card">
+                            <div class="diff-val-box diff-val-prev">
+                                <span class="diff-val-badge">PREVIOUS</span>
+                                <span class="diff-val-string">${escapeHtml(item.prevVal !== null ? item.prevVal : '—')}</span>
+                            </div>
+                            <div class="diff-arrow-indicator">➔</div>
+                            <div class="diff-val-box diff-val-new">
+                                <span class="diff-val-badge">NEW VALUE</span>
+                                <span class="diff-val-string">${escapeHtml(item.newVal !== null ? item.newVal : '—')}</span>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
-                <div class="notif-page-title">${escapeHtml(item.page)}</div>
-                
-                <div class="notif-change-type-pill" style="background:${item.badgeBg || '#e0f2fe'}; color:${item.badgeColor || '#0284c7'};">
-                    <span>&#10003;</span> ${escapeHtml(item.type)}
+            `;
+        }
+
+        return `
+            <div class="notif-card ${isUnread ? 'is-unread-card' : ''}" id="notifCard_${escapeHtml(item.id)}">
+                <div class="notif-card-topbar">
+                    <div class="notif-card-meta">
+                        <span class="notif-module-badge">${escapeHtml(item.module || 'ERP')}</span>
+                        <span class="notif-time-badge">${escapeHtml(item.timestamp)}</span>
+                    </div>
+                    <button type="button" 
+                            class="notif-item-delete-btn" 
+                            onclick="event.stopPropagation(); window.deleteNotificationItem('${escapeHtml(item.id)}')" 
+                            title="Delete this notification item (✕)" 
+                            aria-label="Delete Notification">✕</button>
                 </div>
 
-                <div class="notif-card-desc">${escapeHtml(item.description)}</div>
+                <div class="notif-page-title">${escapeHtml(item.page)}</div>
+                
+                <div class="notif-action-row">
+                    <div class="notif-change-type-pill" style="background:${item.badgeBg || '#e0f2fe'}; color:${item.badgeColor || '#0284c7'};">
+                        <span>✓</span> ${escapeHtml(item.type || item.action || 'System Update')}
+                    </div>
+                    <div class="notif-user-pill">
+                        <span>👤</span> ${escapeHtml(item.user || 'Sayful Islam (Senior Supervisor)')}
+                    </div>
+                </div>
+
+                ${item.description ? `<div class="notif-card-desc">${escapeHtml(item.description)}</div>` : ''}
+                ${diffBoxHtml}
                 ${linkBoxHtml}
             </div>
         `;
@@ -282,10 +366,15 @@
     };
 
     window.clearAllNotificationHistory = function() {
-        if (confirm("Are you sure you want to clear all notification history?")) {
-            localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify([]));
+        if (sessionStorage.getItem('portal_view_only') === 'true') {
+            alert("Security Alert: View-Only accounts cannot clear audit history.");
+            return;
+        }
+        if (confirm("Are you sure you want to clear all audit notifications history?")) {
+            saveHistory([]);
             setUnreadState(false);
             renderNotificationContent();
+            updateAllDots();
         }
     };
 
@@ -301,13 +390,13 @@
                 <div class="smart-notif-title-area">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     <div style="display:flex; flex-direction:column;">
-                        <span class="smart-notif-title">UPDATE HISTORY</span>
-                        <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">Complete Audit &amp; Link Changelog</span>
+                        <span class="smart-notif-title">AUDIT &amp; NOTIFICATION CENTER</span>
+                        <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">Operational Change Logs &amp; Audit Trail</span>
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <button type="button" class="smart-notif-clear-btn" onclick="clearAllNotificationHistory()">Clear</button>
-                    <button type="button" class="smart-notif-close-btn" onclick="closeSmartNotificationPanel()">&#10005;</button>
+                    <button type="button" class="smart-notif-clear-btn" onclick="clearAllNotificationHistory()" title="Clear all history">Clear</button>
+                    <button type="button" class="smart-notif-close-btn" onclick="closeSmartNotificationPanel()" title="Close Notification Drawer">&#10005;</button>
                 </div>
             </div>
             <div class="smart-notif-body" id="smartNotifPanelBody">

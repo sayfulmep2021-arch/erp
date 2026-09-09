@@ -290,132 +290,64 @@
         return null;
     }
 
-    function injectPageLockBtn() {
-        const curPage = getCurrentPage();
-        // If not an editable page, ensure any lock button is removed
-        if (!isPageEditable(curPage)) {
-            document.querySelectorAll('.smart-page-lock-btn').forEach(b => b.remove());
-            return;
+    function getCentralPageLockStates() {
+        try {
+            const raw = localStorage.getItem('portal_page_lock_states');
+            return raw ? JSON.parse(raw) : {};
+        } catch(e) {
+            return {};
         }
-
-        // Always ensure no lock button is present in the top navbar
-        document.querySelectorAll('.portal-nav .smart-page-lock-btn').forEach(b => b.remove());
-
-        const container = findPageActionContainer();
-        if (!container) return;
-
-        let lockBtn = container.querySelector('#smartPageLockBtn');
-        if (!lockBtn) {
-            lockBtn = document.getElementById('smartPageLockBtn');
-            if (lockBtn && lockBtn.parentElement !== container) {
-                lockBtn.remove();
-                lockBtn = null;
-            }
-        }
-
-        if (!lockBtn) {
-            lockBtn = document.createElement('button');
-            lockBtn.type = 'button';
-            lockBtn.className = 'smart-page-lock-btn locked';
-            lockBtn.id = 'smartPageLockBtn';
-
-            // Insert before the first button in the container (e.g. before Save or Add button)
-            const firstBtn = container.querySelector('button, .btn, a.btn');
-            if (firstBtn) {
-                container.insertBefore(lockBtn, firstBtn);
-            } else {
-                container.appendChild(lockBtn);
-            }
-
-            lockBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                togglePageLock();
-            };
-        }
-
-        updateLockBtnUI();
     }
 
-    function updateLockBtnUI() {
-        const lockBtn = document.getElementById('smartPageLockBtn');
-        if (!lockBtn) return;
-
-        if (isViewOnlyUser) {
-            lockBtn.className = 'smart-page-lock-btn view-only';
-            lockBtn.title = 'View-Only Mode: Page editing is permanently locked';
-            lockBtn.setAttribute('data-tooltip', 'View-Only Locked');
-            lockBtn.setAttribute('aria-label', 'View-Only Locked');
-            lockBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-            `;
-            if (document.body) {
-                document.body.classList.add('page-locked');
-                document.body.classList.remove('page-unlocked');
-            }
-            return;
+    function isCurrentPageLocked() {
+        if (isViewOnlyUser) return true;
+        const curPage = (getCurrentPage() || '').toLowerCase().split('?')[0].split('#')[0];
+        if (!isPageEditable(curPage)) return false;
+        const states = getCentralPageLockStates();
+        // If explicitly unlocked (false), allow editing; otherwise default to locked (true)
+        if (states[curPage] === false) {
+            return false;
         }
+        return true;
+    }
+
+    function removePageLockBtns() {
+        document.querySelectorAll('.smart-page-lock-btn, #smartPageLockBtn').forEach(b => b.remove());
+    }
+
+    function injectPageLockBtn() {
+        // Individual lock button removed per user requirement #3. Centralized in MIS "Lock and Unlock Page".
+        removePageLockBtns();
+        updateLockStateUI();
+    }
+
+    function updateLockStateUI() {
+        isPageLocked = isCurrentPageLocked();
+        removePageLockBtns();
 
         if (isPageLocked) {
-            lockBtn.className = 'smart-page-lock-btn locked';
-            lockBtn.title = 'Page Locked — Click to Unlock';
-            lockBtn.setAttribute('data-tooltip', 'Page Locked — Click to Unlock');
-            lockBtn.setAttribute('aria-label', 'Page Locked — Click to Unlock');
-            lockBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-            `;
             if (document.body) {
                 document.body.classList.add('page-locked');
                 document.body.classList.remove('page-unlocked');
+            } else if (document.documentElement) {
+                document.documentElement.classList.add('page-locked');
             }
         } else {
-            lockBtn.className = 'smart-page-lock-btn unlocked';
-            lockBtn.title = 'Page Unlocked — Click to Lock';
-            lockBtn.setAttribute('data-tooltip', 'Page Unlocked — Click to Lock');
-            lockBtn.setAttribute('aria-label', 'Page Unlocked — Click to Lock');
-            lockBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                </svg>
-            `;
             if (document.body) {
                 document.body.classList.remove('page-locked');
                 document.body.classList.add('page-unlocked');
+            } else if (document.documentElement) {
+                document.documentElement.classList.remove('page-locked');
             }
         }
     }
 
+    function updateLockBtnUI() {
+        updateLockStateUI();
+    }
+
     function togglePageLock() {
-        if (isViewOnlyUser) {
-            showPageLockToast('Access Denied: View-Only accounts cannot unlock or edit pages.', 'warn');
-            return;
-        }
-
-        isPageLocked = !isPageLocked;
-        updateLockBtnUI();
-
-        const page = getCurrentPage();
-        const pageTitle = document.title || page;
-        const now = new Date();
-        const timeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + now.toLocaleTimeString();
-
-        if (isPageLocked) {
-            if (document.activeElement && document.activeElement.tagName && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-                document.activeElement.blur();
-            }
-            logPageLockAudit('LOCKED', page, pageTitle, timeStr);
-            showPageLockToast('🔒 Page Locked: Editing disabled to protect data.', 'locked');
-        } else {
-            logPageLockAudit('UNLOCKED', page, pageTitle, timeStr);
-            showPageLockToast('🔓 Page Unlocked: Editing is now enabled for this session.', 'unlocked');
-        }
+        showPageLockToast('🔒 Page locking is managed centrally in MIS Module -> Lock and Unlock Page.', 'warn');
     }
 
     function logPageLockAudit(action, page, pageTitle, timeStr) {
@@ -697,6 +629,15 @@
             }
         }
 
+        // Check custom titles for current page
+        try {
+            const customTitlesMap = JSON.parse(localStorage.getItem('portal_custom_page_names') || '{}');
+            const cleanCurrentPage = (currentPage || '').toLowerCase();
+            if (customTitlesMap[cleanCurrentPage] && customTitlesMap[cleanCurrentPage].trim()) {
+                activeItemName = customTitlesMap[cleanCurrentPage].trim();
+            }
+        } catch(e) {}
+
         // 2. Identify top navbar and clean it up (Insert Home, Dashboard and [S] Sayful Islam)
         const nav = document.querySelector('.portal-nav') || document.querySelector('header');
         if (nav) {
@@ -730,20 +671,8 @@
             brandCard.innerHTML = `<span class="smart-brand-text">Smart Time Management</span>`;
             navLeft.appendChild(brandCard);
 
-            // 3. Place new [Link] button in the page toolbar (.header-actions or .header-action-group)
-            const targetToolbar = document.querySelector('.header-actions, .header-action-group');
-            if (targetToolbar && !targetToolbar.querySelector('.btn-action-link')) {
-                const linkBtn = document.createElement('button');
-                linkBtn.type = 'button';
-                linkBtn.className = 'btn-action btn-action-link';
-                linkBtn.setAttribute('data-tooltip', 'Link');
-                linkBtn.onclick = function() { window.openLinkDetailsModal(); };
-                linkBtn.style.cssText = "background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);";
-                linkBtn.innerHTML = `
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                `;
-                targetToolbar.insertBefore(linkBtn, targetToolbar.firstChild);
-            }
+            // 3. Remove Link button from individual report pages per User Requirement #5 (Centralized in MIS "Show & Edit Link")
+            document.querySelectorAll('.btn-action-link, #btnLinkDetails').forEach(el => el.remove());
 
             // 4. Setup Icon-Only Action Buttons & Premium Tooltips across all toolbars
             document.querySelectorAll('.header-actions, .header-action-group, .damage-actions-group').forEach(tb => {
@@ -877,26 +806,9 @@
                     };
                 }
 
-                // Header Top-Right Notification Bell Button with Live Red Dot
-                if (!navRight.querySelector('.btn-nav-notif')) {
-                    const notifBtn = document.createElement('button');
-                    notifBtn.type = 'button';
-                    notifBtn.className = 'btn-nav-notif';
-                    notifBtn.title = 'Notifications & Audit History';
-                    notifBtn.innerHTML = `
-                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                        <span class="notif-red-dot" style="display:none;"></span>
-                    `;
-                    notifBtn.onclick = function(e) {
-                        if (typeof window.toggleSmartNotificationPanel === 'function') {
-                            window.toggleSmartNotificationPanel();
-                        }
-                    };
-                    navRight.appendChild(notifBtn);
-                }
+                // Notification Bell removed from report headers per User Requirement #6 (Centralized in MIS)
+                const existingNotifBtn = navRight.querySelector('.btn-nav-notif, .notif-bell-btn, .notif-btn-wrapper');
+                if (existingNotifBtn) existingNotifBtn.remove();
 
                 // Header Top-Right Logout Button (Uniform across all report pages)
                 if (!navRight.querySelector('.header-logout-btn')) {
@@ -951,7 +863,21 @@
 
             let subItemsHtml = '';
             accessibleItems.forEach(item => {
-                const isActiveItem = (currentPage === item.url || (activeModule && item.name === activeItemName));
+                let effectiveUrl = item.url;
+                let displayName = item.name;
+                try {
+                    const clean = (item.url || '').split('/').pop().split('?')[0].toLowerCase();
+                    const mappings = JSON.parse(localStorage.getItem('portal_page_link_mappings') || '{}');
+                    if (mappings && mappings[clean]) {
+                        effectiveUrl = mappings[clean];
+                    }
+                    const customTitles = JSON.parse(localStorage.getItem('portal_custom_page_names') || '{}');
+                    if (customTitles && customTitles[clean] && customTitles[clean].trim()) {
+                        displayName = customTitles[clean].trim();
+                    }
+                } catch(e) {}
+
+                const isActiveItem = (currentPage === item.url || currentPage === effectiveUrl || (activeModule && item.name === activeItemName) || (activeModule && displayName === activeItemName));
                 let statusTagHtml = '';
                 let dotClass = 'sub-item-dot';
 
@@ -962,10 +888,10 @@
                 }
 
                 subItemsHtml += `
-                    <a href="${item.url}" class="sub-report-item ${isActiveItem ? 'active-page item-highlight-entry' : ''}" style="margin-bottom: 5px; text-decoration: none !important;" title="${item.name}" onclick="handleSubItemClick(this)">
+                    <a href="${effectiveUrl}" class="sub-report-item ${isActiveItem ? 'active-page item-highlight-entry' : ''}" style="margin-bottom: 5px; text-decoration: none !important;" title="${displayName}" onclick="handleSubItemClick(this)">
                         <div class="sub-item-left">
                             <span class="${dotClass}" id="mep-dot-${item.idKey || ''}"></span>
-                            <span class="sub-item-title">${item.name}</span>
+                            <span class="sub-item-title">${displayName}</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px;">
                             ${statusTagHtml}
@@ -1048,7 +974,7 @@
         aside.innerHTML = `
             <div class="mep-sidebar-actions mep-sidebar-actions-dual">
                 <!-- Button 1: Dashboard (Premium 3D Icon with Hover Tooltip) -->
-                <a href="index.html?view=main" class="mep-nav-3d-btn mep-btn-3d-dash" title="Dashboard" aria-label="Dashboard">
+                <a href="index.html?view=main" class="mep-nav-3d-btn mep-btn-3d-dash" aria-label="Dashboard">
                     <span class="nav-3d-icon-wrap">
                         <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -1086,7 +1012,7 @@
                     <span class="nav-3d-tooltip">Dashboard</span>
                 </a>
                 <!-- Button 2: Module (Premium 3D Icon with Hover Tooltip) -->
-                <a href="index.html?view=modules" class="mep-nav-3d-btn mep-btn-3d-mod" title="Module" aria-label="Module">
+                <a href="index.html?view=modules" class="mep-nav-3d-btn mep-btn-3d-mod" aria-label="Module">
                     <span class="nav-3d-icon-wrap">
                         <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -1636,13 +1562,26 @@
     // Global Link Details Modal (Page-Specific Mapping & Flow)
     // =========================================================================
     window.openLinkDetailsModal = function(customPage) {
-        const page = (customPage || getCurrentPage() || '').replace('.html', '');
+        const page = (customPage || getCurrentPage() || '').replace('.html', '').toLowerCase();
         let reg = null;
 
-        for (let key in PAGE_LINK_REGISTRY) {
-            if (page.includes(key)) {
-                reg = PAGE_LINK_REGISTRY[key];
-                break;
+        // Check persistent custom data flow edits from MIS module first
+        try {
+            const customReg = JSON.parse(localStorage.getItem('portal_page_link_flow_registry') || '{}');
+            for (let key in customReg) {
+                if (page.includes(key) || key.includes(page)) {
+                    reg = customReg[key];
+                    break;
+                }
+            }
+        } catch(e) {}
+
+        if (!reg) {
+            for (let key in PAGE_LINK_REGISTRY) {
+                if (page.includes(key)) {
+                    reg = PAGE_LINK_REGISTRY[key];
+                    break;
+                }
             }
         }
 
@@ -2245,6 +2184,16 @@
         setTimeout(injectPageLockBtn, 120);
         setTimeout(injectPageLockBtn, 450);
         setTimeout(guardLiveTimeElements, 500);
+
+        // Realtime sync for centralized lock/unlock changes
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'portal_page_lock_states' || e.key === 'portal_view_only') {
+                updateLockStateUI();
+            }
+        });
+        window.addEventListener('portal_lock_change', function() {
+            updateLockStateUI();
+        });
     }
 
     if (document.readyState === 'loading') {

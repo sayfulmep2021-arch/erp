@@ -226,15 +226,8 @@ function renderProductionPerformanceDashboard(customData) {
         elLegendPending.innerText = `${pending.toLocaleString()} PCS - ${pendingPct}%`;
     }
 
-    // Right Card: Last 30 Days Trend Stat Boxes
-    const elTrendTarget = document.getElementById('trendTargetVal');
-    if (elTrendTarget) elTrendTarget.innerText = `${target.toLocaleString()} PCS`;
-
-    const elTrendAchieve = document.getElementById('trendAchieveVal');
-    if (elTrendAchieve) elTrendAchieve.innerText = `${achieve.toLocaleString()} PCS`;
-
-    const elTrendPending = document.getElementById('trendPendingVal');
-    if (elTrendPending) elTrendPending.innerText = `${pending.toLocaleString()} PCS`;
+    // Right Card: Yearly Target vs Achievement (Fiscal Year: July -> June)
+    renderYearlyTargetVsAchievementChart(window.currentSelectedFiscalYear || '2026-2027');
 
     // ⑥ LEGACY / OPTIONAL COMPATIBILITY (if older elements exist)
     const elTargetOld = document.getElementById('valProdTarget');
@@ -242,6 +235,392 @@ function renderProductionPerformanceDashboard(customData) {
     const elAchieveOld = document.getElementById('valProdAchieve');
     if (elAchieveOld) elAchieveOld.innerHTML = `${achieve.toLocaleString()} <span style="font-size:0.52em; font-weight:800;">PCS</span>`;
 }
+
+// =========================================================================
+// YEARLY TARGET VS ACHIEVEMENT CHART ENGINE (Fiscal Year: July -> June)
+// =========================================================================
+
+window.currentSelectedFiscalYear = '2026-2027';
+
+const FISCAL_MONTH_SHORT = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+const FISCAL_MONTH_FULL = [
+    "July", "August", "September", "October", "November", "December",
+    "January", "February", "March", "April", "May", "June"
+];
+
+/**
+ * Retrieve 12 Months Production Targets from Production Plan (Ceiling Fan series)
+ */
+function getFiscalYearProductionTargets(fiscalYearStr) {
+    const parts = String(fiscalYearStr || '2026-2027').split('-');
+    const startYr = parseInt(parts[0]) || 2026;
+    const endYr = parseInt(parts[1]) || (startYr + 1);
+    const key = `July_${startYr}_June_${endYr}`;
+
+    let planData = null;
+    try {
+        const stored = localStorage.getItem('mep_yearly_production_plans_all');
+        if (stored) {
+            const all = JSON.parse(stored);
+            if (all[key]) planData = all[key];
+            else {
+                const altKey = Object.keys(all).find(k => k.includes(String(startYr)));
+                if (altKey && all[altKey]) planData = all[altKey];
+            }
+        }
+    } catch(e) {}
+
+    if (!planData && typeof DEFAULT_PRODUCTION_PLAN !== 'undefined') {
+        planData = DEFAULT_PRODUCTION_PLAN;
+    }
+
+    const monthlyTargets = new Array(12).fill(0);
+    if (planData && Array.isArray(planData.categories)) {
+        planData.categories.forEach(cat => {
+            const isCeiling = cat.name && cat.name.toLowerCase().includes('ceiling');
+            if (isCeiling && Array.isArray(cat.items)) {
+                cat.items.forEach(it => {
+                    if (Array.isArray(it.months)) {
+                        it.months.forEach((v, idx) => {
+                            if (idx < 12) {
+                                monthlyTargets[idx] += (parseFloat(v) || 0);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    return monthlyTargets;
+}
+
+/**
+ * Retrieve 12 Months Production Achievements from Yearly Production Summary ERP
+ * STRICT FILTER: Ceiling Fan Series ONLY
+ */
+function getFiscalYearProductionAchievements(fiscalYearStr) {
+    const parts = String(fiscalYearStr || '2026-2027').split('-');
+    const startYr = parts[0] || '2026';
+
+    let allERP = null;
+    try {
+        const stored = localStorage.getItem('mep_yearly_erp_production_data');
+        if (stored) allERP = JSON.parse(stored);
+    } catch(e) {}
+
+    if (!allERP && typeof DEFAULT_YEARLY_ERP_DATA !== 'undefined') {
+        allERP = DEFAULT_YEARLY_ERP_DATA;
+    }
+
+    const yearData = (allERP && allERP[startYr]) ? allERP[startYr] : (allERP && allERP["2026"] ? allERP["2026"] : []);
+    const monthlyAchievements = new Array(12).fill(0);
+
+    yearData.forEach(cat => {
+        const isCeilingFan = cat.category && cat.category.toLowerCase().includes('ceiling') && !cat.category.toLowerCase().includes('blade');
+        if (isCeilingFan && Array.isArray(cat.items)) {
+            cat.items.forEach(item => {
+                if (Array.isArray(item.months)) {
+                    item.months.forEach((val, idx) => {
+                        if (idx < 12) {
+                            const mName = FISCAL_MONTH_FULL[idx];
+                            let v = parseFloat(val) || 0;
+                            if (typeof MONTHLY_ARCHIVE_ENGINE !== 'undefined' && typeof MONTHLY_ARCHIVE_ENGINE.resolveMonthlyItemProduction === 'function') {
+                                const resolved = MONTHLY_ARCHIVE_ENGINE.resolveMonthlyItemProduction(startYr, mName, item.code, v);
+                                if (resolved && resolved.qty > 0) {
+                                    v = resolved.qty;
+                                }
+                            }
+                            monthlyAchievements[idx] += v;
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    return monthlyAchievements;
+}
+
+/**
+ * Render Yearly Target vs Achievement Line Chart (Executive ERP Dashboard)
+ */
+function renderYearlyTargetVsAchievementChart(fiscalYearStr) {
+    const fy = fiscalYearStr || window.currentSelectedFiscalYear || '2026-2027';
+    const container = document.getElementById('yearlyChartContainer');
+    if (!container) return;
+
+    const targets = getFiscalYearProductionTargets(fy);
+    const achievements = getFiscalYearProductionAchievements(fy);
+
+    // Chart Dimensions
+    const svgWidth = 720;
+    const svgHeight = 220;
+    const padLeft = 56;
+    const padRight = 24;
+    const padTop = 18;
+    const padBottom = 32;
+
+    const plotWidth = svgWidth - padLeft - padRight;
+    const plotHeight = svgHeight - padTop - padBottom;
+
+    // Y-Axis ceiling is strictly 50,000 Production per user specification
+    const Y_MAX = 50000;
+    const Y_INTERVALS = [50000, 40000, 30000, 20000, 10000, 0];
+
+    const getX = (idx) => padLeft + (idx / 11) * plotWidth;
+    const getY = (val) => padTop + (1 - Math.min(Y_MAX, Math.max(0, val)) / Y_MAX) * plotHeight;
+
+    // Calculate Coordinates
+    const targetPoints = targets.map((val, i) => ({ x: getX(i), y: getY(val), val, month: FISCAL_MONTH_SHORT[i], monthFull: FISCAL_MONTH_FULL[i] }));
+    const achievePoints = achievements.map((val, i) => ({ x: getX(i), y: getY(val), val, month: FISCAL_MONTH_SHORT[i], monthFull: FISCAL_MONTH_FULL[i] }));
+
+    // Generate Catmull-Rom smooth curves
+    function createSpline(pts) {
+        if (!pts || pts.length === 0) return '';
+        if (pts.length === 1) return `M ${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+        let d = `M ${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+        for (let i = 0; i < pts.length - 1; i++) {
+            const p0 = i > 0 ? pts[i - 1] : pts[i];
+            const p1 = pts[i];
+            const p2 = pts[i + 1];
+            const p3 = i < pts.length - 2 ? pts[i + 2] : p2;
+            
+            const cp1x = p1.x + (p2.x - p0.x) / 6;
+            const cp1y = p1.y + (p2.y - p0.y) / 6;
+            const cp2x = p2.x - (p3.x - p1.x) / 6;
+            const cp2y = p2.y - (p3.y - p1.y) / 6;
+            
+            d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+        }
+        return d;
+    }
+
+    const targetPath = createSpline(targetPoints);
+    const achievePath = createSpline(achievePoints);
+
+    // Build SVG elements
+    let svg = `
+    <svg width="100%" height="100%" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="none" style="overflow: visible;">
+        <defs>
+            <!-- Drop Shadow for Target Curve (Deep Yellow) -->
+            <filter id="shadowTarget" x="-10%" y="-10%" width="120%" height="130%">
+                <feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#b45309" flood-opacity="0.22" />
+            </filter>
+            <!-- Drop Shadow for Achievement Curve (Deep Green) -->
+            <filter id="shadowAchieve" x="-10%" y="-10%" width="120%" height="130%">
+                <feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#15803d" flood-opacity="0.22" />
+            </filter>
+            <!-- Area Gradients for Subtle ERP Fill -->
+            <linearGradient id="areaTargetGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#d97706" stop-opacity="0.08" />
+                <stop offset="100%" stop-color="#d97706" stop-opacity="0.0" />
+            </linearGradient>
+            <linearGradient id="areaAchieveGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#15803d" stop-opacity="0.10" />
+                <stop offset="100%" stop-color="#15803d" stop-opacity="0.0" />
+            </linearGradient>
+        </defs>
+
+        <!-- Horizontal Gridlines & Y-Axis Labels -->
+    `;
+
+    Y_INTERVALS.forEach((val) => {
+        const y = getY(val);
+        const isBase = val === 0;
+        const lineStyle = isBase ? 'stroke="#cbd5e1" stroke-width="1.2"' : 'stroke="#e2e8f0" stroke-width="0.9" stroke-dasharray="3 3"';
+        const labelText = val.toLocaleString();
+
+        svg += `
+            <line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${(padLeft + plotWidth).toFixed(1)}" y2="${y.toFixed(1)}" ${lineStyle} />
+            <text x="${(padLeft - 8).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="10.5px" fill="#94a3b8" font-weight="700" font-family="inherit">${labelText}</text>
+        `;
+    });
+
+    // Subtle Area fills beneath curves
+    const baseY = getY(0).toFixed(1);
+    const targetAreaD = `${targetPath} L ${targetPoints[11].x.toFixed(1)},${baseY} L ${targetPoints[0].x.toFixed(1)},${baseY} Z`;
+    const achieveAreaD = `${achievePath} L ${achievePoints[11].x.toFixed(1)},${baseY} L ${achievePoints[0].x.toFixed(1)},${baseY} Z`;
+
+    svg += `
+        <path d="${targetAreaD}" fill="url(#areaTargetGrad)" pointer-events="none" />
+        <path d="${achieveAreaD}" fill="url(#areaAchieveGrad)" pointer-events="none" />
+    `;
+
+    // 1. Target Curve: Deep Yellow (#d97706)
+    svg += `
+        <path d="${targetPath}" fill="none" stroke="#d97706" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadowTarget)" />
+    `;
+
+    // 2. Achievement Curve: Deep Green (#15803d)
+    svg += `
+        <path d="${achievePath}" fill="none" stroke="#15803d" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadowAchieve)" />
+    `;
+
+    // 3. Data Points: Small Deep Red Dots (#b91c1c)
+    // Production Target Dots
+    targetPoints.forEach((pt, idx) => {
+        svg += `
+            <circle class="chart-dot target-dot" id="targetDot_${idx}" cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.8" fill="#b91c1c" stroke="#ffffff" stroke-width="1.6" />
+        `;
+    });
+
+    // Achievement Dots
+    achievePoints.forEach((pt, idx) => {
+        svg += `
+            <circle class="chart-dot achieve-dot" id="achieveDot_${idx}" cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.8" fill="#b91c1c" stroke="#ffffff" stroke-width="1.6" />
+        `;
+    });
+
+    // X-Axis Month Labels
+    FISCAL_MONTH_SHORT.forEach((m, idx) => {
+        const x = getX(idx);
+        const y = padTop + plotHeight + 20;
+        svg += `
+            <text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-size="11px" font-weight="750" fill="#64748b" font-family="inherit">${m}</text>
+        `;
+    });
+
+    // Vertical Hover Guides & Interactive Overlay Columns
+    FISCAL_MONTH_SHORT.forEach((m, idx) => {
+        const x = getX(idx);
+        const tVal = targets[idx];
+        const aVal = achievements[idx];
+        const mFull = FISCAL_MONTH_FULL[idx];
+
+        svg += `
+            <line class="chart-hover-line" id="hoverLine_${idx}" x1="${x.toFixed(1)}" y1="${padTop}" x2="${x.toFixed(1)}" y2="${(padTop + plotHeight).toFixed(1)}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="2 2" opacity="0" pointer-events="none" />
+            <rect class="chart-hover-col" x="${(x - 24).toFixed(1)}" y="${padTop}" width="48" height="${plotHeight}" fill="transparent" cursor="pointer"
+                onmouseenter="handleChartHoverEnter(${idx}, '${mFull}', ${tVal}, ${aVal}, event)"
+                onmousemove="handleChartHoverMove(event)"
+                onmouseleave="handleChartHoverLeave(${idx})" />
+        `;
+    });
+
+    svg += `</svg>`;
+
+    // Insert Floating Tooltip container inside chart
+    svg += `
+        <div class="yearly-chart-tooltip" id="yearlyChartTooltip" style="display:none; position:absolute; pointer-events:none; z-index:100;">
+            <div class="tt-header" id="ttMonthHeader">September 2026</div>
+            <div class="tt-row">
+                <span class="tt-indicator" style="background:#d97706;"></span>
+                <span class="tt-label">Target:</span>
+                <strong class="tt-val" id="ttTargetVal">40,000 PCS</strong>
+            </div>
+            <div class="tt-row">
+                <span class="tt-indicator" style="background:#15803d;"></span>
+                <span class="tt-label">Achievement:</span>
+                <strong class="tt-val" id="ttAchieveVal">7,613 PCS</strong>
+            </div>
+            <div class="tt-row tt-gap-row" id="ttGapRow">
+                <span class="tt-indicator" style="background:#ef4444;"></span>
+                <span class="tt-label">Variance:</span>
+                <strong class="tt-val" id="ttGapVal">-32,387 PCS</strong>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = svg;
+}
+
+// Tooltip Interaction Handlers
+window.handleChartHoverEnter = function(idx, monthFull, targetVal, achieveVal, evt) {
+    const line = document.getElementById(`hoverLine_${idx}`);
+    if (line) line.setAttribute('opacity', '1');
+
+    const tDot = document.getElementById(`targetDot_${idx}`);
+    if (tDot) { tDot.setAttribute('r', '5.5'); tDot.setAttribute('stroke-width', '2'); }
+
+    const aDot = document.getElementById(`achieveDot_${idx}`);
+    if (aDot) { aDot.setAttribute('r', '5.5'); aDot.setAttribute('stroke-width', '2'); }
+
+    const tt = document.getElementById('yearlyChartTooltip');
+    const ttHead = document.getElementById('ttMonthHeader');
+    const ttT = document.getElementById('ttTargetVal');
+    const ttA = document.getElementById('ttAchieveVal');
+    const ttG = document.getElementById('ttGapVal');
+
+    if (tt && ttHead && ttT && ttA && ttG) {
+        const fy = window.currentSelectedFiscalYear || '2026-2027';
+        const parts = fy.split('-');
+        const startYr = parts[0] || '2026';
+        const endYr = parts[1] || '2027';
+        const yr = idx < 6 ? startYr : endYr;
+
+        ttHead.innerText = `${monthFull} ${yr}`;
+        ttT.innerText = `${targetVal.toLocaleString()} PCS`;
+        ttA.innerText = `${achieveVal.toLocaleString()} PCS`;
+
+        const diff = achieveVal - targetVal;
+        const diffStr = diff >= 0 ? `+${diff.toLocaleString()} PCS` : `-${Math.abs(diff).toLocaleString()} PCS`;
+        ttG.innerText = diffStr;
+        ttG.style.color = diff >= 0 ? '#10b981' : '#ef4444';
+
+        tt.style.display = 'block';
+        updateTooltipPosition(evt);
+    }
+};
+
+window.handleChartHoverMove = function(evt) {
+    updateTooltipPosition(evt);
+};
+
+window.handleChartHoverLeave = function(idx) {
+    const line = document.getElementById(`hoverLine_${idx}`);
+    if (line) line.setAttribute('opacity', '0');
+
+    const tDot = document.getElementById(`targetDot_${idx}`);
+    if (tDot) { tDot.setAttribute('r', '3.8'); tDot.setAttribute('stroke-width', '1.6'); }
+
+    const aDot = document.getElementById(`achieveDot_${idx}`);
+    if (aDot) { aDot.setAttribute('r', '3.8'); aDot.setAttribute('stroke-width', '1.6'); }
+
+    const tt = document.getElementById('yearlyChartTooltip');
+    if (tt) tt.style.display = 'none';
+};
+
+function updateTooltipPosition(evt) {
+    const tt = document.getElementById('yearlyChartTooltip');
+    const container = document.getElementById('yearlyChartContainer');
+    if (!tt || !container) return;
+
+    const rect = container.getBoundingClientRect();
+    let x = evt.clientX - rect.left + 15;
+    let y = evt.clientY - rect.top - 70;
+
+    if (x + 220 > rect.width) {
+        x = evt.clientX - rect.left - 230;
+    }
+    if (y < 5) y = 10;
+
+    tt.style.left = `${x}px`;
+    tt.style.top = `${y}px`;
+}
+
+// Global Fiscal Year Selection Handler
+window.handleFiscalYearSelection = function(fy) {
+    window.currentSelectedFiscalYear = fy;
+    const curEl = document.getElementById('dashFilterCurrentDate');
+    if (curEl) curEl.innerText = fy;
+
+    const options = document.querySelectorAll('.dash-fy-option');
+    options.forEach(opt => {
+        if (opt.getAttribute('data-fy') === fy) opt.classList.add('active');
+        else opt.classList.remove('active');
+    });
+
+    const menu = document.getElementById('dashFiscalYearMenu');
+    if (menu) menu.classList.remove('show');
+
+    const parts = fy.split('-');
+    const subEl = document.getElementById('yearlyChartSubtitle');
+    if (subEl) {
+        subEl.innerText = `Fiscal Year: July ${parts[0]} → June ${parts[1]} (Ceiling Fan)`;
+    }
+
+    renderYearlyTargetVsAchievementChart(fy);
+};
 
 window.updateProductionDashboard = function(newData) {
     renderProductionPerformanceDashboard(newData);
@@ -258,3 +637,4 @@ window.addEventListener('storage', (e) => {
 window.addEventListener('focus', () => {
     renderProductionPerformanceDashboard();
 });
+

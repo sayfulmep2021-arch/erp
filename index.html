@@ -25,6 +25,49 @@
         })();
     </script>
 
+    <!-- Instant Zero-FOUC View Resolver (Eliminates any login screen or interface flash on reload) -->
+    <script>
+        (function() {
+            try {
+                var isAuth = (sessionStorage.getItem('portal_auth_status') === 'true');
+                var role = (sessionStorage.getItem('portal_auth_role') || '').toUpperCase();
+                var sig = sessionStorage.getItem('portal_auth_sig') || '';
+                var expectedSig = (role === 'VIEW') ? btoa('VIEW:::MEP_SECURE_PORTAL_2026') : btoa('ADMIN:::MEP_SECURE_PORTAL_2026');
+                var isValid = isAuth && (role === 'ADMIN' || role === 'VIEW') && (sig === expectedSig);
+
+                var curView = sessionStorage.getItem('portal_current_view') || 'main';
+                var urlParams = new URLSearchParams(window.location.search);
+                var viewParam = urlParams.get('view');
+                if (viewParam === 'modules') curView = 'modules';
+                else if (viewParam === 'hub') curView = 'hub';
+                else if (viewParam === 'hrm') curView = 'hrm';
+                else if (viewParam === 'mis') curView = 'mis';
+                else if (viewParam === 'main' || viewParam === 'production' || viewParam === 'dashboard') curView = 'main';
+
+                var s = document.createElement('style');
+                s.id = 'zero-fouc-instant-view-style';
+                
+                if (isValid) {
+                    var targetId = 'mainInterfaceView';
+                    if (curView === 'modules') targetId = 'moduleSelectionView';
+                    else if (curView === 'hub') targetId = 'departmentHubView';
+                    else if (curView === 'hrm') targetId = 'hrmModuleView';
+                    else if (curView === 'mis') targetId = 'misSelectionView';
+
+                    s.textContent = 
+                        '#loginView { display: none !important; visibility: hidden !important; opacity: 0 !important; } ' +
+                        '#' + targetId + ' { display: flex !important; visibility: visible !important; opacity: 1 !important; } ' +
+                        '.app-workspace:not(#' + targetId + '), .module-selection-grid-shell:not(#' + targetId + '), .department-hub-shell:not(#' + targetId + '), .hrm-workspace-shell:not(#' + targetId + ') { display: none !important; }';
+                } else {
+                    s.textContent = 
+                        '#loginView { display: flex !important; visibility: visible !important; opacity: 1 !important; } ' +
+                        '#mainInterfaceView, #moduleSelectionView, #departmentHubView, #hrmModuleView, #misSelectionView { display: none !important; }';
+                }
+                (document.head || document.documentElement).appendChild(s);
+            } catch(e) {}
+        })();
+    </script>
+
     <link rel="stylesheet" href="corporate_design_system.css?v=20260905">
     <link rel="stylesheet" href="report_sidebar.css?v=20260905">
     <script src="notification_system.js?v=20260905"></script>
@@ -58,7 +101,7 @@
     <!-- ==========================================================================
          VIEW 1: Corporate Authentication View (Login Screen)
          ========================================================================== -->
-    <div class="auth-wrapper" id="loginView" role="region" aria-label="Authentication Panel">
+    <div class="auth-wrapper" id="loginView" role="region" aria-label="Authentication Panel" style="display:none;">
         <!-- Ambient Pastel Background Decorative Elements -->
         <div class="auth-bg-decor decor-orb-1"></div>
         <div class="auth-bg-decor decor-orb-2"></div>
@@ -473,6 +516,233 @@
         </main>
     </div>
 
+    <!-- ==========================================================================
+         VIEW: Enterprise MIS Option Selection Interface (Management Information System)
+         ========================================================================== -->
+    <div class="app-workspace module-selection-screen" id="misSelectionView" style="display:none; flex-direction:column; min-height:100vh; overflow-y:auto;" role="region" aria-label="Enterprise MIS Selection Portal">
+        <!-- Top Header Bar -->
+        <header class="module-top-header">
+            <div class="module-header-inner">
+                <!-- Left: Circular Brand Logo with Title (Navigation Frozen per User Requirement #2) -->
+                <div class="module-brand-brandmark" style="cursor:default;" title="Fan Assemble (ERP) | MIS Module">
+                    <div class="module-logo-circle" title="Fan Assemble (ERP)">
+                        <img src="sayful_logo.png" alt="Fan Assemble" class="module-logo-img">
+                    </div>
+                    <div class="module-brand-meta">
+                        <span class="module-brand-name">Fan Assemble (ERP)</span>
+                        <span class="module-brand-sub">Sayful Islam (Fan) | MIS Module</span>
+                    </div>
+                </div>
+
+                <!-- Right: Header Controls (Stable Live Clock, Profile, Logout) -->
+                <div class="module-header-controls">
+                    <!-- Live Day & Time Top Corner Badge with Integrated Realtime Cloud Status -->
+                    <div class="live-clock-badge" title="Live System Day &amp; Time">
+                        <span class="smart-cloud-status-badge" id="misCloudStatusBadge" title="Realtime Cloud: Connected (Live Sync)">
+                            <span class="cloud-pulse-dot"></span>
+                            <span class="cloud-status-text">LIVE</span>
+                        </span>
+                        <div class="live-clock-info">
+                            <span class="live-day-text">Loading date...</span>
+                            <span class="live-time-text">--:--:-- --</span>
+                        </div>
+                    </div>
+
+                    <!-- Profile Component with Popover Menu -->
+                    <div class="profile-dropdown-wrapper">
+                        <div class="user-brand-card" 
+                             id="misUserProfileBtn" 
+                             onclick="toggleMISProfileDropdown(event)" 
+                             role="button" 
+                             tabindex="0" 
+                             aria-haspopup="true" 
+                             aria-expanded="false" 
+                             title="Click to view Profile Details">
+                            <div class="user-avatar-frame" style="width:34px; height:34px; border-radius:50%; overflow:hidden; border:2px solid #0284c7; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <img src="profile.jpg" alt="Sayful Islam" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='sayful_logo.png'">
+                            </div>
+                            <div class="user-brand-meta">
+                                <span class="user-brand-name" id="misProfileName">Sayful Islam</span>
+                                <span class="user-brand-role" id="misProfileRole">Senior Supervisor</span>
+                            </div>
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#64748b" stroke-width="2.2" class="user-brand-chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+
+                        <!-- Profile Dropdown Panel -->
+                        <div class="profile-dropdown-menu" id="misProfileDropdownMenu" role="dialog" aria-modal="false" aria-labelledby="misProfileDropdownTitle">
+                            <button type="button" class="btn-dropdown-close" onclick="closeMISProfileDropdown(event)" aria-label="Close Profile" title="Close">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+
+                            <div class="profile-photo-container">
+                                <img src="profile.jpg" alt="Sayful Islam" class="profile-photo" onerror="this.src='sayful_logo.png'">
+                            </div>
+
+                            <h2 class="profile-name" id="misProfileDropdownTitle">Sayful Islam</h2>
+                            <p class="profile-designation" id="misProfileDropdownRole">Senior Supervisor</p>
+
+                            <div class="profile-divider" aria-hidden="true"></div>
+
+                            <div class="profile-info-list">
+                                <div class="profile-info-row">
+                                    <span class="profile-info-label">ID Number</span>
+                                    <span class="profile-info-value" id="misProfileDropdownId">10676</span>
+                                </div>
+                                <div class="profile-info-row">
+                                    <span class="profile-info-label">Phone</span>
+                                    <span class="profile-info-value">01796444132</span>
+                                </div>
+                                <div class="profile-info-row">
+                                    <span class="profile-info-label">Join Date</span>
+                                    <span class="profile-info-value">01-Feb-2021</span>
+                                </div>
+                                <div class="profile-info-row">
+                                    <span class="profile-info-label">Total Service</span>
+                                    <span class="profile-info-value profileServiceDuration" style="color: #0284c7; font-weight: 800;">5 Years, 6 Months, 24 Days</span>
+                                </div>
+                                <div class="profile-info-row">
+                                    <span class="profile-info-label">Section</span>
+                                    <span class="profile-info-value">Fan Assemble (ERP)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Header Top-Right Corner Logout Button -->
+                    <button type="button" class="header-logout-btn" onclick="handleLogout()" title="Logout / Lock Portal" aria-label="Logout">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main MIS Option Selection Body -->
+        <main class="module-body-container" style="position: relative;">
+            
+            <!-- Corner Navigation Button (Marked "1" in reference screenshot) -->
+            <div class="mis-nav-corner-container">
+                <button type="button" 
+                        class="mis-back-modules-btn" 
+                        onclick="switchToModuleSelectionView()" 
+                        aria-label="Back to Main Modules">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                    </svg>
+                    <span class="mis-tooltip-popup">Back to Modules</span>
+                </button>
+            </div>
+
+            <!-- Top Right Corner: Notification & Audit Center Bell (Marked in Reference Screenshot 5) -->
+            <div class="mis-notification-corner-container">
+                <button type="button" 
+                        class="mis-corner-bell-btn" 
+                        id="misCornerNotificationBtn"
+                        onclick="if(typeof toggleSmartNotificationPanel === 'function') toggleSmartNotificationPanel()" 
+                        aria-label="System Audit Notifications"
+                        title="Notifications &amp; Audit History">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="mis-bell-badge" id="misBellBadge" style="display:none;">0</span>
+                    <span class="mis-bell-pulse-dot" id="misBellPulseDot"></span>
+                    <span class="mis-tooltip-popup">Audit History</span>
+                </button>
+            </div>
+
+            <!-- Section Divider Title: Select Your Option -->
+            <div class="module-section-heading">
+                <div class="module-heading-line"></div>
+                <h1 class="module-heading-text">Select Your Option</h1>
+                <div class="module-heading-line"></div>
+            </div>
+
+            <!-- 6 MIS Option Cards Grid - Standard Equal Size 2x3 Balanced Grid -->
+            <div class="module-cards-grid">
+                
+                <!-- 1. Theme Performance -->
+                <div class="module-card-item" onclick="openMISOption('theme')" role="button" tabindex="0" title="Theme Performance">
+                    <div class="module-card-icon-wrap">
+                        <img src="mis_opt_theme.svg" alt="Theme Performance" class="module-card-img">
+                    </div>
+                    <div class="module-card-content">
+                        <h2 class="module-card-title">Theme Performance</h2>
+                        <p class="module-card-desc">Display themes, UI performance &amp; visual preferences</p>
+                    </div>
+                </div>
+
+                <!-- 2. View Access Control -->
+                <div class="module-card-item" onclick="openMISOption('access')" role="button" tabindex="0" title="View Access Control">
+                    <div class="module-card-icon-wrap">
+                        <img src="mis_opt_access.svg" alt="View Access Control" class="module-card-img">
+                    </div>
+                    <div class="module-card-content">
+                        <h2 class="module-card-title">View Access Control</h2>
+                        <p class="module-card-desc">Role-based view permissions &amp; access restrictions</p>
+                    </div>
+                </div>
+
+                <!-- 3. Show & Edit Link -->
+                <div class="module-card-item" onclick="openMISOption('links')" role="button" tabindex="0" title="Show &amp; Edit Link">
+                    <div class="module-card-icon-wrap">
+                        <img src="mis_opt_links.svg" alt="Show &amp; Edit Link" class="module-card-img">
+                    </div>
+                    <div class="module-card-content">
+                        <h2 class="module-card-title">Show &amp; Edit Link</h2>
+                        <p class="module-card-desc">System report URLs, external links &amp; spreadsheet connections</p>
+                    </div>
+                </div>
+
+                <!-- 4. Edit Page -->
+                <div class="module-card-item" onclick="openMISOption('edit')" role="button" tabindex="0" title="Edit Page">
+                    <div class="module-card-icon-wrap">
+                        <img src="mis_opt_edit.svg" alt="Edit Page" class="module-card-img">
+                    </div>
+                    <div class="module-card-content">
+                        <h2 class="module-card-title">Edit Page</h2>
+                        <p class="module-card-desc">Global page renaming, titles &amp; branding customizer</p>
+                    </div>
+                </div>
+
+                <!-- 5. Lock and Unlock Page (Position 1 in Reference Screenshot 1) -->
+                <div class="module-card-item" onclick="openMISOption('lock')" role="button" tabindex="0" title="Lock and Unlock Page">
+                    <div class="module-card-icon-wrap" style="background:#fef2f2; border-color:#fee2e2;">
+                        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="module-card-img" style="padding:4px;">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <div class="module-card-content">
+                        <h2 class="module-card-title">Lock and Unlock Page</h2>
+                        <p class="module-card-desc">Centralized manual-edit control &amp; operational form locks</p>
+                    </div>
+                </div>
+
+                <!-- 6. Others -->
+                <div class="module-card-item" onclick="openMISOption('others')" role="button" tabindex="0" title="Others">
+                    <div class="module-card-icon-wrap">
+                        <img src="mis_opt_others.svg" alt="Others" class="module-card-img">
+                    </div>
+                    <div class="module-card-content">
+                        <h2 class="module-card-title">Others</h2>
+                        <p class="module-card-desc">System diagnostics, cache clearing &amp; audit utilities</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
     
     <!-- ==========================================================================
          VIEW: Enterprise HRM Module Portal (Human Resource Management Dashboard)
@@ -532,7 +802,7 @@
             <aside class="hrm-sidebar" id="hrmSidebar">
                 <!-- Top Dual Action Buttons (3D Isometric Icons matching Screenshot 1) -->
                 <div class="hrm-sidebar-top-actions mep-sidebar-actions-dual">
-                    <button type="button" class="mep-nav-3d-btn mep-btn-3d-dash active" id="hrmNavBtnDash" title="HRM Dashboard" aria-label="HRM Dashboard" onclick="switchHrmSubPage('dashboard'); return false;">
+                    <button type="button" class="mep-nav-3d-btn mep-btn-3d-dash active" id="hrmNavBtnDash" aria-label="HRM Dashboard" onclick="switchHrmSubPage('dashboard'); return false;">
                         <span class="nav-3d-icon-wrap">
                             <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
@@ -550,7 +820,7 @@
                                     </linearGradient>
                                     <radialGradient id="hrmDashShadow" cx="50%" cy="50%" r="50%">
                                         <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35" />
-                                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+                                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0.35" />
                                     </radialGradient>
                                 </defs>
                                 <ellipse cx="16" cy="28.5" rx="12" ry="3.5" fill="url(#hrmDashShadow)" />
@@ -569,7 +839,7 @@
                         </span>
                         <span class="nav-3d-tooltip">Dashboard</span>
                     </button>
-                    <button type="button" class="mep-nav-3d-btn mep-btn-3d-mod" id="hrmNavBtnMod" title="Module Hub" aria-label="Module Hub" onclick="switchToModuleSelectionView(); return false;">
+                    <button type="button" class="mep-nav-3d-btn mep-btn-3d-mod" id="hrmNavBtnMod" aria-label="Module" onclick="switchToModuleSelectionView(); return false;">
                         <span class="nav-3d-icon-wrap">
                             <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
@@ -617,7 +887,7 @@
                                 <circle cx="16" cy="9.5" r="0.7" fill="#0284c7" />
                             </svg>
                         </span>
-                        <span class="nav-3d-tooltip">Module Hub</span>
+                        <span class="nav-3d-tooltip">Module</span>
                     </button>
                 </div>
 
@@ -645,14 +915,6 @@
 
             <!-- Main Content Viewport -->
             <main class="hrm-main-viewport">
-                <!-- Breadcrumb -->
-                <div class="hrm-view-breadcrumb">
-                    <a href="javascript:void(0)" onclick="switchToModuleSelectionView()">Module Hub</a>
-                    <span>/</span>
-                    <span>HRM Module</span>
-                    <span>/</span>
-                    <strong id="hrmBreadcrumbPage" style="color:#0f172a;">HRM Dashboard</strong>
-                </div>
 
                 <!-- PANE 1: Human Resource Management Dashboard -->
                 <div id="hrmDashboardPane">
@@ -884,32 +1146,32 @@
                                 <p>Manage, Edit, Replace &amp; Track Departmental Employees with Live Sync</p>
                             </div>
                             <div class="hrm-db-top-actions">
-                                <button type="button" class="btn-hrm-add" onclick="openHrmAddModal()" title="Add a new employee to the database">
-                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                    <span>Add New Employee</span>
+                                <button type="button" class="btn-hrm-icon-action btn-add" onclick="openHrmAddModal()" aria-label="Add New Employee">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    <span class="hrm-btn-tooltip">Add New Employee</span>
                                 </button>
-                                <button type="button" class="btn-hrm-secondary" onclick="exportHrmDatabaseCSV()" title="Export database to CSV">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                    <span>Export CSV</span>
+                                <button type="button" class="btn-hrm-icon-action" onclick="exportHrmDatabaseCSV()" aria-label="Export CSV">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    <span class="hrm-btn-tooltip">Export CSV</span>
                                 </button>
-                                <button type="button" class="btn-hrm-secondary" onclick="printHrmDatabase()" title="Print table">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                    <span>Print</span>
+                                <button type="button" class="btn-hrm-icon-action" onclick="printHrmDatabase()" aria-label="Print Table">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                    <span class="hrm-btn-tooltip">Print</span>
                                 </button>
-                                <button type="button" class="btn-hrm-secondary" onclick="resetHrmDatabaseToDefault()" title="Reset to default 107 records" style="color:#d97706;">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-                                    <span>Reset (107)</span>
+                                <button type="button" class="btn-hrm-icon-action btn-reset" onclick="resetHrmDatabaseToDefault()" aria-label="Reset (107 Records)">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+                                    <span class="hrm-btn-tooltip">Reset (107 Records)</span>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Section Breakdown Stat Pills -->
                         <div class="hrm-summary-pills-row">
-                            <span class="hrm-summary-pill">Total: <strong id="hrmStatPillTotal">107</strong></span>
-                            <span class="hrm-summary-pill pill-assemble">Assemble Line: <strong id="hrmStatPillAssemble">38</strong></span>
-                            <span class="hrm-summary-pill pill-armature">Armature Winding: <strong id="hrmStatPillArmature">37</strong></span>
-                            <span class="hrm-summary-pill pill-dimmar">Dimmar &amp; Blade: <strong id="hrmStatPillDimmar">24</strong></span>
-                            <span class="hrm-summary-pill pill-replacement">Replacement: <strong id="hrmStatPillReplacement">8</strong></span>
+                            <span class="hrm-summary-pill active-pill" id="hrmPillTotal" onclick="filterHrmBySection('ALL')" title="Show All Employees">Total: <strong id="hrmStatPillTotal">107</strong></span>
+                            <span class="hrm-summary-pill pill-assemble" id="hrmPillAssemble" onclick="filterHrmBySection('Assemble Line')" title="Filter by Assemble Line">Assemble Line: <strong id="hrmStatPillAssemble">38</strong></span>
+                            <span class="hrm-summary-pill pill-armature" id="hrmPillArmature" onclick="filterHrmBySection('Armature Winding')" title="Filter by Armature Winding">Armature Winding: <strong id="hrmStatPillArmature">37</strong></span>
+                            <span class="hrm-summary-pill pill-dimmar" id="hrmPillDimmar" onclick="filterHrmBySection('Dimmar & Blade')" title="Filter by Dimmar & Blade">Dimmar &amp; Blade: <strong id="hrmStatPillDimmar">24</strong></span>
+                            <span class="hrm-summary-pill pill-replacement" id="hrmPillReplacement" onclick="filterHrmBySection('Replacement')" title="Filter by Replacement">Replacement: <strong id="hrmStatPillReplacement">8</strong></span>
                         </div>
                     </div>
 
@@ -943,6 +1205,7 @@
                                         <th style="min-width:180px;">Designation</th>
                                         <th style="width:110px;">DOJ</th>
                                         <th style="min-width:160px;">Section</th>
+                                        <th style="width:110px; text-align:center;">Gender</th>
                                         <th style="width:200px; text-align:center;">Actions</th>
                                     </tr>
                                 </thead>
@@ -1083,7 +1346,7 @@
                 <!-- Top Three Action Buttons matching Screenshot 3 + Module Portal -->
                 <div class="mep-sidebar-actions mep-sidebar-actions-dual">
                     <!-- Button 1: Dashboard (Premium 3D Icon with Hover Tooltip) -->
-                    <a href="index.html?view=main" class="mep-nav-3d-btn mep-btn-3d-dash active" title="Dashboard" aria-label="Dashboard" onclick="switchToMainInterfaceView(); return false;">
+                    <a href="index.html?view=main" class="mep-nav-3d-btn mep-btn-3d-dash active" aria-label="Dashboard" onclick="switchToMainInterfaceView(); return false;">
                         <span class="nav-3d-icon-wrap">
                             <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
@@ -1122,7 +1385,7 @@
                     </a>
 
                     <!-- Button 2: Module (Premium 3D Icon with Hover Tooltip) -->
-                    <a href="index.html?view=modules" class="mep-nav-3d-btn mep-btn-3d-mod" title="Module" aria-label="Module" onclick="switchToModuleSelectionView(); return false;">
+                    <a href="index.html?view=modules" class="mep-nav-3d-btn mep-btn-3d-mod" aria-label="Module" onclick="switchToModuleSelectionView(); return false;">
                         <span class="nav-3d-icon-wrap">
                             <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
@@ -1178,8 +1441,8 @@
                 <div class="mep-sidebar-body" style="padding: 8px 8px 24px; overflow-y: auto;">
                     
                     <!-- Module 1: All Report Summary -->
-                    <div class="mep-module-accordion is-open" id="mep-acc-group-mep-acc-01">
-                        <div class="mep-module-heading mep-heading-mep-acc-01 is-active-module" onclick="toggleSidebarModule('mep-acc-01')" title="Click to open/collapse All Report Summary">
+                    <div class="mep-module-accordion" id="mep-acc-group-mep-acc-01">
+                        <div class="mep-module-heading mep-heading-mep-acc-01" onclick="toggleSidebarModule('mep-acc-01')" title="Click to open/collapse All Report Summary">
                             <div class="mep-mod-left">
                                 <div class="mep-mod-icon" style="background:#e0f2fe; color:#0284c7;">
                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1615,11 +1878,52 @@
                         <span>Physical</span>
                     </button>
 
-                    <!-- Date Filter Pill (Today) -->
-                    <div class="dash-date-filter-pill" id="dashDateFilterBtn" title="Filter by date range" onclick="handleDashboardDateFilter()">
+                    <!-- Fiscal Year Filter ("Year" Selector - July to June) -->
+                    <div class="dash-date-filter-pill dash-fy-pill" id="dashDateFilterBtn" title="Filter by Fiscal Year (July → June)" onclick="toggleFiscalYearDropdown(event)" style="position: relative; cursor: pointer; user-select: none;">
                         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#10b981" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        <span id="dashFilterCurrentDate">Today</span>
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#64748b" stroke-width="2.2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span style="font-weight: 700; color: #0f172a;">Year</span>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#64748b" stroke-width="2.2" class="dash-fy-chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span id="dashFilterCurrentDate" style="display:none;">2026-2027</span>
+
+                        <!-- Executive Fiscal Year Dropdown Menu -->
+                        <div class="dash-fiscal-year-menu" id="dashFiscalYearMenu" onclick="event.stopPropagation()">
+                            <div class="dash-fy-menu-header">Select Fiscal Year (July → June)</div>
+                            <div class="dash-fy-option active" data-fy="2026-2027" onclick="selectFiscalYear('2026-2027')">
+                                <span class="fy-check">✓</span>
+                                <div class="fy-text-wrap">
+                                    <div class="fy-title">2026–2027 <span class="fy-badge-active">Current</span></div>
+                                    <div class="fy-desc">July 2026 → June 2027</div>
+                                </div>
+                            </div>
+                            <div class="dash-fy-option" data-fy="2025-2026" onclick="selectFiscalYear('2025-2026')">
+                                <span class="fy-check">✓</span>
+                                <div class="fy-text-wrap">
+                                    <div class="fy-title">2025–2026</div>
+                                    <div class="fy-desc">July 2025 → June 2026</div>
+                                </div>
+                            </div>
+                            <div class="dash-fy-option" data-fy="2027-2028" onclick="selectFiscalYear('2027-2028')">
+                                <span class="fy-check">✓</span>
+                                <div class="fy-text-wrap">
+                                    <div class="fy-title">2027–2028</div>
+                                    <div class="fy-desc">July 2027 → June 2028</div>
+                                </div>
+                            </div>
+                            <div class="dash-fy-option" data-fy="2024-2025" onclick="selectFiscalYear('2024-2025')">
+                                <span class="fy-check">✓</span>
+                                <div class="fy-text-wrap">
+                                    <div class="fy-title">2024–2025</div>
+                                    <div class="fy-desc">July 2024 → June 2025</div>
+                                </div>
+                            </div>
+                            <div class="dash-fy-option" data-fy="2028-2029" onclick="selectFiscalYear('2028-2029')">
+                                <span class="fy-check">✓</span>
+                                <div class="fy-text-wrap">
+                                    <div class="fy-title">2028–2029</div>
+                                    <div class="fy-desc">July 2028 → June 2029</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1731,69 +2035,11 @@
                     </div>
                 </div>
 
-                <!-- 5 Compact Sub-Metric Pill Cards -->
-                <div class="dash-submetrics-row">
-                    <!-- Submetric 1: Sale Invoice -->
-                    <div class="submetric-pill-card">
-                        <div class="submetric-icon-box" style="background:#e0f2fe; color:#0284c7;">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                        </div>
-                        <div class="submetric-meta">
-                            <span class="submetric-title">Sale Invoice</span>
-                            <span class="submetric-val" id="subValSaleInvoice">42 Invoices</span>
-                        </div>
-                    </div>
-
-                    <!-- Submetric 2: Purchase Invoice -->
-                    <div class="submetric-pill-card">
-                        <div class="submetric-icon-box" style="background:#fef3c7; color:#d97706;">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                        </div>
-                        <div class="submetric-meta">
-                            <span class="submetric-title">Purchase Invoice</span>
-                            <span class="submetric-val" id="subValPurchInvoice">28 Invoices</span>
-                        </div>
-                    </div>
-
-                    <!-- Submetric 3: Cash Flow -->
-                    <div class="submetric-pill-card">
-                        <div class="submetric-icon-box" style="background:#d1fae5; color:#059669;">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                        </div>
-                        <div class="submetric-meta">
-                            <span class="submetric-title">Cash Flow</span>
-                            <span class="submetric-val" id="subValCashFlow">16,350 ৳</span>
-                        </div>
-                    </div>
-
-                    <!-- Submetric 4: Expense -->
-                    <div class="submetric-pill-card">
-                        <div class="submetric-icon-box" style="background:#fee2e2; color:#dc2626;">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
-                        </div>
-                        <div class="submetric-meta">
-                            <span class="submetric-title">Expense</span>
-                            <span class="submetric-val" id="subValExpense">5,400 ৳</span>
-                        </div>
-                    </div>
-
-                    <!-- Submetric 5: Service Paid -->
-                    <div class="submetric-pill-card">
-                        <div class="submetric-icon-box" style="background:#ede9fe; color:#7c3aed;">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        </div>
-                        <div class="submetric-meta">
-                            <span class="submetric-title">Service Paid</span>
-                            <span class="submetric-val" id="subValServicePaid">3,200 ৳</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 4 (Screenshot 2, Mark 4): Financial Distribution & Last 30 Days Trend -->
+                <!-- SECTION 4: Production Analytics & Trends (Executive Donut Pie Chart & Yearly Target vs Achievement) -->
                 <div class="dash-analytics-grid">
                     
-                    <!-- Left: Financial Distribution (Donut Chart) -->
-                    <div class="dash-chart-card">
+                    <!-- Left: Financial Distribution (Donut Chart - Screenshot Mark 4) -->
+                    <div class="dash-chart-card dash-pie-chart-card">
                         <div>
                             <div class="chart-card-header">
                                 <div class="chart-header-left">
@@ -1854,94 +2100,36 @@
                         </div>
                     </div>
 
-                    <!-- Right: Last 30 Days Trend (Multi-wave Area Chart) -->
+                    <!-- Right: Yearly Target vs Achievement (Fiscal Year: July -> June) -->
                     <div class="dash-chart-card">
                         <div>
-                            <div class="chart-card-header">
+                            <div class="chart-card-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
                                 <div class="chart-header-left">
-                                    <div class="chart-badge-icon" style="background:#eff6ff; color:#2563eb;">
+                                    <div class="chart-badge-icon" style="background:#fef3c7; color:#d97706;">
                                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
                                     </div>
                                     <div>
-                                        <div class="chart-title-text">Last 30 Days Trend</div>
-                                        <div class="chart-subtitle-text">Daily Revenue, Inflow &amp; Outflow Curves</div>
+                                        <div class="chart-title-text">Yearly Target vs Achievement</div>
+                                        <div class="chart-subtitle-text" id="yearlyChartSubtitle">Fiscal Year: July 2026 → June 2027 (Ceiling Fan)</div>
+                                    </div>
+                                </div>
+                                <div class="yearly-chart-legend">
+                                    <div class="legend-item target-legend">
+                                        <span class="legend-line line-target"></span>
+                                        <span class="legend-dot dot-red"></span>
+                                        <span>Production Target</span>
+                                    </div>
+                                    <div class="legend-item achieve-legend">
+                                        <span class="legend-line line-achieve"></span>
+                                        <span class="legend-dot dot-red"></span>
+                                        <span>Achievement (Ceiling Fan)</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- 3 Stat Boxes inside card (Avg. Daily Sales removed per user request) -->
-                            <div class="trend-stat-boxes">
-                                <div class="trend-stat-pill">
-                                    <span class="trend-pill-label">Total Target</span>
-                                    <span class="trend-pill-val" id="trendTargetVal" style="color:#0284c7;">40,000 PCS</span>
-                                </div>
-                                <div class="trend-stat-pill">
-                                    <span class="trend-pill-label">Achievement</span>
-                                    <span class="trend-pill-val" id="trendAchieveVal" style="color:#10b981;">7,613 PCS</span>
-                                </div>
-                                <div class="trend-stat-pill">
-                                    <span class="trend-pill-label">Pending</span>
-                                    <span class="trend-pill-val" id="trendPendingVal" style="color:#ef4444;">32,387 PCS</span>
-                                </div>
-                            </div>
-
-                            <!-- Multi-Wave Area Chart SVG -->
-                            <div class="trend-chart-container" style="position: relative; width: 100%; height: 210px;">
-                                <svg width="100%" height="100%" viewBox="0 0 600 200" preserveAspectRatio="none" style="overflow: visible;">
-                                    <defs>
-                                        <!-- Gradient Sales (Cyan/Blue) -->
-                                        <linearGradient id="gradSalesArea" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stop-color="#0284c7" stop-opacity="0.32" />
-                                            <stop offset="100%" stop-color="#0284c7" stop-opacity="0.01" />
-                                        </linearGradient>
-                                        <!-- Gradient Purchase (Amber) -->
-                                        <linearGradient id="gradPurchaseArea" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25" />
-                                            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.01" />
-                                        </linearGradient>
-                                        <!-- Gradient Expense (Rose) -->
-                                        <linearGradient id="gradExpenseArea" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stop-color="#ef4444" stop-opacity="0.20" />
-                                            <stop offset="100%" stop-color="#ef4444" stop-opacity="0.01" />
-                                        </linearGradient>
-                                    </defs>
-                                    <!-- Subtle Horizontal Gridlines -->
-                                    <line x1="0" y1="35" x2="600" y2="35" stroke="#f1f5f9" stroke-width="1.2" stroke-dasharray="4 4" />
-                                    <line x1="0" y1="80" x2="600" y2="80" stroke="#f1f5f9" stroke-width="1.2" stroke-dasharray="4 4" />
-                                    <line x1="0" y1="125" x2="600" y2="125" stroke="#f1f5f9" stroke-width="1.2" stroke-dasharray="4 4" />
-                                    <line x1="0" y1="170" x2="600" y2="170" stroke="#e2e8f0" stroke-width="1.2" />
-
-                                    <!-- Area 1: Sales Wave -->
-                                    <path d="M0,130 C60,110 120,40 180,60 C240,80 300,30 360,45 C420,60 480,20 540,35 C570,42 590,25 600,28 L600,170 L0,170 Z" fill="url(#gradSalesArea)" />
-                                    <path d="M0,130 C60,110 120,40 180,60 C240,80 300,30 360,45 C420,60 480,20 540,35 C570,42 590,25 600,28" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" />
-
-                                    <!-- Area 2: Purchase Wave -->
-                                    <path d="M0,145 C60,135 120,85 180,95 C240,105 300,65 360,80 C420,95 480,55 540,70 C570,78 590,65 600,60 L600,170 L0,170 Z" fill="url(#gradPurchaseArea)" />
-                                    <path d="M0,145 C60,135 120,85 180,95 C240,105 300,65 360,80 C420,95 480,55 540,70 C570,78 590,65 600,60" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" />
-
-                                    <!-- Area 3: Expense Wave -->
-                                    <path d="M0,160 C60,150 120,130 180,140 C240,148 300,120 360,135 C420,145 480,115 540,125 C570,130 590,120 600,115 L600,170 L0,170 Z" fill="url(#gradExpenseArea)" />
-                                    <path d="M0,160 C60,150 120,130 180,140 C240,148 300,120 360,135 C420,145 480,115 540,125 C570,130 590,120 600,115" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" />
-
-                                    <!-- Peak Dots -->
-                                    <circle cx="180" cy="60" r="4" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
-                                    <circle cx="360" cy="45" r="4" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
-                                    <circle cx="540" cy="35" r="4" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
-                                    <circle cx="360" cy="80" r="3.5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.8" />
-                                    <circle cx="540" cy="70" r="3.5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.8" />
-                                    <circle cx="360" cy="135" r="3" fill="#ef4444" stroke="#ffffff" stroke-width="1.5" />
-                                </svg>
-                            </div>
-
-                            <!-- X-Axis Days Labels -->
-                            <div style="display: flex; justify-content: space-between; padding-top: 6px; font-size: 0.72rem; color: #94a3b8; font-weight: 700;">
-                                <span>Day 1</span>
-                                <span>Day 5</span>
-                                <span>Day 10</span>
-                                <span>Day 15</span>
-                                <span>Day 20</span>
-                                <span>Day 25</span>
-                                <span>Day 30</span>
+                            <!-- Dynamic Yearly Target vs Achievement SVG Chart (Ceiling: 50,000 PCS) -->
+                            <div class="trend-chart-container yearly-chart-wrapper" id="yearlyChartContainer" style="position: relative; width: 100%; height: 235px; margin-top: 12px;">
+                                <!-- Dynamic SVG line chart generated by portal_performance_graph.js -->
                             </div>
                         </div>
                     </div>
@@ -2521,7 +2709,7 @@
             <aside class="dept-hub-sidebar-dock" id="hubFrozenSidebar">
                 <div class="mep-sidebar-actions mep-sidebar-actions-dual">
                     <!-- Button 1: Dashboard (Premium 3D Icon with Hover Tooltip) -->
-                    <a href="index.html?view=main" class="mep-nav-3d-btn mep-btn-3d-dash" title="Dashboard" aria-label="Dashboard" onclick="switchToMainInterfaceView(); return false;">
+                    <a href="index.html?view=main" class="mep-nav-3d-btn mep-btn-3d-dash" aria-label="Dashboard" onclick="switchToMainInterfaceView(); return false;">
                         <span class="nav-3d-icon-wrap">
                             <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
@@ -2560,7 +2748,7 @@
                     </a>
 
                     <!-- Button 2: Module (Premium 3D Icon with Hover Tooltip) -->
-                    <a href="index.html?view=modules" class="mep-nav-3d-btn mep-btn-3d-mod" title="Module" aria-label="Module" onclick="switchToModuleSelectionView(); return false;">
+                    <a href="index.html?view=modules" class="mep-nav-3d-btn mep-btn-3d-mod" aria-label="Module" onclick="switchToModuleSelectionView(); return false;">
                         <span class="nav-3d-icon-wrap">
                             <svg class="nav-3d-icon-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
@@ -3355,10 +3543,12 @@
     <!-- Master Database Central Engine & Dynamic Production Data Engines -->
     <script src="daily_fg_production_data.js"></script>
     <script src="monthly_production_summary_data.js"></script>
+    <script src="daily_production_received_assemble_data.js"></script>
     <script src="physical_production_report_engine.js"></script>
     <script src="master_database.js"></script>
     <script src="production_plan_data.js"></script>
     <script src="yearly_production_summary_erp_data.js"></script>
+    <script src="monthly_production_archive_engine.js"></script>
     <script src="portal_modules_data.js"></script>
     <script src="portal_performance_graph.js"></script>
     <script src="portal_settings.js"></script>
@@ -3944,17 +4134,30 @@
             alert("New Purchase Entry: Ready for vendor order records.");
         };
 
-        window.handleDashboardDateFilter = function() {
-            const fEl = document.getElementById('dashFilterCurrentDate');
-            if (!fEl) return;
-            const filters = ['Today', 'This Week', 'This Month', 'All Time'];
-            let cur = filters.indexOf(fEl.innerText);
-            let next = (cur + 1) % filters.length;
-            fEl.innerText = filters[next];
-            if (typeof renderProductionPerformanceDashboard === 'function') {
-                renderProductionPerformanceDashboard();
+        window.toggleFiscalYearDropdown = function(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('dashFiscalYearMenu');
+            if (menu) menu.classList.toggle('show');
+        };
+
+        window.selectFiscalYear = function(fy) {
+            if (typeof window.handleFiscalYearSelection === 'function') {
+                window.handleFiscalYearSelection(fy);
             }
         };
+
+        window.handleDashboardDateFilter = function(e) {
+            window.toggleFiscalYearDropdown(e);
+        };
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const pill = document.getElementById('dashDateFilterBtn');
+            const menu = document.getElementById('dashFiscalYearMenu');
+            if (menu && menu.classList.contains('show') && (!pill || !pill.contains(e.target))) {
+                menu.classList.remove('show');
+            }
+        });
 
         // Run session check, service calculation, live clock, dashboard render, and URL state on initial load
         document.addEventListener('DOMContentLoaded', () => {
@@ -4162,119 +4365,452 @@
     </div>
 
     <!-- ==========================================================================
+         MIS MODULE — 5-Digit Enterprise Security PIN Verification Screen
+         Master Security PIN: 96420
+         ========================================================================== -->
+    <div class="mis-pin-modal-backdrop" id="misPinSecurityModal" style="display:none;" onclick="if(event.target===this) closeMISPinSecurityModal()">
+        <div class="mis-pin-modal-card" role="dialog" aria-modal="true" aria-labelledby="misPinTitle">
+            <!-- Subtle Top Glow Line -->
+            <div class="mis-pin-top-glow"></div>
+
+            <!-- Header with Sleek Icon & Dismiss Button -->
+            <div class="mis-pin-header">
+                <div class="mis-pin-icon-wrap">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+                <button type="button" class="mis-pin-close-btn" onclick="closeMISPinSecurityModal()" aria-label="Close Security Gate" title="Cancel">✕</button>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <div class="mis-pin-meta">
+                <h3 class="mis-pin-title" id="misPinTitle">MIS Security Gate</h3>
+                <p class="mis-pin-subtitle">Enter 5-digit security PIN to unlock MIS Module</p>
+            </div>
+
+            <!-- 5-Digit Digital Input Container -->
+            <div class="mis-pin-inputs-container" id="misPinInputsContainer">
+                <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="mis-pin-digit" id="misPin0" data-index="0" autocomplete="off" aria-label="PIN Digit 1">
+                <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="mis-pin-digit" id="misPin1" data-index="1" autocomplete="off" aria-label="PIN Digit 2">
+                <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="mis-pin-digit" id="misPin2" data-index="2" autocomplete="off" aria-label="PIN Digit 3">
+                <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="mis-pin-digit" id="misPin3" data-index="3" autocomplete="off" aria-label="PIN Digit 4">
+                <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="mis-pin-digit" id="misPin4" data-index="4" autocomplete="off" aria-label="PIN Digit 5">
+            </div>
+
+            <!-- Status / Error Notification Message -->
+            <div class="mis-pin-status-msg" id="misPinStatusMsg"></div>
+
+            <!-- Enterprise Lock Badge Footer -->
+            <div class="mis-pin-footer-shield">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>Authorized Personnel Only &bull; Auto-Verifying</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
          Floating Settings & Themes Modal
          ========================================================================== -->
     <div class="settings-modal-backdrop" id="settingsModalBackdrop" onclick="if(event.target===this) closeSettingsModal()">
         <div class="settings-modal-card">
+            <!-- Executive Dark Navy & Sapphire Gradient Header -->
             <div class="settings-modal-header">
                 <div class="settings-modal-title">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                    <span>System Preferences &amp; Access Control</span>
+                    <div class="settings-modal-icon-badge" id="settingsModalHeaderIcon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="settings-modal-heading-text" id="settingsModalHeading">Theme Performance</h3>
+                        <span class="settings-modal-heading-sub" id="settingsModalHeaderSub">Executive Display Preferences &amp; GPU Visual Engine</span>
+                    </div>
                 </div>
-                <button type="button" class="settings-close-btn" onclick="closeSettingsModal()" aria-label="Close Settings" title="Close">✕</button>
+                <div class="mis-header-right-controls">
+                    <span class="mis-header-option-badge" id="settingsModalOptionTag">OPTION 1 OF 5</span>
+                    <button type="button" class="settings-close-btn" onclick="closeSettingsModal()" aria-label="Close Settings" title="Close Window">✕</button>
+                </div>
             </div>
 
-            <!-- Tab Switcher Navigation -->
-            <div class="settings-modal-tabs">
-                <button type="button" class="settings-tab-btn active" id="settingsTabTheme" onclick="switchSettingsTab('theme')">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <span>Theme Preferences</span>
-                </button>
-                <button type="button" class="settings-tab-btn" id="settingsTabAccess" onclick="switchSettingsTab('access')">
-                    <img src="view_access_icon.png" alt="Access Control" class="tab-wrench-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                    <svg style="display:none;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-                        <path d="M4 4l4.5 4.5"></path>
-                        <path d="M15 15l5 5"></path>
-                    </svg>
-                    <span>View Access Control</span>
-                </button>
+            <!-- Redundant Tab Switcher Bar Hidden for Zero Clutter -->
+            <div class="settings-modal-tabs" id="settingsModalTabs" style="display:none !important;">
+                <button type="button" class="settings-tab-btn active" id="settingsTabTheme" onclick="switchSettingsTab('theme')">Theme</button>
+                <button type="button" class="settings-tab-btn" id="settingsTabAccess" onclick="switchSettingsTab('access')">Access</button>
+                <button type="button" class="settings-tab-btn" id="settingsTabLinks" onclick="switchSettingsTab('links')">Links</button>
+                <button type="button" class="settings-tab-btn" id="settingsTabEdit" onclick="switchSettingsTab('edit')">Edit</button>
+                <button type="button" class="settings-tab-btn" id="settingsTabLock" onclick="switchSettingsTab('lock')">Lock &amp; Unlock</button>
+                <button type="button" class="settings-tab-btn" id="settingsTabOthers" onclick="switchSettingsTab('others')">Others</button>
             </div>
 
             <div class="settings-modal-body">
-                <!-- TAB 1: Theme Preferences Pane -->
+                <!-- ==========================================================
+                     TAB 1: Theme Performance Pane
+                     ========================================================== -->
                 <div class="settings-tab-pane" id="paneThemeMode">
-                    <label class="theme-section-title">Interface Theme Mode</label>
-                    <p class="theme-section-desc">Select preferred display appearance. Changes apply instantly across the entire software, all reports, pages, and tables.</p>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 1.05rem; font-weight: 800; color: #0f2942; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                            <span>Enterprise Display Modes</span>
+                            <span style="font-size: 0.70rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 20px; border: 1px solid #bae6fd;">Instant Live Switch</span>
+                        </h4>
+                        <p style="font-size: 0.80rem; color: #64748b; margin: 0; line-height: 1.4;">
+                            Choose your preferred visual appearance. Switching themes dynamically updates all tables, charts, KPI metrics, and report modules with zero page reloads.
+                        </p>
+                    </div>
                     
-                    <div class="theme-options-grid">
-                        <!-- ☀️ Light Theme Card -->
-                        <div class="theme-option-card active" id="themeOptLight" onclick="setAppTheme('light')">
-                            <div class="theme-preview-box light-preview">
-                                <div class="theme-preview-header"></div>
-                                <div class="theme-preview-body">
-                                    <div class="theme-preview-line"></div>
-                                    <div class="theme-preview-line short"></div>
+                    <div class="theme-showcase-grid">
+                        <!-- ☀️ Light Theme Luxury Card -->
+                        <div class="theme-card-luxury active" id="themeOptLight" onclick="setAppTheme('light')">
+                            <div class="theme-preview-window preview-light">
+                                <div class="mock-sidebar"></div>
+                                <div class="mock-main">
+                                    <div class="mock-topbar"></div>
+                                    <div class="mock-card"></div>
+                                    <div class="mock-table"></div>
                                 </div>
                             </div>
-                            <span class="theme-option-name">☀️ Light Theme</span>
-                            <span class="theme-option-tag">Clean Corporate White</span>
-                            <div class="theme-check-icon">✓</div>
+                            <div class="theme-card-info">
+                                <div>
+                                    <div class="theme-card-title">☀️ Executive Light Theme</div>
+                                    <div class="theme-card-sub">High-clarity corporate white with sapphire accents</div>
+                                </div>
+                                <div class="theme-badge-check">✓</div>
+                            </div>
                         </div>
 
-                        <!-- 🌙 Dark Theme Card -->
-                        <div class="theme-option-card" id="themeOptDark" onclick="setAppTheme('dark')">
-                            <div class="theme-preview-box dark-preview">
-                                <div class="theme-preview-header"></div>
-                                <div class="theme-preview-body">
-                                    <div class="theme-preview-line"></div>
-                                    <div class="theme-preview-line short"></div>
+                        <!-- 🌙 Dark Theme Luxury Card -->
+                        <div class="theme-card-luxury" id="themeOptDark" onclick="setAppTheme('dark')">
+                            <div class="theme-preview-window preview-dark">
+                                <div class="mock-sidebar"></div>
+                                <div class="mock-main">
+                                    <div class="mock-topbar"></div>
+                                    <div class="mock-card"></div>
+                                    <div class="mock-table"></div>
                                 </div>
                             </div>
-                            <span class="theme-option-name">🌙 Dark Theme</span>
-                            <span class="theme-option-tag">Midnight Slate &amp; Navy</span>
-                            <div class="theme-check-icon">✓</div>
+                            <div class="theme-card-info">
+                                <div>
+                                    <div class="theme-card-title">🌙 Midnight Dark Theme</div>
+                                    <div class="theme-card-sub">Deep slate navy engineered for reduced eye strain</div>
+                                </div>
+                                <div class="theme-badge-check">✓</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Engineering Specifications Strip -->
+                    <div class="perf-tiles-grid">
+                        <div class="perf-tile-card">
+                            <div class="perf-tile-icon" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">⚡</div>
+                            <div>
+                                <div style="font-size:0.84rem; font-weight:800; color:#0f172a;">GPU Hardware Acceleration</div>
+                                <div style="font-size:0.72rem; color:#64748b; margin-top:1px;">60 FPS fluid transitions and zero layout shifts</div>
+                            </div>
+                        </div>
+                        <div class="perf-tile-card">
+                            <div class="perf-tile-icon" style="background:#eff6ff; color:#0284c7; border:1px solid #bfdbfe;">🎨</div>
+                            <div>
+                                <div style="font-size:0.84rem; font-weight:800; color:#0f172a;">Dynamic CSS Tokens</div>
+                                <div style="font-size:0.72rem; color:#64748b; margin-top:1px;">Synchronized color variables across all 28 reports</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB 2: View Access Control Pane -->
+                <!-- ==========================================================
+                     TAB 2: View Access Control Pane
+                     ========================================================== -->
                 <div class="settings-tab-pane" id="paneViewAccess" style="display: none;">
-                    <div class="access-control-header">
-                        <div>
-                            <label class="theme-section-title" style="display:flex; align-items:center; gap:8px;">
-                                <img src="view_access_icon.png" style="width:18px; height:18px; object-fit:contain;" alt="">
-                                View User Page Access Restrictions
-                            </label>
-                            <p class="theme-section-desc">Configure pages accessible by 'View' role users. Checked (☑) pages can be viewed; unchecked (☐) pages are hidden from menus and blocked from direct URL access.</p>
-                        </div>
-                        <div class="access-control-actions">
-                            <button type="button" class="btn-access-action" onclick="toggleAllViewPermissions(true)">Select All</button>
-                            <button type="button" class="btn-access-action" onclick="toggleAllViewPermissions(false)">Deselect All</button>
+                    <!-- RBAC Policy Banner -->
+                    <div class="rbac-security-banner">
+                        <div class="rbac-shield-icon">🛡️</div>
+                        <div style="flex:1;">
+                            <div style="font-size:0.92rem; font-weight:800; color:#92400e;">Role-Based Access Control (RBAC) Security Policy</div>
+                            <div style="font-size:0.75rem; color:#78350f; margin-top:2px; line-height:1.35;">
+                                Configure report visibility for users with the <strong>View</strong> role. Restricted reports are hidden from sidebars and completely blocked from direct access.
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Search Filter -->
-                    <div class="access-search-box">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#64748b" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" id="accessPageSearch" placeholder="Search pages..." oninput="filterAccessPages(this.value)">
+                    <!-- Quick Preset Selectors -->
+                    <div class="rbac-presets-bar">
+                        <span style="font-size:0.75rem; font-weight:800; color:#64748b; margin-right:4px;">Quick Presets:</span>
+                        <button type="button" class="btn-rbac-preset" onclick="applyRBACPreset('all')">✓ Grant Full Access</button>
+                        <button type="button" class="btn-rbac-preset" onclick="applyRBACPreset('none')">✕ Restrict All</button>
+                        <button type="button" class="btn-rbac-preset" onclick="applyRBACPreset('production')">🏭 Production Only</button>
+                        <button type="button" class="btn-rbac-preset" onclick="applyRBACPreset('closing')">📊 Closing (ERP) Only</button>
+                        <button type="button" class="btn-rbac-preset" onclick="applyRBACPreset('summary')">📑 Summary Reports Only</button>
                     </div>
 
-                    <!-- Scrollable Page Checklist -->
-                    <div class="access-pages-list" id="accessPagesListContainer">
-                        <!-- Injected by renderViewAccessChecklist() -->
+                    <!-- Search Filter Box -->
+                    <div class="access-search-box" style="margin-bottom:14px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#64748b" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="accessPageSearch" placeholder="Filter pages by title, file name, or module..." oninput="filterAccessPages(this.value)">
+                    </div>
+
+                    <!-- Scrollable Page Checklist Container -->
+                    <div class="access-pages-list" id="accessPagesListContainer" style="max-height: 330px;">
+                        <!-- Injected dynamically by renderViewAccessChecklist() -->
                     </div>
 
                     <!-- Footer Action Bar -->
                     <div class="access-modal-footer">
-                        <span class="access-perm-count" id="accessPermCount">0 pages allowed</span>
-                        <button type="button" class="btn-save-permissions" onclick="saveViewPermissions()">
+                        <span class="access-perm-count" id="accessPermCount">28 of 28 pages allowed</span>
+                        <button type="button" class="btn-save-permissions" onclick="saveViewPermissions()" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); box-shadow:0 4px 12px rgba(2,132,199,0.3);">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Save Permissions
+                            Save Security Permissions
                         </button>
+                    </div>
+                </div>
+
+                <!-- ==========================================================
+                     TAB 3: Show & Edit Link Pane
+                     ========================================================== -->
+                <div class="settings-tab-pane" id="paneShowEditLink" style="display: none;">
+                    <!-- Real-Time Metrics Strip -->
+                    <div class="mis-kpi-summary-strip">
+                        <div class="mis-kpi-pill">
+                            <div class="mis-kpi-pill-icon" style="background:#eff6ff; color:#0284c7; border:1px solid #bfdbfe;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            </div>
+                            <div>
+                                <div class="mis-kpi-pill-val">28 Reports</div>
+                                <div class="mis-kpi-pill-lbl">Live Connected Endpoints</div>
+                            </div>
+                        </div>
+                        <div class="mis-kpi-pill">
+                            <div class="mis-kpi-pill-icon" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            </div>
+                            <div>
+                                <div class="mis-kpi-pill-val">78 Data Sources</div>
+                                <div class="mis-kpi-pill-lbl">Synchronized Data Links</div>
+                            </div>
+                        </div>
+                        <div class="mis-kpi-pill">
+                            <div class="mis-kpi-pill-icon" style="background:#faf5ff; color:#7c3aed; border:1px solid #e9d5ff;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                            </div>
+                            <div>
+                                <div class="mis-kpi-pill-val">42 Formulas</div>
+                                <div class="mis-kpi-pill-lbl">Active Calculation Rules</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Filter Box -->
+                    <div class="access-search-box" style="margin-bottom:14px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#64748b" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="misLinkSearchInput" placeholder="Search report endpoints by title, file name, or department..." oninput="filterMISLinks(this.value)">
+                    </div>
+
+                    <!-- Scrollable Links Table/List Container -->
+                    <div class="access-pages-list" id="misLinksListContainer" style="max-height: 320px;">
+                        <!-- Injected dynamically by renderMISLinksManager() -->
+                    </div>
+
+                    <!-- Footer Action Bar -->
+                    <div class="access-modal-footer">
+                        <span class="access-perm-count" id="misLinksCount">28 active report connections</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" class="btn-access-action" onclick="resetAllCustomPageFlows()" style="color:#64748b; border-color:#cbd5e1;" title="Reset all custom data flow edits back to default">
+                                Reset All Flows
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================================
+                     TAB 4: Edit Page Pane (Dynamic Page Name Customizer)
+                     ========================================================== -->
+                <div class="settings-tab-pane" id="paneEditPage" style="display: none;">
+                    <!-- Customizer Banner -->
+                    <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 1.5px solid #fed7aa; border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #ea580c; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);">
+                            ✏️
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:0.92rem; font-weight:800; color:#9a3412;">Global Dynamic Title &amp; Page Name Customizer</div>
+                            <div style="font-size:0.75rem; color:#7c2d12; margin-top:2px; line-height:1.35;">
+                                Rename any system page or report. Custom titles automatically update live in sidebars, navigation breadcrumbs, and search menus.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Filter Box -->
+                    <div class="access-search-box" style="margin-bottom:14px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#64748b" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="editPageNameSearchInput" placeholder="Filter pages to rename by current name, file, or module..." oninput="filterEditPageNames(this.value)">
+                    </div>
+
+                    <!-- Scrollable List of All Pages for Renaming -->
+                    <div class="access-pages-list" id="editPageNamesListContainer" style="max-height: 310px;">
+                        <!-- Injected dynamically by renderMISEditPageSettings() -->
+                    </div>
+
+                    <!-- Footer Action Bar -->
+                    <div class="access-modal-footer">
+                        <span class="access-perm-count" id="editPageNamesCount">28 system pages</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" class="btn-access-action" onclick="resetAllPageNames()" style="color:#64748b; border-color:#cbd5e1;" title="Reset all page titles to default">
+                                Reset All
+                            </button>
+                            <button type="button" class="btn-save-permissions" onclick="saveAllPageNames()" style="background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); border-color:#ea580c; box-shadow:0 4px 12px rgba(234,88,12,0.3);">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Save All Page Names
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================================
+                     TAB 5: Lock and Unlock Page Pane (Centralized Edit Control)
+                     ========================================================== -->
+                <div class="settings-tab-pane" id="paneLockUnlock" style="display: none;">
+                    <div class="lock-panel-header-card">
+                        <div class="lock-header-info">
+                            <h4 class="lock-heading-title">
+                                <span>Operational Form Locks &amp; Manual Edit Permissions</span>
+                                <span class="lock-engine-badge">Enterprise Master Lock Engine</span>
+                            </h4>
+                            <p class="lock-heading-desc">
+                                Centralized editing authorization. When a page is <strong>Locked</strong>, all manual data additions, inline cell modifications, row deletions, and save operations are strictly prevented on that page.
+                            </p>
+                        </div>
+                        <div class="lock-stats-strip">
+                            <div class="lock-stat-pill">
+                                <span class="stat-pill-label">Total Registered:</span>
+                                <strong class="stat-pill-val" id="lockStatTotal">0 Pages</strong>
+                            </div>
+                            <div class="lock-stat-pill lock-stat-locked">
+                                <span class="stat-pill-label">🔒 Locked (Read-Only):</span>
+                                <strong class="stat-pill-val" id="lockStatLocked">0</strong>
+                            </div>
+                            <div class="lock-stat-pill lock-stat-unlocked">
+                                <span class="stat-pill-label">🔓 Unlocked (Editable):</span>
+                                <strong class="stat-pill-val" id="lockStatUnlocked">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter & Batch Action Toolbar -->
+                    <div class="lock-toolbar-bar">
+                        <div class="lock-search-wrapper">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" stroke-width="2.2">
+                                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="lockPageSearchInput" class="lock-search-input" placeholder="Search editable report or data entry page..." oninput="filterLockPages(this.value)">
+                        </div>
+                        <div class="lock-batch-actions">
+                            <button type="button" class="btn-lock-batch btn-lock-all" onclick="batchToggleAllLocks(true)" title="Lock all pages immediately (Read-Only)">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                <span>Lock All</span>
+                            </button>
+                            <button type="button" class="btn-lock-batch btn-unlock-all" onclick="batchToggleAllLocks(false)" title="Unlock all pages for editing">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                                <span>Unlock All</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Editable Pages Grid / List Container -->
+                    <div class="lock-pages-list-container" id="lockPagesListContainer">
+                        <!-- Dynamically populated by renderMISLockUnlockManager() -->
+                    </div>
+
+                    <!-- Footer Info Strip -->
+                    <div class="lock-pane-footer-note">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0284c7" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>All page lock states are saved to persistent storage and applied instantly across the ERP. View-Only accounts are permanently blocked from editing or changing lock states.</span>
+                    </div>
+                </div>
+
+                <!-- ==========================================================
+                     TAB 6: Others Pane (System Diagnostics & Utilities)
+                     ========================================================== -->
+                <div class="settings-tab-pane" id="paneMISOthers" style="display: none;">
+                    <div class="diagnostics-grid">
+                        <!-- 1. Cloud Sync Diagnostic Card -->
+                        <div class="diag-card-luxury">
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <div style="width:44px; height:44px; border-radius:12px; background:#ecfdf5; border:1.5px solid #a7f3d0; display:flex; align-items:center; justify-content:center; color:#059669; font-size:1.25rem; flex-shrink:0;">
+                                    ☁️
+                                </div>
+                                <div>
+                                    <div style="font-size:0.90rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                                        <span>Realtime Cloud Database Sync</span>
+                                        <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.70rem; font-weight:700; color:#059669; background:#d1fae5; padding:2px 8px; border-radius:12px;">
+                                            <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite;"></span>
+                                            Operational
+                                        </span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:#64748b; margin-top:3px;" id="misCloudPingStatus">
+                                        Live channel connected &bull; Bidirectional socket active
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-access-action" onclick="testMISCloudConnection()" style="background:#0284c7; color:#ffffff; border-color:#0284c7; padding:7px 14px; font-weight:700; border-radius:8px; font-size:0.78rem;">
+                                Run Latency Audit
+                            </button>
+                        </div>
+
+                        <!-- 2. UI & Session Cache Cleanup Card -->
+                        <div class="diag-card-luxury">
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <div style="width:44px; height:44px; border-radius:12px; background:#fffbeb; border:1.5px solid #fde68a; display:flex; align-items:center; justify-content:center; color:#d97706; font-size:1.25rem; flex-shrink:0;">
+                                    🧹
+                                </div>
+                                <div>
+                                    <div style="font-size:0.90rem; font-weight:800; color:#0f172a;">UI State &amp; Session Cache Purge</div>
+                                    <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">
+                                        Clears cached filters and temporary state without altering logins or persistent data.
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-access-action" onclick="clearSystemPortalCache()" style="color:#b45309; border-color:#fde68a; background:#fef3c7; padding:7px 14px; font-weight:700; border-radius:8px; font-size:0.78rem;">
+                                Purge Cache
+                            </button>
+                        </div>
+
+                        <!-- 3. Local Storage Health & Quota Gauge Card -->
+                        <div class="diag-card-luxury" style="display:block;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-size:1.1rem;">💾</span>
+                                    <span style="font-size:0.88rem; font-weight:800; color:#0f172a;">Browser Local Database Quota</span>
+                                </div>
+                                <span style="font-size:0.78rem; font-weight:800; color:#0284c7;" id="misStorageUsageText">Calculating...</span>
+                            </div>
+                            <div style="width:100%; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-bottom:6px;">
+                                <div id="misStorageProgressBar" style="width:10%; height:100%; background:linear-gradient(90deg, #0284c7 0%, #38bdf8 100%); border-radius:4px; transition:width 0.4s ease;"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.70rem; color:#64748b;">
+                                <span>Storage Engine: HTML5 LocalStorage</span>
+                                <span style="color:#10b981; font-weight:700;">Status: Healthy (Zero Corruption)</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Route Integrity Scanner Card -->
+                        <div class="diag-card-luxury">
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <div style="width:44px; height:44px; border-radius:12px; background:#eff6ff; border:1.5px solid #bfdbfe; display:flex; align-items:center; justify-content:center; color:#0284c7; font-size:1.25rem; flex-shrink:0;">
+                                    🔍
+                                </div>
+                                <div>
+                                    <div style="font-size:0.90rem; font-weight:800; color:#0f172a;">Endpoint Route Integrity Scanner</div>
+                                    <div style="font-size:0.75rem; color:#64748b; margin-top:3px;" id="misEndpointScanStatus">
+                                        All 28 system report files verified with active HTTP routes
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-access-action" onclick="auditSystemEndpoints()" style="color:#0284c7; border-color:#bfdbfe; background:#eff6ff; padding:7px 14px; font-weight:700; border-radius:8px; font-size:0.78rem;">
+                                Audit Endpoints
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

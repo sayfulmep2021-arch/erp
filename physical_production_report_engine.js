@@ -19,21 +19,21 @@
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
 
-    // Default Fallback Datasets (matching Screenshot 2)
+    // Default Fallback Datasets (matching current executive report setup)
     const DEFAULT_DATA = {
         ceilingFan: {
-            target: { "5601": 30000, "5602": 0, "5603": 0, "5606": 0, "5607": 0, "4801": 5000, "3601": 8000, "2401": 2000 },
-            redmi:  { "5601": 0,     "5602": 0, "5603": 0, "5606": 0, "5607": 0, "4801": 0,    "3601": 0,    "2401": 0 }
+            target: { "5601": 19000, "5602": 10000, "5603": 1000, "5606": 0, "5607": 0, "4801": 0, "3601": 10000, "2401": 0 },
+            redmi:  { "5601": 0,     "5602": 0,     "5603": 0,    "5606": 0, "5607": 0, "4801": 0, "3601": 0,     "2401": 0 }
         },
         accessories: {
-            target:  { "downPipe": 45000, "canopy": 45000, "clamp": 45000 },
+            target:  { "downPipe": 40000, "canopy": 40000, "clamp": 20000 },
             achieve: { "downPipe": 0,     "canopy": 0,     "clamp": 0 }
         },
         blade: {
-            target: { "5601": 30000, "5602": 0, "5603": 0, "5606": 0, "5607": 0, "4801": 5000, "3601": 5000, "2401": 5000 }
+            target: { "5601": 19000, "5602": 10000, "5603": 1000, "5606": 0, "5607": 0, "4801": 0, "3601": 10000, "2401": 0 }
         },
         armature: {
-            target:  { "w76": 35000, "w55": 10000, "loop": 45000, "complete": 45000 },
+            target:  { "w76": 30000, "w55": 10000, "loop": 40000, "complete": 40000 },
             achieve: { "w76": 0,     "w55": 0,     "loop": 0,     "complete": 0 }
         }
     };
@@ -163,6 +163,110 @@
     }
 
     /**
+     * Compute Total Production per Serial from Daily Production Received Assemble (All)
+     * Data Source: Daily Check Report -> Daily Production Received Assemble All -> SFG Assemble Item / Armature Item
+     */
+    function computeDailyAssembleSerialTotals(categoryKeyword, year, monthName) {
+        const serialTotals = {};
+        const yr = String(year || 2026).trim();
+        const m = String(monthName || 'September').trim().toLowerCase();
+
+        // 1. Check live saved dataset from localStorage ('mep_daily_prod_received_assemble_data')
+        let ds = null;
+        let isFromStorage = false;
+        try {
+            const raw = localStorage.getItem('mep_daily_prod_received_assemble_data');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && Array.isArray(parsed.categories)) {
+                    ds = parsed;
+                    isFromStorage = true;
+                }
+            }
+        } catch(e) {
+            console.warn("[Physical Report Engine] Error reading assemble dataset:", e);
+        }
+
+        // 2. If no custom saved data in localStorage and active month is September 2026,
+        // use the exact September 2026 baseline from Daily Check Report (as shown in user screenshots)
+        if (!isFromStorage && yr === '2026' && (m === 'september' || m === 'sep')) {
+            if (categoryKeyword.toLowerCase().includes('assemble')) {
+                // SFG Assemble Item (Screenshot 2: SL 1: 4632, SL 2: 225, SL 4: 4016, SL 8: 9111 -> Total 17984)
+                serialTotals[1] = 4632;
+                serialTotals[2] = 225;
+                serialTotals[3] = 0;
+                serialTotals[4] = 4016;
+                serialTotals[5] = 0;
+                serialTotals[6] = 0;
+                serialTotals[7] = 0;
+                serialTotals[8] = 9111;
+                serialTotals[9] = 0;
+                return serialTotals;
+            } else if (categoryKeyword.toLowerCase().includes('armature')) {
+                // Armature Item (Screenshot 3: SL 1: 495, SL 2: 3240, SL 5: 8072, SL 6: 3710, SL 9: 3050, SL 10: 3250, SL 11: 18700 -> Total 49874)
+                serialTotals[1] = 495;
+                serialTotals[2] = 3240;
+                serialTotals[3] = 0;
+                serialTotals[4] = 0;
+                serialTotals[5] = 8072;
+                serialTotals[6] = 3710;
+                serialTotals[7] = 0;
+                serialTotals[8] = 0;
+                serialTotals[9] = 3050;
+                serialTotals[10] = 3250;
+                serialTotals[11] = 18700;
+                serialTotals[12] = 0;
+                serialTotals[13] = 5024;
+                serialTotals[14] = 1241;
+                serialTotals[15] = 2700;
+                serialTotals[16] = 60;
+                serialTotals[17] = 332;
+                return serialTotals;
+            }
+        }
+
+        // 3. If not in localStorage and not September baseline, check raw global dataset (August baseline)
+        if (!ds && typeof RAW_DAILY_PRODUCTION_RECEIVED_ASSEMBLE !== 'undefined' && RAW_DAILY_PRODUCTION_RECEIVED_ASSEMBLE) {
+            if (Array.isArray(RAW_DAILY_PRODUCTION_RECEIVED_ASSEMBLE.categories)) {
+                ds = RAW_DAILY_PRODUCTION_RECEIVED_ASSEMBLE;
+            }
+        }
+
+        let foundCategory = false;
+        if (ds && Array.isArray(ds.categories)) {
+            const cat = ds.categories.find(c =>
+                c.categoryName && c.categoryName.toLowerCase().includes(categoryKeyword.toLowerCase())
+            );
+            if (cat && Array.isArray(cat.items)) {
+                foundCategory = true;
+                cat.items.forEach((item, idx) => {
+                    let sl = parseInt(item.sl, 10);
+                    if (isNaN(sl) || sl <= 0) {
+                        sl = idx + 1;
+                    }
+
+                    let tot = 0;
+                    if (item.total !== undefined && item.total !== null && !isNaN(parseFloat(item.total))) {
+                        tot = parseFloat(item.total) || 0;
+                    } else {
+                        const op = parseFloat(item.opening) || 0;
+                        let daysSum = 0;
+                        if (item.days && typeof item.days === 'object') {
+                            for (let d = 1; d <= 31; d++) {
+                                daysSum += parseFloat(item.days['d' + d]) || 0;
+                            }
+                        }
+                        tot = op + daysSum;
+                    }
+                    serialTotals[sl] = tot;
+                });
+            }
+        }
+
+        return serialTotals;
+    }
+
+    /**
      * Get or initialize stored custom report state for year + month
      */
     function getStoredReportState(year, monthName) {
@@ -179,6 +283,20 @@
         if (!allStored[yr][m]) {
             // Deep copy default data
             allStored[yr][m] = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        } else {
+            // Auto-align targets with current executive defaults if using old defaults
+            if (allStored[yr][m].accessories && allStored[yr][m].accessories.target && allStored[yr][m].accessories.target.downPipe === 45000) {
+                allStored[yr][m].accessories.target = JSON.parse(JSON.stringify(DEFAULT_DATA.accessories.target));
+            }
+            if (allStored[yr][m].armature && allStored[yr][m].armature.target && allStored[yr][m].armature.target.w76 === 35000) {
+                allStored[yr][m].armature.target = JSON.parse(JSON.stringify(DEFAULT_DATA.armature.target));
+            }
+            if (allStored[yr][m].ceilingFan && allStored[yr][m].ceilingFan.target && allStored[yr][m].ceilingFan.target["5601"] === 30000) {
+                allStored[yr][m].ceilingFan.target = JSON.parse(JSON.stringify(DEFAULT_DATA.ceilingFan.target));
+            }
+            if (allStored[yr][m].blade && allStored[yr][m].blade.target && allStored[yr][m].blade.target["5601"] === 30000) {
+                allStored[yr][m].blade.target = JSON.parse(JSON.stringify(DEFAULT_DATA.blade.target));
+            }
         }
 
         return allStored[yr][m];
@@ -278,11 +396,21 @@
 
         // -------------------------------------------------------------
         // TABLE 2: Accessories Report
+        // Data Source: Daily Check Report -> Daily Production Received Assemble All -> SFG Assemble Item
+        // Serial Mapping:
+        // - Down Pipe = Serial 1 + 2 + 3
+        // - Canopy    = Serial 6 + 7 + 8
+        // - Clamp     = Serial 4 + 5
         // -------------------------------------------------------------
+        const sfgSerials = computeDailyAssembleSerialTotals("SFG Assemble", yr, m);
         const accKeys = ["downPipe", "canopy", "clamp"];
         const accLabels = { downPipe: "Down Pipe", canopy: "Canopy", clamp: "Clamp" };
         const accTarget = state.accessories.target || {};
-        const accAchieve = state.accessories.achieve || {};
+        const accAchieve = {
+            "downPipe": (sfgSerials[1] || 0) + (sfgSerials[2] || 0) + (sfgSerials[3] || 0),
+            "canopy":   (sfgSerials[6] || 0) + (sfgSerials[7] || 0) + (sfgSerials[8] || 0),
+            "clamp":    (sfgSerials[4] || 0) + (sfgSerials[5] || 0)
+        };
 
         const accNeed = {};
         const accTotalPct = {};
@@ -356,11 +484,23 @@
 
         // -------------------------------------------------------------
         // TABLE 4: Armature
+        // Data Source: Daily Check Report -> Daily Production Received Assemble All -> Armature Item
+        // Serial Mapping:
+        // - W(7",6") = Serial 6 + 7 + 8
+        // - W(5.5")  = Serial 5
+        // - Loop     = Serial 9 + 10 + 11 + 12
+        // - Complete = Serial 13 + 14 + 15 + 16 + 17
         // -------------------------------------------------------------
+        const armSerials = computeDailyAssembleSerialTotals("Armature", yr, m);
         const armKeys = ["w76", "w55", "loop", "complete"];
         const armLabels = { w76: 'W (7",6")', w55: 'W (5.5")', loop: 'Loop', complete: 'Complete' };
         const armTarget = state.armature.target || {};
-        const armAchieve = state.armature.achieve || {};
+        const armAchieve = {
+            "w76":      (armSerials[6] || 0) + (armSerials[7] || 0) + (armSerials[8] || 0),
+            "w55":      (armSerials[5] || 0),
+            "loop":     (armSerials[9] || 0) + (armSerials[10] || 0) + (armSerials[11] || 0) + (armSerials[12] || 0),
+            "complete": (armSerials[13] || 0) + (armSerials[14] || 0) + (armSerials[15] || 0) + (armSerials[16] || 0) + (armSerials[17] || 0)
+        };
 
         const armNeed = {};
         const armTotalPct = {};
@@ -513,6 +653,13 @@
     function commitEdit(table, type, key, tdEl) {
         if (isViewOnly()) {
             alert('View-only account: You do not have permission to modify production data.');
+            renderPhysicalReportUI();
+            return;
+        }
+
+        // Achieve rows for Accessories and Armature are source-controlled & frozen
+        if (type === 'achieve' && (table === 'accessories' || table === 'armature')) {
+            console.warn('[Physical Report Engine] ' + table + ' achieve row is locked and auto-calculated from Daily Check Report.');
             renderPhysicalReportUI();
             return;
         }
@@ -692,10 +839,10 @@
                 return '<td class="' + editableCls + '" ' + editableAttr + ' onfocus="window.MEP_PHYSICAL_UI.selectCellText(this)" onblur="window.MEP_PHYSICAL_UI.commitEdit(\'accessories\', \'target\', \'' + k + '\', this)" onkeydown="window.MEP_PHYSICAL_UI.handleKey(event, this)">' + val + '</td>';
             }).join('');
 
-            // Achieve Row (Editable for accessories)
+            // Achieve Row (Source Frozen - Linked from SFG Assemble Item)
             const achieveCells = acc.keys.map(function(k) {
                 const val = acc.achieve[k] !== undefined ? acc.achieve[k] : 0;
-                return '<td class="' + editableCls + '" ' + editableAttr + ' onfocus="window.MEP_PHYSICAL_UI.selectCellText(this)" onblur="window.MEP_PHYSICAL_UI.commitEdit(\'accessories\', \'achieve\', \'' + k + '\', this)" onkeydown="window.MEP_PHYSICAL_UI.handleKey(event, this)">' + val + '</td>';
+                return '<td class="cell-locked cell-linked" title="Auto-calculated from Daily Check Report -> SFG Assemble Item">' + formatNum(val) + '</td>';
             }).join('');
 
             // Need Row (Locked, Teal)
@@ -811,10 +958,10 @@
                 return '<td class="' + editableCls + '" ' + editableAttr + ' onfocus="window.MEP_PHYSICAL_UI.selectCellText(this)" onblur="window.MEP_PHYSICAL_UI.commitEdit(\'armature\', \'target\', \'' + k + '\', this)" onkeydown="window.MEP_PHYSICAL_UI.handleKey(event, this)">' + val + '</td>';
             }).join('');
 
-            // Achieve Row (Editable for Armature)
+            // Achieve Row (Source Frozen - Linked from Armature Item)
             const achieveCells = arm.keys.map(function(k) {
                 const val = arm.achieve[k] !== undefined ? arm.achieve[k] : 0;
-                return '<td class="' + editableCls + '" ' + editableAttr + ' onfocus="window.MEP_PHYSICAL_UI.selectCellText(this)" onblur="window.MEP_PHYSICAL_UI.commitEdit(\'armature\', \'achieve\', \'' + k + '\', this)" onkeydown="window.MEP_PHYSICAL_UI.handleKey(event, this)">' + val + '</td>';
+                return '<td class="cell-locked cell-linked" title="Auto-calculated from Daily Check Report -> Armature Item">' + formatNum(val) + '</td>';
             }).join('');
 
             // Need Row (Locked, Teal)
@@ -922,9 +1069,19 @@
     window.isRedmiRowHidden = isRedmiRowHidden;
     window.applyRedmiRowVisibility = applyRedmiRowVisibility;
 
+    // Listen for storage updates from Daily Check Report in other tabs/windows
+    if (typeof window !== 'undefined') {
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'mep_daily_prod_received_assemble_data') {
+                renderPhysicalReportUI();
+            }
+        });
+    }
+
     // Expose Global Engine Object
     window.MEP_PHYSICAL_REPORT_ENGINE = {
         computePhysicalSerialProductionTotals,
+        computeDailyAssembleSerialTotals,
         getStoredReportState,
         saveReportState,
         getFullPhysicalReport,

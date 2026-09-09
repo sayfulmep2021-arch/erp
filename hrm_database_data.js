@@ -266,7 +266,7 @@
         "designation": "Helper",
         "doj": "3-Jun-23",
         "section": "Dimmar & Blade",
-        "gender": "Male",
+        "gender": "Female",
         "status": "Active"
     },
     {
@@ -296,7 +296,7 @@
         "designation": "Helper",
         "doj": "11-Nov-23",
         "section": "Assemble Line",
-        "gender": "Male",
+        "gender": "Female",
         "status": "Active"
     },
     {
@@ -506,7 +506,7 @@
         "designation": "Helper",
         "doj": "6-Oct-25",
         "section": "Replacement",
-        "gender": "Female",
+        "gender": "Male",
         "status": "Active"
     },
     {
@@ -976,7 +976,7 @@
         "designation": "Helper",
         "doj": "20-Jul-26",
         "section": "Assemble Line",
-        "gender": "Male",
+        "gender": "Female",
         "status": "Active"
     },
     {
@@ -1081,11 +1081,37 @@
     }
 ];
 
+    const HRM_DATA_VERSION_KEY = 'mep_hrm_data_version_tag';
+    const HRM_CURRENT_VERSION = 'v2_gender_sync';
+
     /**
      * Get list of employees from localStorage or defaults
      */
     function getStoredEmployees() {
         try {
+            const version = localStorage.getItem(HRM_DATA_VERSION_KEY);
+            if (version !== HRM_CURRENT_VERSION) {
+                const raw = localStorage.getItem(HRM_STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        const defaultMap = new Map();
+                        DEFAULT_HRM_EMPLOYEES.forEach(emp => defaultMap.set(String(emp.id).trim(), emp.gender));
+                        parsed.forEach(emp => {
+                            if (defaultMap.has(String(emp.id).trim())) {
+                                emp.gender = defaultMap.get(String(emp.id).trim());
+                            }
+                        });
+                        saveStoredEmployees(parsed);
+                        localStorage.setItem(HRM_DATA_VERSION_KEY, HRM_CURRENT_VERSION);
+                        return parsed;
+                    }
+                }
+                saveStoredEmployees(DEFAULT_HRM_EMPLOYEES);
+                localStorage.setItem(HRM_DATA_VERSION_KEY, HRM_CURRENT_VERSION);
+                return [...DEFAULT_HRM_EMPLOYEES];
+            }
+
             const raw = localStorage.getItem(HRM_STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);

@@ -104,13 +104,31 @@
 
             const cleanFile = targetUrl.split('/').pop().split('?')[0].toLowerCase();
 
+            // Dynamic Link Redirection (from Show & Edit Link manager)
+            let effectiveTarget = targetUrl;
+            try {
+                if (typeof window.getEffectivePageLink === 'function') {
+                    effectiveTarget = window.getEffectivePageLink(cleanFile);
+                } else {
+                    const raw = localStorage.getItem('portal_page_link_mappings');
+                    if (raw) {
+                        const mappings = JSON.parse(raw);
+                        if (mappings && mappings[cleanFile]) {
+                            effectiveTarget = mappings[cleanFile];
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            const effectiveClean = effectiveTarget.split('/').pop().split('?')[0].toLowerCase();
+
             // Permission Check for View-Only User
             if (isCurrentUserViewOnly()) {
                 const rawPerms = localStorage.getItem('portal_view_page_permissions');
                 if (rawPerms) {
                     try {
                         const perms = JSON.parse(rawPerms);
-                        if (perms && perms[cleanFile] === false) {
+                        if (perms && (perms[cleanFile] === false || perms[effectiveClean] === false)) {
                             alert("Access Denied: You do not have permission to view this report page.");
                             return;
                         }
@@ -122,7 +140,7 @@
             sessionStorage.setItem(STORAGE_KEYS.isAuthenticated, "true");
             sessionStorage.setItem(STORAGE_KEYS.lastActivity, Date.now().toString());
 
-            window.location.href = targetUrl;
+            window.location.href = effectiveTarget;
         };
 
         window.handleSubReportClick = function(moduleName, reportTitle, event) {
@@ -184,6 +202,17 @@
                 } else if (viewParam === 'modules') {
                     sessionStorage.setItem('portal_current_view', 'modules');
                     switchToModuleSelectionView();
+                } else if (viewParam === 'mis') {
+                    if (typeof isMISPinVerified === 'function' && isMISPinVerified()) {
+                        sessionStorage.setItem('portal_current_view', 'mis');
+                        switchToMISSelectionView();
+                    } else {
+                        sessionStorage.setItem('portal_current_view', 'modules');
+                        switchToModuleSelectionView();
+                        if (typeof openMISPinSecurityModal === 'function') {
+                            openMISPinSecurityModal();
+                        }
+                    }
                 } else if (viewParam === 'hrm') {
                     sessionStorage.setItem('portal_current_view', 'hrm');
                     const sub = urlParams.get('sub') || (urlParams.get('page') === 'new_entry' ? 'new_entry' : 'dashboard');
@@ -194,6 +223,16 @@
                     switchToDepartmentHub(targetMod);
                 } else if (currentView === 'modules') {
                     switchToModuleSelectionView();
+                } else if (currentView === 'mis') {
+                    if (typeof isMISPinVerified === 'function' && isMISPinVerified()) {
+                        switchToMISSelectionView();
+                    } else {
+                        sessionStorage.setItem('portal_current_view', 'modules');
+                        switchToModuleSelectionView();
+                        if (typeof openMISPinSecurityModal === 'function') {
+                            openMISPinSecurityModal();
+                        }
+                    }
                 } else if (currentView === 'hrm') {
                     switchToHRMModuleView();
                 } else {
@@ -222,7 +261,9 @@
             var mainView = document.getElementById('mainInterfaceView');
             var moduleView = document.getElementById('moduleSelectionView');
             var hrmView = document.getElementById('hrmModuleView');
+            var misView = document.getElementById('misSelectionView');
             if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
+            if (misView) misView.style.setProperty('display', 'none', 'important');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'none', 'important');
@@ -237,7 +278,9 @@
             var mainView = document.getElementById('mainInterfaceView');
             var moduleView = document.getElementById('moduleSelectionView');
             var hrmView = document.getElementById('hrmModuleView');
+            var misView = document.getElementById('misSelectionView');
             if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
+            if (misView) misView.style.setProperty('display', 'none', 'important');
             var loginView = document.getElementById('loginView');
 
             if (dashView) dashView.style.setProperty('display', 'none', 'important');
@@ -299,7 +342,9 @@
             var mainView = document.getElementById('mainInterfaceView');
             var moduleView = document.getElementById('moduleSelectionView');
             var hrmView = document.getElementById('hrmModuleView');
+            var misView = document.getElementById('misSelectionView');
             if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
+            if (misView) misView.style.setProperty('display', 'none', 'important');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'none', 'important');
@@ -336,6 +381,10 @@
             var mainView = document.getElementById('mainInterfaceView');
             var hubView = document.getElementById('departmentHubView');
             var moduleView = document.getElementById('moduleSelectionView');
+            var misView = document.getElementById('misSelectionView');
+            var hrmView = document.getElementById('hrmModuleView');
+            if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
+            if (misView) misView.style.setProperty('display', 'none', 'important');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (dashView) dashView.style.setProperty('display', 'none', 'important');
@@ -376,6 +425,7 @@
             resetInactivityTimer();
             sessionStorage.setItem('portal_current_view', 'modules');
             sessionStorage.removeItem('portal_hub_module');
+            sessionStorage.removeItem('mis_pin_verified');
 
             var loginView = document.getElementById('loginView');
             var hubView = document.getElementById('departmentHubView');
@@ -383,7 +433,9 @@
             var mainView = document.getElementById('mainInterfaceView');
             var moduleView = document.getElementById('moduleSelectionView');
             var hrmView = document.getElementById('hrmModuleView');
+            var misView = document.getElementById('misSelectionView');
             if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
+            if (misView) misView.style.setProperty('display', 'none', 'important');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'none', 'important');
@@ -398,6 +450,49 @@
             if (window.location.search && !window.location.search.includes('view=modules')) {
                 try {
                     window.history.replaceState(null, '', window.location.pathname);
+                } catch(e) {}
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * Switch UI to Premium MIS Option Selection Screen (Select Your Option)
+         */
+        function switchToMISSelectionView() {
+            if (typeof isMISPinVerified === 'function' && !isMISPinVerified()) {
+                if (typeof openMISPinSecurityModal === 'function') {
+                    openMISPinSecurityModal();
+                }
+                return;
+            }
+            resetInactivityTimer();
+            sessionStorage.setItem('portal_current_view', 'mis');
+            sessionStorage.removeItem('portal_hub_module');
+
+            var loginView = document.getElementById('loginView');
+            var hubView = document.getElementById('departmentHubView');
+            var dashView = document.getElementById('dashboardView');
+            var mainView = document.getElementById('mainInterfaceView');
+            var moduleView = document.getElementById('moduleSelectionView');
+            var hrmView = document.getElementById('hrmModuleView');
+            var misView = document.getElementById('misSelectionView');
+
+            if (loginView) loginView.style.setProperty('display', 'none', 'important');
+            if (hubView) hubView.style.setProperty('display', 'none', 'important');
+            if (dashView) dashView.style.setProperty('display', 'none', 'important');
+            if (mainView) mainView.style.setProperty('display', 'none', 'important');
+            if (moduleView) moduleView.style.setProperty('display', 'none', 'important');
+            if (hrmView) hrmView.style.setProperty('display', 'none', 'important');
+            if (misView) misView.style.setProperty('display', 'flex', 'important');
+
+            updateNavState('mis');
+            applyViewOnlyStateUI();
+            updateModuleHeaderState();
+
+            if (window.location.search && !window.location.search.includes('view=mis')) {
+                try {
+                    window.history.replaceState(null, '', window.location.pathname + '?view=mis');
                 } catch(e) {}
             }
 
@@ -435,12 +530,14 @@
             var mainView = document.getElementById('mainInterfaceView');
             var moduleView = document.getElementById('moduleSelectionView');
             var hrmView = document.getElementById('hrmModuleView');
+            var misView = document.getElementById('misSelectionView');
 
             if (loginView) loginView.style.setProperty('display', 'none', 'important');
             if (hubView) hubView.style.setProperty('display', 'none', 'important');
             if (dashView) dashView.style.setProperty('display', 'none', 'important');
             if (mainView) mainView.style.setProperty('display', 'none', 'important');
             if (moduleView) moduleView.style.setProperty('display', 'none', 'important');
+            if (misView) misView.style.setProperty('display', 'none', 'important');
             if (hrmView) hrmView.style.setProperty('display', 'flex', 'important');
 
             updateNavState('hrm');
@@ -509,17 +606,266 @@
             toggleModuleProfileDropdown(event);
         }
 
+        // =========================================================================
+        // MIS MODULE — 5-Digit Enterprise Security PIN Verification Controller
+        // PIN: 96420 (Pure keyboard / zero click auto-verification on 5th digit)
+        // =========================================================================
+        const MIS_SECURITY_PIN = "96420";
+
+        function isMISPinVerified() {
+            return sessionStorage.getItem('mis_pin_verified') === 'true';
+        }
+
+        function openMISPinSecurityModal() {
+            const modal = document.getElementById('misPinSecurityModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            clearMISPinInputs();
+            resetMISPinStatus();
+            setTimeout(function() {
+                const first = document.getElementById('misPin0');
+                if (first) {
+                    first.focus();
+                    first.select();
+                }
+            }, 60);
+        }
+
+        function closeMISPinSecurityModal() {
+            const modal = document.getElementById('misPinSecurityModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            clearMISPinInputs();
+            resetMISPinStatus();
+        }
+
+        function clearMISPinInputs() {
+            for (let i = 0; i < 5; i++) {
+                const inp = document.getElementById('misPin' + i);
+                if (inp) {
+                    inp.value = '';
+                    inp.disabled = false;
+                    inp.classList.remove('is-filled', 'is-error', 'is-success');
+                }
+            }
+            const container = document.getElementById('misPinInputsContainer');
+            if (container) {
+                container.classList.remove('error-shake');
+            }
+        }
+
+        function resetMISPinStatus() {
+            const msg = document.getElementById('misPinStatusMsg');
+            if (msg) {
+                msg.textContent = '';
+                msg.className = 'mis-pin-status-msg';
+            }
+        }
+
+        function checkMISPinComplete() {
+            let pin = '';
+            for (let i = 0; i < 5; i++) {
+                const inp = document.getElementById('misPin' + i);
+                if (!inp || !inp.value) return false;
+                pin += inp.value;
+            }
+
+            if (pin.length === 5) {
+                verifyMISPin(pin);
+                return true;
+            }
+            return false;
+        }
+
+        function verifyMISPin(pin) {
+            const container = document.getElementById('misPinInputsContainer');
+            const statusMsg = document.getElementById('misPinStatusMsg');
+            const inputs = document.querySelectorAll('.mis-pin-digit');
+
+            if (pin === MIS_SECURITY_PIN) {
+                // Correct PIN (96420)
+                inputs.forEach(function(inp) {
+                    inp.classList.remove('is-error');
+                    inp.classList.add('is-success');
+                    inp.disabled = true;
+                });
+
+                if (statusMsg) {
+                    statusMsg.textContent = '✓ Access Authorized — Unlocking MIS Module...';
+                    statusMsg.className = 'mis-pin-status-msg is-success';
+                }
+
+                sessionStorage.setItem('mis_pin_verified', 'true');
+
+                if (typeof window.logSystemAudit === 'function') {
+                    try {
+                        window.logSystemAudit({
+                            pageName: 'MIS Module Selection Screen',
+                            actionType: 'Security Gate Passed',
+                            targetItem: 'MIS Module Access Gate',
+                            fieldName: '5-Digit Security PIN',
+                            previousValue: 'Protected Gate',
+                            newValue: 'Access Granted',
+                            description: '5-Digit Security PIN (96420) successfully verified. MIS Interface unlocked.'
+                        });
+                    } catch(err) {}
+                }
+
+                setTimeout(function() {
+                    closeMISPinSecurityModal();
+                    switchToMISSelectionView();
+                }, 260);
+
+            } else {
+                // Incorrect PIN
+                inputs.forEach(function(inp) {
+                    inp.classList.remove('is-success');
+                    inp.classList.add('is-error');
+                });
+
+                if (container) {
+                    container.classList.remove('error-shake');
+                    void container.offsetWidth;
+                    container.classList.add('error-shake');
+                }
+
+                if (statusMsg) {
+                    statusMsg.textContent = '✕ Incorrect Security PIN. Please try again.';
+                    statusMsg.className = 'mis-pin-status-msg is-error';
+                }
+
+                setTimeout(function() {
+                    clearMISPinInputs();
+                    const first = document.getElementById('misPin0');
+                    if (first) {
+                        first.focus();
+                    }
+                }, 450);
+            }
+        }
+
+        function setupMISPinListeners() {
+            const inputs = document.querySelectorAll('.mis-pin-digit');
+            if (!inputs.length) return;
+
+            inputs.forEach(function(input) {
+                const index = parseInt(input.dataset.index, 10);
+
+                input.addEventListener('input', function(e) {
+                    const raw = this.value;
+                    const digit = raw.replace(/\D/g, '').slice(-1);
+                    this.value = digit;
+
+                    if (digit) {
+                        this.classList.add('is-filled');
+                        if (index < 4) {
+                            const next = document.getElementById('misPin' + (index + 1));
+                            if (next) {
+                                next.focus();
+                                next.select();
+                            }
+                        }
+                    } else {
+                        this.classList.remove('is-filled');
+                    }
+
+                    checkMISPinComplete();
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace') {
+                        if (!this.value && index > 0) {
+                            e.preventDefault();
+                            const prev = document.getElementById('misPin' + (index - 1));
+                            if (prev) {
+                                prev.value = '';
+                                prev.classList.remove('is-filled', 'is-error', 'is-success');
+                                prev.focus();
+                            }
+                        } else if (this.value) {
+                            this.value = '';
+                            this.classList.remove('is-filled');
+                            e.preventDefault();
+                        }
+                    } else if (e.key === 'ArrowLeft' && index > 0) {
+                        const prev = document.getElementById('misPin' + (index - 1));
+                        if (prev) prev.focus();
+                    } else if (e.key === 'ArrowRight' && index < 4) {
+                        const next = document.getElementById('misPin' + (index + 1));
+                        if (next) next.focus();
+                    } else if (e.key === 'Escape') {
+                        closeMISPinSecurityModal();
+                    }
+                });
+
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const clipboardData = e.clipboardData || window.clipboardData;
+                    if (!clipboardData) return;
+                    const pastedText = clipboardData.getData('text') || '';
+                    const digits = pastedText.replace(/\D/g, '').slice(0, 5);
+                    if (!digits) return;
+
+                    clearMISPinInputs();
+                    for (let i = 0; i < digits.length; i++) {
+                        const inp = document.getElementById('misPin' + i);
+                        if (inp) {
+                            inp.value = digits[i];
+                            inp.classList.add('is-filled');
+                        }
+                    }
+
+                    if (digits.length < 5) {
+                        const next = document.getElementById('misPin' + digits.length);
+                        if (next) next.focus();
+                    } else {
+                        checkMISPinComplete();
+                    }
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupMISPinListeners);
+        } else {
+            setupMISPinListeners();
+        }
+
         function openModuleMISAction(event) {
             if (event) {
                 try { event.preventDefault(); event.stopPropagation(); } catch(e) {}
             }
-            if (typeof openSettingsModal === 'function') {
-                openSettingsModal();
-                if (typeof switchSettingsTab === 'function') {
-                    switchSettingsTab('access');
-                }
+            if (isMISPinVerified()) {
+                switchToMISSelectionView();
             } else {
-                switchToDepartmentHub();
+                openMISPinSecurityModal();
+            }
+        }
+
+        function toggleMISProfileDropdown(event) {
+            if (event) {
+                try { event.stopPropagation(); } catch(e) {}
+            }
+            const menu = document.getElementById('misProfileDropdownMenu');
+            const btn = document.getElementById('misUserProfileBtn');
+            if (!menu || !btn) return;
+            const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', !isExpanded);
+            btn.classList.toggle('active', !isExpanded);
+            menu.classList.toggle('show', !isExpanded);
+        }
+
+        function closeMISProfileDropdown(event) {
+            if (event) {
+                try { event.stopPropagation(); } catch(e) {}
+            }
+            const menu = document.getElementById('misProfileDropdownMenu');
+            const btn = document.getElementById('misUserProfileBtn');
+            if (menu) menu.classList.remove('show');
+            if (btn) {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-expanded', 'false');
             }
         }
 
@@ -532,18 +878,36 @@
             const dropRole = document.getElementById('moduleProfileDropdownRole');
             const dropId = document.getElementById('moduleProfileDropdownId');
 
+            const misNameEl = document.getElementById('misProfileName');
+            const misRoleEl = document.getElementById('misProfileRole');
+            const misDropTitle = document.getElementById('misProfileDropdownTitle');
+            const misDropRole = document.getElementById('misProfileDropdownRole');
+            const misDropId = document.getElementById('misProfileDropdownId');
+
             if (isViewOnly || role === 'VIEW') {
                 if (nameEl) nameEl.textContent = "View User";
                 if (roleEl) roleEl.textContent = "Restricted Access";
                 if (dropTitle) dropTitle.textContent = "View User";
                 if (dropRole) dropRole.textContent = "Restricted Access";
                 if (dropId) dropId.textContent = "VIEW-01";
+
+                if (misNameEl) misNameEl.textContent = "View User";
+                if (misRoleEl) misRoleEl.textContent = "Restricted Access";
+                if (misDropTitle) misDropTitle.textContent = "View User";
+                if (misDropRole) misDropRole.textContent = "Restricted Access";
+                if (misDropId) misDropId.textContent = "VIEW-01";
             } else {
                 if (nameEl) nameEl.textContent = "Sayful Islam";
                 if (roleEl) roleEl.textContent = "Senior Supervisor";
                 if (dropTitle) dropTitle.textContent = "Sayful Islam";
                 if (dropRole) dropRole.textContent = "Senior Supervisor";
                 if (dropId) dropId.textContent = "10676";
+
+                if (misNameEl) misNameEl.textContent = "Sayful Islam";
+                if (misRoleEl) misRoleEl.textContent = "Senior Supervisor";
+                if (misDropTitle) misDropTitle.textContent = "Sayful Islam";
+                if (misDropRole) misDropRole.textContent = "Senior Supervisor";
+                if (misDropId) misDropId.textContent = "10676";
             }
         }
 
@@ -870,6 +1234,7 @@
             sessionStorage.removeItem('portal_auth_sig');
             sessionStorage.removeItem('portal_current_view');
             sessionStorage.removeItem('portal_hub_module');
+            sessionStorage.removeItem('mis_pin_verified');
 
             localStorage.removeItem(STORAGE_KEYS.isAuthenticated);
             localStorage.removeItem(STORAGE_KEYS.lastActivity);
@@ -878,6 +1243,7 @@
             localStorage.removeItem('portal_auth_sig');
             localStorage.removeItem('portal_current_view');
             localStorage.removeItem('portal_hub_module');
+            localStorage.removeItem('mis_pin_verified');
 
             // Broadcast logout event across all open tabs immediately
             localStorage.setItem('portal_logout_broadcast', Date.now().toString());
@@ -935,6 +1301,15 @@
                         login.style.setProperty('display', 'flex', 'important');
                     }
                 }
+
+                // MIS Module Route Guard: Prevent unhiding misSelectionView without PIN verification
+                var misEl = document.getElementById('misSelectionView');
+                if (misEl && misEl.style.display !== 'none' && !isMISPinVerified()) {
+                    misEl.style.setProperty('display', 'none', 'important');
+                    if (isAuth && typeof openMISPinSecurityModal === 'function') {
+                        openMISPinSecurityModal();
+                    }
+                }
             });
 
             targets.forEach(function(id) {
@@ -946,6 +1321,10 @@
             var login = document.getElementById('loginView');
             if (login) {
                 observer.observe(login, { attributes: true, attributeFilter: ['style', 'class'] });
+            }
+            var misView = document.getElementById('misSelectionView');
+            if (misView) {
+                observer.observe(misView, { attributes: true, attributeFilter: ['style', 'class'] });
             }
         }
 
@@ -994,6 +1373,15 @@ window.closeModuleProfileDropdown = closeModuleProfileDropdown;
 window.openModuleNotice = openModuleNotice;
 window.openModuleUserAction = openModuleUserAction;
 window.openModuleMISAction = openModuleMISAction;
+window.switchToMISSelectionView = switchToMISSelectionView;
+window.toggleMISProfileDropdown = toggleMISProfileDropdown;
+window.closeMISProfileDropdown = closeMISProfileDropdown;
 window.updateModuleHeaderState = updateModuleHeaderState;
+window.MIS_SECURITY_PIN = MIS_SECURITY_PIN;
+window.isMISPinVerified = isMISPinVerified;
+window.openMISPinSecurityModal = openMISPinSecurityModal;
+window.closeMISPinSecurityModal = closeMISPinSecurityModal;
+window.verifyMISPin = verifyMISPin;
+window.clearMISPinInputs = clearMISPinInputs;
 
 
